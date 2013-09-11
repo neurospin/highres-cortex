@@ -49,9 +49,11 @@ public:
       - a vector field value is encountered that is too close to zero, or
         infinite, or NaN.
    */
-  int16_t ascend_until_nonzero(const Point3df &start_point,
-                               const carto::VolumeRef<int16_t> &seeds,
-                               int16_t ignore_label) const;
+  template<typename Tlabel>
+  Tlabel
+  ascend_until_nonzero(const Point3df &start_point,
+                       const carto::VolumeRef<Tlabel> &seeds,
+                       Tlabel ignore_label) const;
 
   /** Propagate labelled regions down a vector field.
 
@@ -65,11 +67,12 @@ public:
         An optional \a target_label can be given, in which case the propagation
         is started only from thus labelled voxels.
    */
-  carto::VolumeRef<int16_t>
-  propagate_regions(const carto::VolumeRef<int16_t> &seeds,
-                    int16_t target_label=0) const;
+  template<typename Tlabel>
+  carto::VolumeRef<Tlabel>
+  propagate_regions(const carto::VolumeRef<Tlabel> &seeds,
+                    Tlabel target_label=0) const;
 
-  static const float default_step = 0.05f;
+  static const float default_step = 0.1f;
   static const unsigned int default_max_iter = 1000;
 
 private:
