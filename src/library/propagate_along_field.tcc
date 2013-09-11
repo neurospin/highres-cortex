@@ -15,7 +15,7 @@ ascend_until_nonzero(const Point3df &start_point,
                      const VolumeRef<Tlabel> &seeds,
                      const Tlabel ignore_label) const
 {
-  if(debug_output >= 2 && m_verbose) {
+  if(debug_output >= 3 && m_verbose >= 3) {
     clog << "    ascend_until_nonzero at " << start_point << endl;
   }
 
@@ -38,7 +38,7 @@ ascend_until_nonzero(const Point3df &start_point,
     if(iz < 0 || iz >= size_z) return 0;
 
     const Tlabel seed_value = seeds(ix, iy, iz);
-    if(debug_output >= 2 && m_verbose) {
+    if(debug_output >= 4 && m_verbose >= 4) {
       clog << "      iteration " << iter << " at " << current_point
            << ", seed_value = " << seed_value << endl;
     }
@@ -62,7 +62,7 @@ ascend_until_nonzero(const Point3df &start_point,
     current_point[2] = zp + m_step * gz;
   }
 
-  if(m_verbose) {
+  if(m_verbose >= 2) {
     clog << "    ascension at " << start_point << " aborted after "
          << iter << " iterations" << endl;
   }
@@ -83,7 +83,7 @@ propagate_regions(const VolumeRef<Tlabel> &seeds,
 
   if(m_verbose) {
     clog << "yl::PropagateAlongField::propagate_regions:\n"
-         << "  maximum propagation distance: " << m_step * m_max_iter
+            "  maximum propagation distance: " << m_step * m_max_iter
          << " mm." << endl;
   }
 
@@ -115,6 +115,13 @@ propagate_regions(const VolumeRef<Tlabel> &seeds,
         ++n_lost;
       }
     }
+  }
+
+  if(m_verbose) {
+    clog << "End of yl::PropagateAlongField::propagate_regions: "
+         << n_propagated << " propagated, "
+         << n_dead_end << " dead-end, "
+         << n_lost << " lost."<< endl;
   }
 
   return regions;

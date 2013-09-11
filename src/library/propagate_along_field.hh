@@ -11,8 +11,7 @@ namespace yl
   /** Propagate labels along a vector field.
 
       From a given starting point, the field is followed in fixed-size steps
-      (see setStep()) until a seed is reached, or the maximum number of
-      iterations is exceeded (see maxIter()).
+      until a seed is reached, or the maximum number of iterations is exceeded.
    */
 class PropagateAlongField
 {
@@ -24,12 +23,21 @@ public:
                       const carto::VolumeRef<float> &fieldz);
   virtual ~PropagateAlongField();
 
-  void setVerbose(bool = true);
+  /** Indicate progress on stderr.
+
+      - 0: be silent
+      - 1: show progress and statistics
+      - 2: show aborted field ascensions
+      - more: for debugging, see source code and #debug_output.
+   */
+  void setVerbose(int = 1);
+
   /** Move in steps of the specified size (millimetres).
 
       The default step size is #default_step.
    */
   void setStep(float);
+
   /** Abort following the gradient after a number of iterations.
 
       This is to prevent infinite looping when the propagation falls in a local
@@ -83,7 +91,9 @@ private:
   float m_invsize_x, m_invsize_y, m_invsize_z;
   unsigned int m_max_iter;
   float m_step;
-  bool m_verbose;
+  int m_verbose;
+
+  static const int debug_output = 0;
 };
 
 };

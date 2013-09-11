@@ -7,9 +7,6 @@ using carto::VolumeRef;
 using std::clog;
 using std::endl;
 
-namespace {
-  const int debug_output = 0;
-}
 
 yl::PropagateAlongField::
 PropagateAlongField(const VolumeRef<float> &fieldx,
@@ -38,9 +35,9 @@ yl::PropagateAlongField::~PropagateAlongField()
 }
 
 void
-yl::PropagateAlongField::setVerbose(bool verbose)
+yl::PropagateAlongField::setVerbose(int verbosity)
 {
-  m_verbose = verbose;
+  m_verbose = verbosity;
 }
 
 void
