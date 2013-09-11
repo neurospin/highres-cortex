@@ -5,6 +5,8 @@
 #include <cartobase/config/verbose.h>
 #include <cartodata/volume/volume.h>
 #include <aims/getopt/getopt2.h>
+#include <aims/io/process.h>
+#include <aims/io/finder.h>
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
 
@@ -16,46 +18,136 @@ using carto::VolumeRef;
 using carto::verbose;
 
 
+// Anonymous namespace for file-local symbols
+namespace
+{
+
+std::string program_name;
+
+class PropagateAlongFieldProcess : public aims::Process
+{
+public:
+  PropagateAlongFieldProcess();
+
+  aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
+  int32_t target_label;
+  float step;
+  unsigned int max_iter;
+  std::string output_filename;
+};
+
+template<typename Tlabel>
+bool doit(aims::Process& proc_base,
+          const std::string &seeds_filename,
+          aims::Finder &finder)
+{
+  PropagateAlongFieldProcess &proc =
+    dynamic_cast<PropagateAlongFieldProcess&>(proc_base);
+  if(verbose) clog << program_name << ": reading field..." << endl;
+  VolumeRef<float> fieldx, fieldy, fieldz;
+  proc.fieldx_reader.read(fieldx);
+  proc.fieldy_reader.read(fieldy);
+  proc.fieldz_reader.read(fieldz);
+  if(fieldx.getSizeX() != fieldy.getSizeX() ||
+     fieldx.getSizeX() != fieldz.getSizeX() ||
+     fieldx.getSizeY() != fieldy.getSizeY() ||
+     fieldx.getSizeY() != fieldz.getSizeY() ||
+     fieldx.getSizeZ() != fieldy.getSizeZ() ||
+     fieldx.getSizeZ() != fieldz.getSizeZ()) {
+    clog << program_name << ": the sizes of the field volumes do not match"
+         << endl;
+    return false;
+  }
+
+  VolumeRef<Tlabel> seeds;
+  {
+    if(verbose) clog << program_name << ": reading seeds..." << endl;
+    aims::Reader<VolumeRef<Tlabel> > seeds_reader(seeds_filename);
+    seeds_reader.read(seeds);
+  }
+
+  if(seeds.getSizeX() != fieldx.getSizeX() ||
+     seeds.getSizeY() != fieldx.getSizeY() ||
+     seeds.getSizeZ() != fieldx.getSizeZ()) {
+    clog << program_name << ": the size of the seed volume does not match "
+      "the size of the field" << endl;
+    return false;
+  }
+
+  yl::PropagateAlongField propagator(fieldx, fieldy, fieldz);
+  propagator.setVerbose(verbose);
+  propagator.setStep(proc.step);
+  propagator.setMaxIter(proc.max_iter);
+
+  Tlabel target_label = static_cast<Tlabel>(proc.target_label);
+  if(target_label != proc.target_label) {
+    clog << program_name << ": --target-label value is out of the range "
+      "permitted by the label data type " << finder.dataType() << endl;
+    return false;
+  }
+
+  VolumeRef<Tlabel> regions =
+    propagator.propagate_regions(seeds, target_label);
+
+  {
+    if(verbose) clog << program_name << ": writing output "
+                     << proc.output_filename << " as Volume of "
+                     << finder.dataType() << "..." << endl;
+    aims::Writer<VolumeRef<Tlabel> > writer(proc.output_filename);
+    return writer.write(regions);
+  }
+};
+
+PropagateAlongFieldProcess::PropagateAlongFieldProcess()
+  : target_label(0),
+    step(yl::PropagateAlongField::default_step),
+    max_iter(yl::PropagateAlongField::default_max_iter)
+{
+  registerProcessType("Volume", "S16", doit<int16_t>);
+  registerProcessType("Volume", "S32", doit<int32_t>);
+};
+
+} // End of anonymous namespace
+
+
 int main(const int argc, const char **argv)
 {
   // Initialize command-line option parsing
-  aims::Reader<VolumeRef<int16_t> > seeds_reader;
-  aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
-  aims::Writer<VolumeRef<int16_t> > regions_writer;
-  float step = yl::PropagateAlongField::default_step;
-  unsigned int max_iter = yl::PropagateAlongField::default_max_iter;
-  int16_t target_label = 0;
+  PropagateAlongFieldProcess proc;
+  std::string seeds_filename;
 
+  program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-                            "Propagate regions down a vector field\n"
+"Propagate regions down a vector field\n"
 "\n"
 "From all voxels of the seed volume that have the target label, the field\n"
 "is followed in fixed-size steps until a seed is reached, or the maximum\n"
 "number of iterations is exceeded.");
-  app.addOption(seeds_reader, "--seeds",
-                "volume of seeds: \n"
-                "- positive labels are seeds, \n"
-                "- zero is the region of propagation, \n"
+  app.addOption(seeds_filename, "--seeds",
+                "volume of labels (either S16 or S32):\n"
+                "- positive labels are seeds,\n"
+                "- zero is the region of propagation,\n"
                 "- negative labels are forbidden regions.");
-  app.addOption(fieldx_reader, "--fieldx", "x component of vector field");
-  app.addOption(fieldy_reader, "--fieldy", "y component of vector field");
-  app.addOption(fieldz_reader, "--fieldz", "z component of vector field");
-  app.addOption(target_label, "--target-label",
-                "only voxels with this label are used as starting points"
+  app.addOption(proc.fieldx_reader, "--fieldx", "x component of vector field");
+  app.addOption(proc.fieldy_reader, "--fieldy", "y component of vector field");
+  app.addOption(proc.fieldz_reader, "--fieldz", "z component of vector field");
+  app.addOption(proc.target_label, "--target-label",
+                "voxels having this label are used as starting points "
                 "[default: 0]", true);
   {
     std::ostringstream help_str;
     help_str << "move in steps this big (millimetres) [default: "
-             << step << "]";
-    app.addOption(step, "--step", help_str.str(), true);
+             << proc.step << "]";
+    app.addOption(proc.step, "--step", help_str.str(), true);
   }
   {
     std::ostringstream help_str;
     help_str << "abort after so many iterations [default: "
-             << max_iter << "]";
-    app.addOption(max_iter, "--max-iter", help_str.str(), true);
+             << proc.max_iter << "]";
+    app.addOption(proc.max_iter, "--max-iter", help_str.str(), true);
   }
-  app.addOption(regions_writer, "--output", "output the propagated regions");
+  app.addOption(proc.output_filename, "--output",
+                "output the propagated regions");
 
 
   // Process command-line options
@@ -70,49 +162,11 @@ int main(const int argc, const char **argv)
   }
   catch(const std::runtime_error &e)
   {
-    clog << argv[0] << ": error processing command-line options: "
+    clog << program_name << ": error processing command-line options: "
          << e.what() << endl;
     return EXIT_FAILURE;
   }
 
-  if(verbose) clog << argv[0] << ": reading field..." << endl;
-  VolumeRef<float> fieldx, fieldy, fieldz;
-  fieldx_reader.read(fieldx);
-  fieldy_reader.read(fieldy);
-  fieldz_reader.read(fieldz);
-  if(fieldx.getSizeX() != fieldy.getSizeX() ||
-     fieldx.getSizeX() != fieldz.getSizeX() ||
-     fieldx.getSizeY() != fieldy.getSizeY() ||
-     fieldx.getSizeY() != fieldz.getSizeY() ||
-     fieldx.getSizeZ() != fieldy.getSizeZ() ||
-     fieldx.getSizeZ() != fieldz.getSizeZ()) {
-    clog << argv[0] << ": the sizes of the field volumes do not match"
-         << endl;
-    return EXIT_FAILURE;
-  }
-
-  if(verbose) clog << argv[0] << ": reading seeds..." << endl;
-  VolumeRef<int16_t> seeds;
-  seeds_reader.read(seeds);
-
-  if(seeds.getSizeX() != fieldx.getSizeX() ||
-     seeds.getSizeY() != fieldx.getSizeY() ||
-     seeds.getSizeZ() != fieldx.getSizeZ()) {
-    clog << argv[0] << ": the size of the seed volume does not match "
-      "the size of the field" << endl;
-    return EXIT_FAILURE;
-  }
-
-  yl::PropagateAlongField propagator(fieldx, fieldy, fieldz);
-  propagator.setVerbose(verbose);
-  propagator.setStep(step);
-  propagator.setMaxIter(max_iter);
-
-  VolumeRef<int16_t> regions =
-    propagator.propagate_regions(seeds, target_label);
-
-  if(verbose) clog << argv[0] << ": writing output..." << endl;
-  regions_writer.write(regions);
-
-  return EXIT_SUCCESS;
+  bool success = proc.execute(seeds_filename);
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
