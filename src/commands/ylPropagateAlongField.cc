@@ -10,7 +10,10 @@
 
 #include <yleprince/propagate_along_field.hh>
 
+using std::clog;
+using std::endl;
 using carto::VolumeRef;
+using carto::verbose;
 
 
 int main(const int argc, const char **argv)
@@ -67,41 +70,48 @@ int main(const int argc, const char **argv)
   }
   catch(const std::runtime_error &e)
   {
-    std::clog << argv[0] << ": error processing command-line options: "
-              << e.what() << std::endl;
+    clog << argv[0] << ": error processing command-line options: "
+         << e.what() << endl;
     return EXIT_FAILURE;
   }
 
+  if(verbose) clog << argv[0] << ": reading field..." << endl;
   VolumeRef<float> fieldx, fieldy, fieldz;
   fieldx_reader.read(fieldx);
   fieldy_reader.read(fieldy);
   fieldz_reader.read(fieldz);
-
-  VolumeRef<int16_t> seeds;
-  seeds_reader.read(seeds);
-
   if(fieldx.getSizeX() != fieldy.getSizeX() ||
      fieldx.getSizeX() != fieldz.getSizeX() ||
      fieldx.getSizeY() != fieldy.getSizeY() ||
      fieldx.getSizeY() != fieldz.getSizeY() ||
      fieldx.getSizeZ() != fieldy.getSizeZ() ||
      fieldx.getSizeZ() != fieldz.getSizeZ()) {
-    std::clog << argv[0] << ": the sizes of the field volumes do not match"
-              << std::endl;
+    clog << argv[0] << ": the sizes of the field volumes do not match"
+         << endl;
     return EXIT_FAILURE;
   }
+
+  if(verbose) clog << argv[0] << ": reading seeds..." << endl;
+  VolumeRef<int16_t> seeds;
+  seeds_reader.read(seeds);
 
   if(seeds.getSizeX() != fieldx.getSizeX() ||
      seeds.getSizeY() != fieldx.getSizeY() ||
      seeds.getSizeZ() != fieldx.getSizeZ()) {
-    std::clog << argv[0] << ": the size of the seed volume does not match "
-      "the size of the field volumes" << std::endl;
+    clog << argv[0] << ": the size of the seed volume does not match "
+      "the size of the field" << endl;
     return EXIT_FAILURE;
   }
 
   yl::PropagateAlongField propagator(fieldx, fieldy, fieldz);
-  VolumeRef<int16_t> regions = propagator.propagate_regions(seeds);
+  propagator.setVerbose(verbose);
+  propagator.setStep(step);
+  propagator.setMaxIter(max_iter);
 
+  VolumeRef<int16_t> regions =
+    propagator.propagate_regions(seeds, target_label);
+
+  if(verbose) clog << argv[0] << ": writing output..." << endl;
   regions_writer.write(regions);
 
   return EXIT_SUCCESS;

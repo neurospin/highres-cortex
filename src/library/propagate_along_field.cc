@@ -9,7 +9,7 @@ using std::clog;
 using std::endl;
 
 namespace {
-  const int debug_output = 1;
+  const int debug_output = 0;
 }
 
 yl::PropagateAlongField::
