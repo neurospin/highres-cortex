@@ -105,7 +105,7 @@ propagate_regions(const VolumeRef<Tlabel> &seeds,
                            y * m_voxel_size_x,
                            z * m_voxel_size_x);
       Tlabel result = ascend_until_nonzero(point, seeds,
-                                            target_label);
+                                           target_label);
       if(result > 0) {
         regions(x, y, z) = result;
         ++n_propagated;

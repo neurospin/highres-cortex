@@ -25,22 +25,19 @@ def fastmarching_negative(classif_vol,
     # for negative distances. 6-connectivity is used for the boundary so that
     # the distance gradient is continuous across this boundary.
     np_classif = np.asarray(classif_vol)
-    fm = aims.FastMarching_Volume_S16_6c()
+    fm = aims.FastMarching("6")
     fm.setVerbose(verbose)
     dist = fm.doit(classif_vol, propagation_labels, seed_labels)
     np_dist = np.asarray(dist)
     np_classif[np_dist == 0] = border_label
 
     # The connectivity does not seem to matter here
-    fm = aims.FastMarching_Volume_S16_6c()
+    fm = aims.FastMarching("6")
     fm.setVerbose(verbose)
     dist_neg = fm.doit(classif_vol, seed_labels,
                        list(propagation_labels) + [border_label])
     np_dist_neg = np.asarray(dist_neg)
     mask = (np_dist == FLT_MAX)
     np_dist[mask] = -np_dist_neg[mask]
-
-    if len(seed_labels) == 1:
-        print(np.any(np_classif[np_dist_neg == 0] == seed_labels[0]))
 
     return dist

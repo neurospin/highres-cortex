@@ -65,7 +65,7 @@ public:
 
   /** Propagate labelled regions down a vector field.
 
-      The labels are intereted as follows:
+      The labels are interpreted as follows:
       - zero: propagation zone,
       - positive: seed, propagation is stopped and the target voxel is given
         the seed's value (except if the label is \a target_label),
