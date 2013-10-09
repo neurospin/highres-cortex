@@ -3,7 +3,7 @@ namespace yl
 
 template <typename Tlabel>
 LabelVolume<Tlabel>::
-LabelVolume(const carto::Volume<Tlabel> &vol,
+LabelVolume(const carto::VolumeRef<Tlabel> &vol,
             Tlabel background)
   : m_background(background), m_volume(vol), m_bucketmap()
 {
@@ -28,18 +28,16 @@ merge_regions(Tlabel eating_label, Tlabel eaten_label)
 {
   const BucketMap::iterator eating_bucket_it = m_bucketmap.find(eating_label);
   BucketMap::iterator eaten_bucket_it = m_bucketmap.find(eaten_label);
-  {
-    const BucketMap::iterator not_found = m_bucketmap.end();
-    if(eating_bucket_it == not_found || eaten_bucket_it == not_found)
-      throw std::runtime_error("yl::LabelVolume::merge_regions: "
-                               "no such region");
-  }
+
+  assert(eating_bucket_it != m_bucketmap.end());
+  assert(eaten_bucket_it != m_bucketmap.end());
 
   Bucket & eating_bucket = eating_bucket_it->second;
   Bucket & eaten_bucket = eaten_bucket_it->second;
 
-  const Bucket::iterator point_it_end = eaten_bucket.end();
-  for(Bucket::iterator point_it = eaten_bucket.begin();
+  for(Bucket::iterator
+        point_it = eaten_bucket.begin(),
+        point_it_end = eaten_bucket.end();
       point_it != point_it_end;
       ++point_it) {
     const Point3d & point = point_it->first;

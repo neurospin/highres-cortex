@@ -1,8 +1,8 @@
 #ifndef YL_LABEL_VOLUME_HH_INCLUDED
 #define YL_LABEL_VOLUME_HH_INCLUDED
 
+#include <cassert>
 #include <functional>
-#include <stdexcept>
 #include <boost/iterator/transform_iterator.hpp>
 
 #include <cartodata/volume/volume.h>
@@ -15,6 +15,7 @@ namespace yl
 template<typename TPair>
 class select1st : public std::unary_function<TPair, typename TPair::first_type>
 {
+public:
   typename TPair::first_type&
   operator()(TPair& pair) const
   {
@@ -36,43 +37,74 @@ public:
   typedef aims::BucketMap<Void> BucketMap;
   typedef BucketMap::Bucket Bucket;
 
+  typedef boost::transform_iterator<select1st<BucketMap::value_type>,
+                                    BucketMap::const_iterator> const_regions_iterator;
   /** Iterator through a Bucket's points (yields Point3d) */
   typedef boost::transform_iterator<select1st<Bucket::value_type>,
                                     Bucket::const_iterator> const_point_iterator;
 
-  LabelVolume(const carto::Volume<Tlabel> &vol, Tlabel background = 0);
+  LabelVolume(const carto::VolumeRef<Tlabel> &vol, Tlabel background = 0);
   virtual ~LabelVolume() {};
 
   void merge_regions(Tlabel eating_label, Tlabel eaten_label);
-  void change_voxel_label(const Point3d &point, Tlabel new_label);
+
+  Tlabel background_label() const
+  {
+    return m_background;
+  }
+
+  const carto::VolumeRef<Tlabel>& volume() const
+  {
+    return m_volume;
+  }
+
+  BucketMap::size_type n_regions() const
+  {
+    return m_bucketmap.size();
+  }
+
+  /** Iterate through all region labels */
+  const_regions_iterator regions_begin() const
+  {
+    return const_regions_iterator(m_bucketmap.begin(),
+                                  select1st<BucketMap::value_type>());
+  };
+
+  /** Iterate through all region labels */
+  const_regions_iterator regions_end() const
+  {
+    return const_regions_iterator(m_bucketmap.end(),
+                                  select1st<BucketMap::value_type>());
+  };
+
+  BucketMap::size_type region_size(Tlabel label) const
+  {
+    const BucketMap::const_iterator region_bucket_it = m_bucketmap.find(label);
+    assert(region_bucket_it != m_bucketmap.end());
+    return region_bucket_it->second.size();
+  };
 
   /** Iterate through the coordinates of a region's voxels */
   const_point_iterator region_begin(Tlabel label) const
   {
     const BucketMap::const_iterator region_bucket_it = m_bucketmap.find(label);
-    if(region_bucket_it == m_bucketmap.end())
-      throw std::runtime_error("yl::LabelVolume::region_begin: "
-                               "no such region");
-    else
-      return const_point_iterator(region_bucket_it->second.begin(),
-                                  select1st<Bucket::value_type>());
+    assert(region_bucket_it != m_bucketmap.end());
+    return const_point_iterator(region_bucket_it->second.begin(),
+                                select1st<Bucket::value_type>());
   };
 
   /** Iterate through the coordinates of a region's voxels */
   const_point_iterator region_end(Tlabel label) const
   {
     const BucketMap::const_iterator region_bucket_it = m_bucketmap.find(label);
-    if(region_bucket_it == m_bucketmap.end())
-      throw std::runtime_error("yl::LabelVolume::region_end: "
-                               "no such region");
-    else
-      return const_point_iterator(region_bucket_it->second.end(),
-                                  select1st<Bucket::value_type>());
+    assert(region_bucket_it != m_bucketmap.end());
+    return const_point_iterator(region_bucket_it->second.end(),
+                                select1st<Bucket::value_type>());
   };
 
 private:
-  Tlabel m_background;
-  carto::Volume<Tlabel> m_volume;
+  const Tlabel m_background;
+  carto::VolumeRef<Tlabel> m_volume;
   aims::BucketMap<Void> m_bucketmap;
 }; // class LabelVolume
 
