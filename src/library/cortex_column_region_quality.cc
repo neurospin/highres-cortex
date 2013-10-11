@@ -13,4 +13,7 @@ CortexColumnRegionQuality(const VolumeRef<float>& distmap_from_CSF,
 #include <yleprince/cortex_column_region_quality.tcc>
 
 template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
+  const LabelVolume<int32_t>&, int32_t) const;
+
+template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
   const LabelVolume<int32_t>&, int32_t, int32_t) const;

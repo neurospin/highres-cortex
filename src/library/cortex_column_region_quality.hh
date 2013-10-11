@@ -18,19 +18,15 @@ public:
 
   template <typename Tlabel>
   float evaluate(const LabelVolume<Tlabel>&, Tlabel, Tlabel) const;
+
+  template <class PointIterator>
+  inline float evaluate(const PointIterator& point_it_begin,
+                        const PointIterator& point_it_end) const;
+
 private:
   carto::VolumeRef<float> m_distmap_from_CSF;
   carto::VolumeRef<float> m_distmap_from_white;
 }; // class CortexColumnRegionQuality
-
-
-template <typename Tlabel>
-inline float CortexColumnRegionQuality::
-evaluate(const LabelVolume<Tlabel>& label_vol, const Tlabel label) const
-{
-  return evaluate(label_vol, label, label);
-}
-
 
 }; // namespace yl
 

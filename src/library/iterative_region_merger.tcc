@@ -35,12 +35,10 @@ public:
     // Ensure reciprocity of the neighbourhood relationship
     std::for_each(m_neighbours.begin(), m_neighbours.end(),
                   std::bind2nd(std::mem_fun(&Region::add_forward_neighbour), this));
-    std::clog << "RegionDup" << m_label << std::endl;
   }
 
   virtual ~Region()
   {
-    std::clog << "RegionDel" << m_label << std::endl;
     // Remove this disappearing node from the neighbourhood of its neighbours
     // (prevent broken edges in the region neighbourhood graph)
     std::for_each(m_neighbours.begin(), m_neighbours.end(),
@@ -251,6 +249,10 @@ merge_worst_regions_iteratively()
     }
   }
 
+  if(m_verbosity) {
+    std::clog << "  iteratively merging regions..." << std::endl;
+  }
+
   // Iteratively merge the worst region with one of its neighbours, until no
   // region can be improved further by merging a neighbour.
   while(!queue.empty())
@@ -326,8 +328,8 @@ merge_worst_regions_iteratively()
       // heap!
       queue.pop();
 
-      best_neighbour_region.update_quality(
-        m_criterion.evaluate(m_label_volume, best_neighbour_label));
+      assert(m_criterion.evaluate(m_label_volume, best_neighbour_label) == best_quality);
+      best_neighbour_region.update_quality(best_quality);
       queue.update(best_neighbour_region.handle());
     } else {
       if(m_verbosity >= 3) {
