@@ -13,6 +13,15 @@ namespace
 
 const int debug_output = 0;
 
+inline bool approx_equal(float x, float y)
+{
+  float absmax = std::max(std::abs(x), std::abs(y));
+  if(std::isnormal(absmax))
+    return std::abs(x - y) / absmax < 1e-3f;
+  else
+    return x == y;
+}
+
 template <typename Tlabel>
 class Region
 {
@@ -280,7 +289,8 @@ merge_worst_regions_iteratively()
       }
       std::cerr << std::endl;
     }
-    assert(best_quality == m_criterion.evaluate(m_label_volume, worst_label));
+    assert(approx_equal(m_criterion.evaluate(m_label_volume, worst_label),
+                        best_quality));
 
     for(typename Region<Tlabel>::neighbour_iterator
           neighbour_it = worst_region.neighbours_begin(),
@@ -328,7 +338,8 @@ merge_worst_regions_iteratively()
       // heap!
       queue.pop();
 
-      assert(m_criterion.evaluate(m_label_volume, best_neighbour_label) == best_quality);
+      assert(approx_equal(m_criterion.evaluate(m_label_volume, best_neighbour_label),
+                          best_quality));
       best_neighbour_region.update_quality(best_quality);
       queue.update(best_neighbour_region.handle());
     } else {

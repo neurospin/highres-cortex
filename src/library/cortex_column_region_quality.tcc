@@ -135,8 +135,6 @@ evaluate(const PointIterator& point_it_begin,
   assert(std::isnormal(min_dist_CSF));
   assert(std::isnormal(min_dist_white));
 
-  std::clog << "RegSize" << region_size << std::endl;
-
   return region_size_criterion(region_size)
     * proximity_to_border_criterion(min_dist_CSF)
     * proximity_to_border_criterion(min_dist_white)
