@@ -80,6 +80,20 @@ public:
   propagate_regions(const carto::VolumeRef<Tlabel> &seeds,
                     Tlabel target_label=0) const;
 
+  /** Propagate regions, keeping track of the provenance of each voxel.
+
+      \see propagate_regions()
+
+      The second output volume is the same size as the input \a seeds volume, except
+      is has 3 time points which represent x, y, and z coordinates of the point
+      of origin, respectively.
+   */
+  template<typename Tlabel>
+  std::pair<carto::VolumeRef<Tlabel>, carto::VolumeRef<float> >
+  propagate_regions_keeping_dests(const carto::VolumeRef<Tlabel> &seeds,
+                                  Tlabel target_label=0) const;
+
+
   static const float default_step = 0.1f;
   static const unsigned int default_max_iter = 1000;
 
@@ -94,6 +108,26 @@ private:
   int m_verbose;
 
   static const int debug_output = 0;
+
+  template <template <typename> class ResultChooserTemplate, typename Tlabel>
+  typename ResultChooserTemplate<Tlabel>::result_type
+  internal_ascension(const Point3df &start_point,
+                     const carto::VolumeRef<Tlabel> &seeds,
+                     Tlabel ignore_label,
+                     const ResultChooserTemplate<Tlabel>& result_chooser) const;
+
+  template <class ResultChooser, typename Tlabel>
+  typename ResultChooser::result_type
+  internal_ascension(const Point3df &start_point,
+                     const carto::VolumeRef<Tlabel> &seeds,
+                     Tlabel ignore_label,
+                     const ResultChooser& result_chooser) const;
+
+  template<class ResultRecorder, typename Tlabel>
+  void
+  internal_propagation(const carto::VolumeRef<Tlabel> &seeds,
+                       const Tlabel target_label,
+                       ResultRecorder& result_recorder) const;
 };
 
 };

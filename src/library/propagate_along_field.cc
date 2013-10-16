@@ -67,6 +67,12 @@ yl::PropagateAlongField::propagate_regions<int16_t>(
     const carto::VolumeRef<int16_t> &seeds,
     int16_t target_label=0
 ) const;
+template
+std::pair<carto::VolumeRef<int16_t>, carto::VolumeRef<float> >
+yl::PropagateAlongField::propagate_regions_keeping_dests<int16_t>(
+    const carto::VolumeRef<int16_t> &seeds,
+    int16_t target_label=0
+) const;
 
 template
 int32_t yl::PropagateAlongField::ascend_until_nonzero<int32_t>(
@@ -77,6 +83,12 @@ int32_t yl::PropagateAlongField::ascend_until_nonzero<int32_t>(
 template
 carto::VolumeRef<int32_t>
 yl::PropagateAlongField::propagate_regions<int32_t>(
+    const carto::VolumeRef<int32_t> &seeds,
+    int32_t target_label=0
+) const;
+template
+std::pair<carto::VolumeRef<int32_t>, carto::VolumeRef<float> >
+yl::PropagateAlongField::propagate_regions_keeping_dests<int32_t>(
     const carto::VolumeRef<int32_t> &seeds,
     int32_t target_label=0
 ) const;

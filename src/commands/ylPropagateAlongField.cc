@@ -24,16 +24,16 @@ namespace
 
 std::string program_name;
 
-class PropagateAlongFieldProcess : public aims::Process
+struct PropagateAlongFieldProcess : public aims::Process
 {
-public:
   PropagateAlongFieldProcess();
 
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   int32_t target_label;
   float step;
   unsigned int max_iter;
-  std::string output_filename;
+  std::string output_regions_filename;
+  aims::Writer<VolumeRef<float> > output_points_writer;
 };
 
 template<typename Tlabel>
@@ -86,16 +86,33 @@ bool doit(aims::Process& proc_base,
     return false;
   }
 
-  VolumeRef<Tlabel> regions =
-    propagator.propagate_regions(seeds, target_label);
+  VolumeRef<Tlabel> regions;
+  VolumeRef<float> points;
 
-  {
-    if(verbose) clog << program_name << ": writing output "
-                     << proc.output_filename << " as Volume of "
-                     << finder.dataType() << "..." << endl;
-    aims::Writer<VolumeRef<Tlabel> > writer(proc.output_filename);
-    return writer.write(regions);
+  if(!proc.output_points_writer.fileName().empty()) {
+    std::pair<VolumeRef<Tlabel>, VolumeRef<float> > outputs =
+      propagator.propagate_regions_keeping_dests(seeds, target_label);
+    regions = outputs.first;
+    points = outputs.second;
+  } else {
+    regions = propagator.propagate_regions(seeds, target_label);
   }
+
+  bool success = true;
+  if(!regions.isNull()) {
+    if(verbose) clog << program_name << ": writing output regions "
+                     << proc.output_regions_filename << " as Volume of "
+                     << finder.dataType() << "..." << endl;
+    aims::Writer<VolumeRef<Tlabel> > writer(proc.output_regions_filename);
+    success = writer.write(regions) && success;
+  }
+  if(!points.isNull()) {
+    if(verbose) clog << program_name
+                     << ": writing destination points " << endl;
+    success = proc.output_points_writer.write(points) && success;
+  }
+
+  return success;
 };
 
 PropagateAlongFieldProcess::PropagateAlongFieldProcess()
@@ -146,8 +163,11 @@ int main(const int argc, const char **argv)
              << proc.max_iter << "]";
     app.addOption(proc.max_iter, "--max-iter", help_str.str(), true);
   }
-  app.addOption(proc.output_filename, "--output",
+  app.addOption(proc.output_regions_filename, "--output",
                 "output the propagated regions");
+  app.addOption(proc.output_points_writer, "--dest-points",
+                "output the destination points for each propagated voxel",
+                true);
 
 
   // Process command-line options
