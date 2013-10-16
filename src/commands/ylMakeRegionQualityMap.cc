@@ -8,7 +8,7 @@
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
 
-#include <yleprince/iterative_region_merger.hh>
+#include <yleprince/label_volume.hh>
 #include <yleprince/cortex_column_region_quality.hh>
 
 using std::clog;
@@ -28,7 +28,7 @@ int main(const int argc, const char **argv)
   float border_prox_weight = QualityCriterion::default_border_prox_weight();
   float compacity_weight = QualityCriterion::default_compacity_weight();
   float size_weight = QualityCriterion::default_size_weight();
-  aims::Writer<VolumeRef<int32_t> > output_writer;
+  aims::Writer<carto::Volume<float> > output_writer;
   aims::AimsApplication app(argc, argv,
     "TODO");
   app.addOption(input_reader, "--input", "input label volume");
@@ -57,7 +57,7 @@ int main(const int argc, const char **argv)
     app.addOption(size_weight, "--size-weight",
                   help_str.str(), true);
   }
-  app.addOption(output_writer, "--output", "output label volume");
+  app.addOption(output_writer, "--output", "output quality map");
   app.alias("-i", "--input");
   app.alias("-o", "--output");
 
@@ -81,22 +81,46 @@ int main(const int argc, const char **argv)
 
   VolumeRef<int32_t> input_regions;
   input_reader.read(input_regions);
+  yl::LabelVolume<int32_t> label_volume(input_regions);
+
   VolumeRef<float> distCSF;
   distCSF_reader.read(distCSF);
   VolumeRef<float> distwhite;
   distwhite_reader.read(distwhite);
+
+  const int size_x = input_regions.getSizeX();
+  const int size_y = input_regions.getSizeY();
+  const int size_z = input_regions.getSizeZ();
+  carto::Volume<float> output_volume(size_x, size_y, size_z);
+  output_volume.header() = input_regions->header();
+  output_volume.fill(0);
 
   QualityCriterion quality_criterion(distCSF, distwhite);
   quality_criterion.setBorderProxWeight(border_prox_weight);
   quality_criterion.setCompacityWeight(compacity_weight);
   quality_criterion.setSizeWeight(size_weight);
 
-  yl::IterativeRegionMerger<int32_t, yl::CortexColumnRegionQuality>
-    region_merger(input_regions, quality_criterion, verbose);
-
-  region_merger.merge_worst_regions_iteratively();
-
-  VolumeRef<int32_t> output_volume = region_merger.volume();
+  for(typename yl::LabelVolume<int32_t>::const_regions_iterator
+        labels_it = label_volume.regions_begin(),
+        labels_end = label_volume.regions_end();
+      labels_it != labels_end;
+      ++labels_it)
+  {
+    const int32_t label = *labels_it;
+    const float quality = quality_criterion.evaluate(label_volume, label);
+    for(yl::LabelVolume<int32_t>::const_point_iterator
+          point_it = label_volume.region_begin(label),
+          point_end = label_volume.region_end(label);
+        point_it != point_end;
+        ++point_it)
+    {
+      const Point3d& point = *point_it;
+      const int x = point[0];
+      const int y = point[1];
+      const int z = point[2];
+      output_volume(x, y, z) = quality;
+    }
+  }
 
   bool success = output_writer.write(output_volume);
   return success ? EXIT_SUCCESS : EXIT_FAILURE;

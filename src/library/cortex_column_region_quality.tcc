@@ -19,18 +19,17 @@ inline float region_size_criterion(float region_size)
   static const float canonical_region_size = 200;
   static const float region_size_variance = 200 * 200;
 
-  return std::exp(-square(region_size - canonical_region_size)
-                  / region_size_variance);
+  return -square(region_size - canonical_region_size) / region_size_variance;
 }
 
 inline float proximity_to_border_criterion(float smallest_distance)
 {
-  return std::exp(-std::max(smallest_distance, 0.f));
+  return -std::max(smallest_distance, 0.f);
 }
 
-inline float barycentre_dist_criterion(float rms_mean2_dist)
+inline float barycentre_dist_criterion(float mean_bary_dist)
 {
-  return std::exp(-rms_mean2_dist / 5);
+  return -mean_bary_dist;
 }
 
 template <class InputIterator>
@@ -106,7 +105,7 @@ evaluate(const PointIterator& point_it_begin,
                                                 point_it_end);
 
   std::size_t region_size = 0;
-  float sum_dist2_to_bary = 0;
+  float sum_dist_to_bary = 0;
   float min_dist_CSF = std::numeric_limits<float>::infinity(),
     min_dist_white = std::numeric_limits<float>::infinity();
   for(PointIterator point_it = point_it_begin;
@@ -114,10 +113,10 @@ evaluate(const PointIterator& point_it_begin,
       ++point_it)
   {
     const Point3d& point = *point_it;
-    const Point3df pointf(point[0], point[1], point[2]);
     const int x = point[0];
     const int y = point[1];
     const int z = point[2];
+    const Point3df pointf(x, y, z);
 
     ++region_size;
 
@@ -129,16 +128,12 @@ evaluate(const PointIterator& point_it_begin,
     if(dist_white < min_dist_white)
       min_dist_white = dist_white;
 
-    sum_dist2_to_bary += (static_cast<Point3df>(pointf) - barycentre).norm2();
+    sum_dist_to_bary += (pointf - barycentre).norm();
   }
 
-  assert(std::isnormal(min_dist_CSF));
-  assert(std::isnormal(min_dist_white));
-
-  return region_size_criterion(region_size)
-    * proximity_to_border_criterion(min_dist_CSF)
-    * proximity_to_border_criterion(min_dist_white)
-    * barycentre_dist_criterion(sum_dist2_to_bary / region_size);
+  return m_border_prox_weight * (proximity_to_border_criterion(min_dist_CSF) + proximity_to_border_criterion(min_dist_white))
+    + m_compacity_weight * barycentre_dist_criterion(sum_dist_to_bary / region_size)
+    + m_size_weight * region_size_criterion(region_size);
 }
 
 template <typename Tlabel>

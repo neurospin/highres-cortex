@@ -198,11 +198,12 @@ merge_worst_regions_iteratively()
                                   boost::heap::arity<2>,
                                   boost::heap::mutable_<true> > RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
+
   // Hold the labels to retrieve them in order of increasing region quality
   RegionQueue queue;
-
   std::map<Tlabel, Handle> label_to_handle;
 
+  unsigned int oversized_regions_ignored = 0;
   for(typename LabelVolume<Tlabel>::const_regions_iterator
         labels_it = m_label_volume.regions_begin(),
         labels_end = m_label_volume.regions_end();
@@ -210,6 +211,13 @@ merge_worst_regions_iteratively()
       ++labels_it)
   {
     const Tlabel label = *labels_it;
+
+    // TODO remove hardcoded limit
+    if(m_label_volume.region_size(label) > 500) {
+      ++oversized_regions_ignored;
+      continue;
+    }
+
     Handle handle = queue.push(
       RegionInQueue<Tlabel>(label,
                             m_criterion.evaluate(m_label_volume, label)));
@@ -219,7 +227,8 @@ merge_worst_regions_iteratively()
   }
 
   if(m_verbosity) {
-    std::clog << "  starting with " << queue.size() << " regions.\n"
+    std::clog << "  starting with " << queue.size() << " regions ("
+              << oversized_regions_ignored << " oversized regions ignored).\n"
               << "  filling in neighbourhoods..." << std::endl;
   }
 
@@ -234,23 +243,30 @@ merge_worst_regions_iteratively()
     {
       const Tlabel self_label = m_label_volume.volume().at(x, y, z);
 
+      // If the region was not included into the queue
+      if(label_to_handle.count(self_label) == 0)
+        continue;
+
       if(self_label != background_label) {
         Region<Tlabel>& self_region = *label_to_handle[self_label];
         const Tlabel xplus_label = m_label_volume.volume().at(x + 1, y, z);
         const Tlabel yplus_label = m_label_volume.volume().at(x, y + 1, z);
         const Tlabel zplus_label = m_label_volume.volume().at(x, y, z + 1);
 
-        if(xplus_label != background_label && self_label != xplus_label) {
+        if(label_to_handle.count(xplus_label) != 0
+           && xplus_label != background_label && self_label != xplus_label) {
           Region<Tlabel>& xplus_region = *label_to_handle[xplus_label];
           self_region.add_neighbour(xplus_region);
         }
 
-        if(yplus_label != background_label && self_label != yplus_label) {
+        if(label_to_handle.count(yplus_label) != 0
+           && yplus_label != background_label && self_label != yplus_label) {
           Region<Tlabel>& yplus_region = *label_to_handle[yplus_label];
           self_region.add_neighbour(yplus_region);
         }
 
-        if(zplus_label != background_label && self_label != zplus_label) {
+        if(label_to_handle.count(zplus_label) != 0
+           && zplus_label != background_label && self_label != zplus_label) {
           Region<Tlabel>& zplus_region = *label_to_handle[zplus_label];
           self_region.add_neighbour(zplus_region);
         }
@@ -349,6 +365,10 @@ merge_worst_regions_iteratively()
       }
       queue.pop();
     }
+  }
+  if(m_verbosity >= 1) {
+    std::clog << "end: " << m_label_volume.n_regions() << " regions." << std::endl;
+
   }
 }
 
