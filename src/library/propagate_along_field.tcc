@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/tuple/tuple.hpp>
+
 using carto::VolumeRef;
 using std::clog;
 using std::endl;
@@ -13,9 +15,9 @@ namespace
 
 template <typename Tlabel>
 struct SeedValueAscensionResult
-  : std::binary_function<Tlabel, Point3df, Tlabel>
 {
-  Tlabel operator()(const Tlabel& label, const Point3df&) const
+  typedef Tlabel result_type;
+  Tlabel operator()(const Tlabel& label, const Point3df&, float) const
   {
     return label;
   };
@@ -26,11 +28,11 @@ struct SeedValueAscensionResult
   };
 };
 template <typename Tlabel>
-struct PairAscensionResult
-  : std::binary_function<Tlabel, Point3df, std::pair<Tlabel, Point3df> >
+struct SeedAndPointAscensionResult
 {
+  typedef std::pair<Tlabel, Point3df> result_type;
   std::pair<Tlabel, Point3df>
-  operator()(const Tlabel& label, const Point3df& point) const
+  operator()(const Tlabel& label, const Point3df& point, float) const
   {
     return std::make_pair(label, point);
   };
@@ -41,6 +43,25 @@ struct PairAscensionResult
     return failure_res;
   }
 };
+
+template <typename Tlabel>
+struct SeedPointDistAscensionResult
+{
+  typedef boost::tuple<Tlabel, Point3df, float> result_type;
+
+  result_type
+  operator()(const Tlabel& label, const Point3df& point, float distance) const
+  {
+    return boost::make_tuple(label, point, distance);
+  };
+  static const result_type& failure_result()
+  {
+    static const result_type failure_res
+      = boost::make_tuple(0, Point3df(-1, -1, -1), 0.0f);
+    return failure_res;
+  }
+};
+
 
 } // end of anonymous namespace
 
@@ -66,7 +87,7 @@ internal_ascension(const Point3df &start_point,
                    const ResultChooser& result_chooser) const
 {
   if(debug_output >= 3 && m_verbose >= 3) {
-    clog << "    ascend_until_nonzero at " << start_point << endl;
+    clog << "    ascension at " << start_point << endl;
   }
 
   Point3df current_point = start_point;
@@ -80,11 +101,11 @@ internal_ascension(const Point3df &start_point,
     const float xp = current_point[0],
       yp = current_point[1], zp = current_point[2];
 
-    const int ix = static_cast<int>((xp * m_invsize_x) + 0.5);
+    const int ix = static_cast<int>((xp * m_invsize_x) + 0.5f);
     if(ix < 0 || ix >= size_x) break;
-    const int iy = static_cast<int>((yp * m_invsize_y) + 0.5);
+    const int iy = static_cast<int>((yp * m_invsize_y) + 0.5f);
     if(iy < 0 || iy >= size_y) break;
-    const int iz = static_cast<int>((zp * m_invsize_z) + 0.5);
+    const int iz = static_cast<int>((zp * m_invsize_z) + 0.5f);
     if(iz < 0 || iz >= size_z) break;
 
     const Tlabel seed_value = seeds(ix, iy, iz);
@@ -93,7 +114,7 @@ internal_ascension(const Point3df &start_point,
            << ", seed_value = " << seed_value << endl;
     }
     if(seed_value != 0 && seed_value != ignore_label) {
-      return result_chooser(seed_value, current_point);
+      return result_chooser(seed_value, current_point, std::abs(m_step * iter));
     }
 
     // Move along the field
@@ -213,7 +234,7 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
                      const Tlabel target_label,
                      ResultRecorder& result_recorder) const
 {
-  PairAscensionResult<Tlabel> ascension_result_chooser;
+  SeedAndPointAscensionResult<Tlabel> ascension_result_chooser;
 
   const int size_x = seeds.getSizeX();
   const int size_y = seeds.getSizeY();
@@ -240,8 +261,8 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
 
     if(seeds(x, y, z) == target_label) {
       const Point3df point(x * m_voxel_size_x,
-                           y * m_voxel_size_x,
-                           z * m_voxel_size_x);
+                           y * m_voxel_size_y,
+                           z * m_voxel_size_z);
 
       std::pair<Tlabel, Point3df> result
         = internal_ascension(point, seeds, target_label,
