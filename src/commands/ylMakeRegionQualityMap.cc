@@ -23,38 +23,30 @@ int main(const int argc, const char **argv)
 
   // Initialize command-line option parsing
   aims::Reader<VolumeRef<int32_t> > input_reader;
-  aims::Reader<VolumeRef<float> > distCSF_reader;
-  aims::Reader<VolumeRef<float> > distwhite_reader;
-  float border_prox_weight = QualityCriterion::default_border_prox_weight();
-  float compacity_weight = QualityCriterion::default_compacity_weight();
-  float size_weight = QualityCriterion::default_size_weight();
+  aims::Reader<VolumeRef<float> > CSF_projections_reader;
+  aims::Reader<VolumeRef<float> > white_projections_reader;
+  float goal_diametre = QualityCriterion::default_goal_diametre();
+  float max_thickness = QualityCriterion::default_max_thickness();
   aims::Writer<carto::Volume<float> > output_writer;
   aims::AimsApplication app(argc, argv,
     "TODO");
   app.addOption(input_reader, "--input", "input label volume");
-  app.addOption(distCSF_reader, "--dist-csf",
-                "distance map to CSF");
-  app.addOption(distwhite_reader, "--dist-white",
-                "distance map to white matter");
+  app.addOption(CSF_projections_reader, "--proj-csf",
+                "projected coordinates of the CSF surfate");
+  app.addOption(white_projections_reader, "--proj-white",
+                "projected coordinates of the white surfate");
   {
     std::ostringstream help_str;
-    help_str << "weight of the border proximity criterion [default: "
-             << border_prox_weight << "]";
-    app.addOption(border_prox_weight, "--border-prox-weight",
+    help_str << "goal region diametre (in millimetres) [default: "
+             << goal_diametre << "]";
+    app.addOption(goal_diametre, "--goal-diametre",
                   help_str.str(), true);
   }
   {
     std::ostringstream help_str;
-    help_str << "weight of the compacity criterion [default: "
-             << compacity_weight << "]";
-    app.addOption(compacity_weight, "--compacity-weight",
-                  help_str.str(), true);
-  }
-  {
-    std::ostringstream help_str;
-    help_str << "weight of the region size criterion [default: "
-             << size_weight << "]";
-    app.addOption(size_weight, "--size-weight",
+    help_str << "maximum cortex thickness [default: "
+             << max_thickness << "]";
+    app.addOption(max_thickness, "--max-thickness",
                   help_str.str(), true);
   }
   app.addOption(output_writer, "--output", "output quality map");
@@ -83,22 +75,21 @@ int main(const int argc, const char **argv)
   input_reader.read(input_regions);
   yl::LabelVolume<int32_t> label_volume(input_regions);
 
-  VolumeRef<float> distCSF;
-  distCSF_reader.read(distCSF);
-  VolumeRef<float> distwhite;
-  distwhite_reader.read(distwhite);
+  VolumeRef<float> CSF_projections;
+  CSF_projections_reader.read(CSF_projections);
+  VolumeRef<float> white_projections;
+  white_projections_reader.read(white_projections);
 
-  const int size_x = input_regions.getSizeX();
-  const int size_y = input_regions.getSizeY();
-  const int size_z = input_regions.getSizeZ();
-  carto::Volume<float> output_volume(size_x, size_y, size_z);
+  const int extension_x = input_regions.getSizeX();
+  const int extension_y = input_regions.getSizeY();
+  const int extension_z = input_regions.getSizeZ();
+  carto::Volume<float> output_volume(extension_x, extension_y, extension_z);
   output_volume.header() = input_regions->header();
   output_volume.fill(0);
 
-  QualityCriterion quality_criterion(distCSF, distwhite);
-  quality_criterion.setBorderProxWeight(border_prox_weight);
-  quality_criterion.setCompacityWeight(compacity_weight);
-  quality_criterion.setSizeWeight(size_weight);
+  QualityCriterion quality_criterion(CSF_projections,
+                                     white_projections);
+  quality_criterion.setShapeParametres(goal_diametre, max_thickness);
 
   for(typename yl::LabelVolume<int32_t>::const_regions_iterator
         labels_it = label_volume.regions_begin(),

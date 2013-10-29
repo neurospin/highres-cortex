@@ -10,15 +10,10 @@ namespace yl
 class CortexColumnRegionQuality
 {
 public:
-  CortexColumnRegionQuality(const carto::VolumeRef<float>& distmap_from_CSF,
-                            const carto::VolumeRef<float>& distmap_from_white);
+  CortexColumnRegionQuality(const carto::VolumeRef<float>& CSF_projections,
+                            const carto::VolumeRef<float>& white_projections);
 
-  void setBorderProxWeight(const float weight)
-  { m_border_prox_weight = weight; };
-  void setCompacityWeight(const float weight)
-  { m_compacity_weight = weight; };
-  void setSizeWeight(const float weight)
-  { m_size_weight = weight; };
+  void setShapeParametres(float goal_diametre, float max_thickness);
 
   template <typename Tlabel>
   float evaluate(const LabelVolume<Tlabel>&, Tlabel) const;
@@ -30,16 +25,16 @@ public:
   inline float evaluate(const PointIterator& point_it_begin,
                         const PointIterator& point_it_end) const;
 
-  static float default_border_prox_weight() { return 100.f; };
-  static float default_compacity_weight() { return 1.f; };
-  static float default_size_weight() { return 0.1f; };
+  static float default_goal_diametre();
+  static float default_max_thickness();
 
 private:
-  carto::VolumeRef<float> m_distmap_from_CSF;
-  carto::VolumeRef<float> m_distmap_from_white;
-  float m_border_prox_weight;
-  float m_compacity_weight;
-  float m_size_weight;
+  carto::VolumeRef<float> m_CSF_projections;
+  carto::VolumeRef<float> m_white_projections;
+  float m_sorted_voxel_sizes[3];
+  float m_pseudo_area_reliability_threshold;
+  float m_pseudo_area_cutoff;
+  float m_max_criterion;
 }; // class CortexColumnRegionQuality
 
 }; // namespace yl

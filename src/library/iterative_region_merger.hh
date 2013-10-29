@@ -20,6 +20,10 @@ public:
 
   void setVerbose(int verbosity=1);
 
+  void set_max_region_size(const std::size_t max_region_size)
+  { m_max_region_size = max_region_size; };
+  std::size_t max_region_size() const { return m_max_region_size; };
+
   void merge_worst_regions_iteratively();
 
   carto::VolumeRef<Tlabel> volume() const
@@ -30,6 +34,7 @@ public:
 private:
   LabelVolume<Tlabel> m_label_volume;
   RegionQualityCriterion m_criterion;
+  std::size_t m_max_region_size;
   int m_verbosity;
 }; // class IterativeRegionMerger
 

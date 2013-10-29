@@ -5,7 +5,7 @@ template <typename Tlabel>
 LabelVolume<Tlabel>::
 LabelVolume(const carto::VolumeRef<Tlabel> &vol,
             Tlabel background)
-  : m_background(background), m_volume(vol), m_bucketmap()
+  : m_background_label(background), m_volume(vol), m_bucketmap()
 {
   const int size_x = m_volume.getSizeX();
   const int size_y = m_volume.getSizeY();
@@ -49,6 +49,30 @@ merge_regions(Tlabel eating_label, Tlabel eaten_label)
   }
 
   m_bucketmap.erase(eaten_bucket_it);
+}
+
+template <typename Tlabel>
+void LabelVolume<Tlabel>::
+discard_region(Tlabel label)
+{
+  BucketMap::iterator bucket_it = m_bucketmap.find(label);
+  assert(bucket_it != m_bucketmap.end());
+
+  Bucket & bucket = bucket_it->second;
+
+  for(Bucket::iterator
+        point_it = bucket.begin(),
+        point_it_end = bucket.end();
+      point_it != point_it_end;
+      ++point_it) {
+    const Point3d & point = point_it->first;
+    const int & x = point[0];
+    const int & y = point[1];
+    const int & z = point[2];
+    m_volume.at(x, y, z) = m_background_label;
+  }
+
+  m_bucketmap.erase(bucket_it);
 }
 
 } // namespace yl

@@ -47,10 +47,11 @@ public:
   virtual ~LabelVolume() {};
 
   void merge_regions(Tlabel eating_label, Tlabel eaten_label);
+  void discard_region(Tlabel label);
 
   Tlabel background_label() const
   {
-    return m_background;
+    return m_background_label;
   }
 
   const carto::VolumeRef<Tlabel>& volume() const
@@ -103,7 +104,7 @@ public:
   };
 
 private:
-  const Tlabel m_background;
+  const Tlabel m_background_label;
   carto::VolumeRef<Tlabel> m_volume;
   aims::BucketMap<Void> m_bucketmap;
 }; // class LabelVolume

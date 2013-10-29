@@ -15,16 +15,18 @@ const int debug_output = 0;
 
 inline bool approx_equal(float x, float y)
 {
-  float absmax = std::max(std::abs(x), std::abs(y));
-  if(std::isnormal(absmax))
-    return std::abs(x - y) / absmax < 1e-3f;
-  else
-    return x == y;
+  return std::abs(x - y) < 0.1f;
 }
+
+template <typename Tlabel> class Region;
+template <typename Tlabel>
+std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region);
 
 template <typename Tlabel>
 class Region
 {
+  friend std::ostream& operator << <Tlabel> (std::ostream&, const Region<Tlabel>&);
+
 public:
   typedef boost::indirect_iterator<typename std::set<Region*>::const_iterator>
   const_neighbour_iterator;
@@ -115,12 +117,8 @@ template <typename Tlabel>
 std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region)
 {
   stream << "Region@" << &region << " (" << "label=" << region.label()
-         << ", quality=" << region.quality(); /* << ", neighbours={";
-
-  std::copy(region.neighbours_begin(), region.neighbours_end(),
-  std::ostream_iterator<Region<Tlabel*>* >(stream, ", "));*/
-
-  stream << "})";
+         << ", quality=" << region.quality()  << ", #neighbours="
+         << region.m_neighbours.size();
   return stream;
 }
 
@@ -172,7 +170,9 @@ IterativeRegionMerger<Tlabel, RegionQualityCriterion>::
 IterativeRegionMerger(const LabelVolume<Tlabel>& label_vol,
                       const RegionQualityCriterion& criterion,
                       const int verbosity)
-  : m_label_volume(label_vol), m_criterion(criterion), m_verbosity(verbosity)
+  : m_label_volume(label_vol), m_criterion(criterion),
+    m_max_region_size(std::numeric_limits<std::size_t>::max()),
+    m_verbosity(verbosity)
 {
 }
 
@@ -190,7 +190,8 @@ IterativeRegionMerger<Tlabel, RegionQualityCriterion>::
 merge_worst_regions_iteratively()
 {
   if(m_verbosity) {
-    std::clog << "yl::IterativeRegionMerger::merge_worst_regions_interactively:"
+    std::clog << "yl::IterativeRegionMerger::merge_worst_regions_iteratively:\n"
+              << "  computing initial region qualities..."
               << std::endl;
   }
 
@@ -212,8 +213,7 @@ merge_worst_regions_iteratively()
   {
     const Tlabel label = *labels_it;
 
-    // TODO remove hardcoded limit
-    if(m_label_volume.region_size(label) > 500) {
+    if(m_label_volume.region_size(label) > m_max_region_size) {
       ++oversized_regions_ignored;
       continue;
     }
@@ -227,8 +227,9 @@ merge_worst_regions_iteratively()
   }
 
   if(m_verbosity) {
-    std::clog << "  starting with " << queue.size() << " regions ("
-              << oversized_regions_ignored << " oversized regions ignored).\n"
+    std::clog << "  ignoring " << oversized_regions_ignored
+              << " regions larger than " << m_max_region_size << " voxels.\n"
+              << "  " << queue.size() << " regions will be processed.\n"
               << "  filling in neighbourhoods..." << std::endl;
   }
 
@@ -293,20 +294,16 @@ merge_worst_regions_iteratively()
     float best_quality = worst_region.quality();
 
     if(m_verbosity >= 2) {
-      std::clog << "  " << m_label_volume.n_regions() << " regions";
+      std::clog << "  ";
       if(RegionQueue::constant_time_size) {
-        std::clog << " (" << queue.size() << " in queue)";
+        std::clog << queue.size() << " to go, ";
       }
-      if(debug_output && m_verbosity >= 3) {
-        std::clog << ", considering " << worst_region;
-      } else {
-        std::clog << ", considering region " << worst_label
-                  << "(q=" << best_quality << ")";
-      }
-      std::cerr << std::endl;
+      std::clog << m_label_volume.n_regions() << " regions, q = "
+                << best_quality << "\r" << std::flush;
     }
-    assert(approx_equal(m_criterion.evaluate(m_label_volume, worst_label),
-                        best_quality));
+
+    // assert(approx_equal(m_criterion.evaluate(m_label_volume, worst_label),
+    //                     best_quality));
 
     for(typename Region<Tlabel>::neighbour_iterator
           neighbour_it = worst_region.neighbours_begin(),
@@ -330,7 +327,7 @@ merge_worst_regions_iteratively()
 
     if(best_neighbour_region != worst_region) {
       if(m_verbosity >= 3) {
-        std::clog << "    merging with best neighbour " << best_neighbour_region
+        std::clog << "\n    merging with best neighbour " << best_neighbour_region
                   << " (new q=" << best_quality << ")" << std::endl;
       }
 
@@ -346,7 +343,7 @@ merge_worst_regions_iteratively()
       {
         Region<Tlabel>& neighbour_region = *neighbour_it;
         if(neighbour_region != best_neighbour_region) {
-          neighbour_region.add_neighbour(best_neighbour_region);
+          best_neighbour_region.add_neighbour(neighbour_region);
         }
       }
 
@@ -354,13 +351,11 @@ merge_worst_regions_iteratively()
       // heap!
       queue.pop();
 
-      assert(approx_equal(m_criterion.evaluate(m_label_volume, best_neighbour_label),
-                          best_quality));
       best_neighbour_region.update_quality(best_quality);
       queue.update(best_neighbour_region.handle());
     } else {
       if(m_verbosity >= 3) {
-        std::clog << "    region " << worst_label << " (quality=" << best_quality
+        std::clog << "\n    region " << worst_label << " (quality=" << best_quality
                   << ") cannot be improved by merging a neighbour" << std::endl;
       }
       queue.pop();
@@ -368,7 +363,6 @@ merge_worst_regions_iteratively()
   }
   if(m_verbosity >= 1) {
     std::clog << "end: " << m_label_volume.n_regions() << " regions." << std::endl;
-
   }
 }
 
