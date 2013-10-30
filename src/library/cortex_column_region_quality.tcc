@@ -4,6 +4,8 @@
 #include <limits>
 #include <algorithm>
 
+#include <gsl/gsl_eigen.h>
+
 #include <aims/data/fastAllocationData.h>
 #include <aims/math/eigen.h>
 
@@ -52,31 +54,49 @@ public:
     return ret;
   };
 
-  AimsFastAllocationData<float> eigenvalues()
+  float large_eigenvalue(gsl_eigen_symm_workspace* w)
   {
     if(m_000 == 0)
-      return degenerate_eigenvalues();
+      return 0.f;
 
-    // Object is small, always allocate in RAM
-    AimsFastAllocationData<float> centered_moments(3, 3);
+    double centered_moment_matrix[3 * 3];
 
-    centered_moments(0, 0)
+    // Only the lower triangular part is referenced
+    centered_moment_matrix[0 * 3 + 0]
       = (m_200 - m_100 * m_100 / m_000) / m_000;
-    centered_moments(1, 0) = centered_moments(0, 1)
+    centered_moment_matrix[1 * 3 + 0]
       = (m_110 - m_100 * m_010 / m_000) / m_000;
-    centered_moments(1, 1)
+    centered_moment_matrix[1 * 3 + 1]
       = (m_020 - m_010 * m_010 / m_000) / m_000;
-    centered_moments(2, 0) = centered_moments(0, 2)
+    centered_moment_matrix[2 * 3 + 0]
       = (m_101 - m_100 * m_001 / m_000) / m_000;
-    centered_moments(2, 1) = centered_moments(1, 2)
+    centered_moment_matrix[2 * 3 + 1]
       = (m_011 - m_010 * m_001 / m_000) / m_000;
-    centered_moments(2, 2)
+    centered_moment_matrix[2 * 3 + 2]
       = (m_002 - m_001 * m_001 / m_000) / m_000;
 
-    AimsEigen<float> eigen(AimsEigen<float>::VectorOfEigenValues);
-    AimsFastAllocationData<float> eigenval = eigen.doit(centered_moments);
-    eigen.sort(centered_moments, eigenval);
-    return eigenval;
+    double eigenvalues[3];
+
+    gsl_matrix_view mat_view
+      = gsl_matrix_view_array(centered_moment_matrix, 3, 3);
+    gsl_vector_view eval_view
+      = gsl_vector_view_array(eigenvalues, 3);
+
+    gsl_eigen_symm(&mat_view.matrix, &eval_view.vector, w);
+
+    return std::max(0.f, static_cast<float>(gsl_vector_max(&eval_view.vector)));
+  };
+
+  float large_eigenvalue()
+  {
+    struct WorkspaceHolder
+    {
+      WorkspaceHolder(gsl_eigen_symm_workspace* w_) : w(w_) {};
+      ~WorkspaceHolder() {gsl_eigen_symm_free(w);};
+      gsl_eigen_symm_workspace* const w;
+    };
+    WorkspaceHolder wh(gsl_eigen_symm_alloc(3));
+    return large_eigenvalue(wh.w);
   };
 
   std::size_t m_000;
@@ -172,14 +192,8 @@ evaluate(const PointIterator& point_it_begin,
   // The moments are calculated based on the projected point cloud, thus the
   // thicker regions lead to a denser point cloud and weigh more. Is this good?
 
-  const AimsFastAllocationData<float>
-    CSF_proj_eigenvalues = CSF_moment.eigenvalues(),
-    white_proj_eigenvalues = white_moment.eigenvalues();
-
-  // Eigenvalues are in descending order Unfortunately floating-point errors
-  // sometimes yield negative eigenvalues, which is impossible.
-  const float CSF_large_eigenval = std::max(CSF_proj_eigenvalues(0), 0.f);
-  const float white_large_eigenval = std::max(white_proj_eigenvalues(0), 0.f);
+  const float CSF_large_eigenval = CSF_moment.large_eigenvalue();
+  const float white_large_eigenval = white_moment.large_eigenvalue();
 
   float pseudo_circular_area = CSF_large_eigenval + white_large_eigenval;
 
