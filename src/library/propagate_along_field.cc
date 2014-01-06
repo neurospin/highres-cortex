@@ -3,31 +3,30 @@
 #include <cmath>
 #include <stdexcept>
 
+#include <boost/make_shared.hpp>
+
 using carto::VolumeRef;
 using std::clog;
 using std::endl;
-
+using boost::shared_ptr;
+using boost::make_shared;
 
 yl::PropagateAlongField::
-PropagateAlongField(const VolumeRef<float> &fieldx,
-                    const VolumeRef<float> &fieldy,
-                    const VolumeRef<float> &fieldz)
-  : m_interp_fieldx(fieldx), m_interp_fieldy(fieldy), m_interp_fieldz(fieldz),
+PropagateAlongField(const shared_ptr<VectorField>& vector_field)
+  : m_vector_field(vector_field),
     m_max_iter(default_max_iter), m_step(default_step), m_verbose(debug_output)
 {
-  const carto::Object &voxel_size = fieldx.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  m_voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-  m_voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-  m_voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
-  m_invsize_x = 1.0f / m_voxel_size_x;
-  m_invsize_y = 1.0f / m_voxel_size_y;
-  m_invsize_z = 1.0f / m_voxel_size_z;
-  if(!std::isnormal(m_voxel_size_x) ||
-     !std::isnormal(m_voxel_size_y) ||
-     !std::isnormal(m_voxel_size_z)) {
-    throw std::runtime_error("inconsistent voxel_size value");
-  }
+}
+
+yl::PropagateAlongField::
+PropagateAlongField(const VolumeRef<float>& fieldx,
+                    const VolumeRef<float>& fieldy,
+                    const VolumeRef<float>& fieldz)
+  : m_vector_field(make_shared<LinearlyInterpolatedVectorField3D>(fieldx,
+                                                                  fieldy,
+                                                                  fieldz)),
+    m_max_iter(default_max_iter), m_step(default_step), m_verbose(debug_output)
+{
 }
 
 yl::PropagateAlongField::~PropagateAlongField()

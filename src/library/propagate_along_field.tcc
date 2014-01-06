@@ -90,6 +90,20 @@ internal_ascension(const Point3df &start_point,
     clog << "    ascension at " << start_point << endl;
   }
 
+  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
+  assert(voxel_size->isArray());
+  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
+  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
+  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const float invsize_x = 1.0f / voxel_size_x;
+  const float invsize_y = 1.0f / voxel_size_y;
+  const float invsize_z = 1.0f / voxel_size_z;
+  if(!std::isnormal(voxel_size_x) ||
+     !std::isnormal(voxel_size_y) ||
+     !std::isnormal(voxel_size_z)) {
+    throw std::runtime_error("inconsistent voxel_size value");
+  }
+
   Point3df current_point = start_point;
 
   const int size_x = seeds.getSizeX();
@@ -101,11 +115,11 @@ internal_ascension(const Point3df &start_point,
     const float xp = current_point[0],
       yp = current_point[1], zp = current_point[2];
 
-    const int ix = static_cast<int>((xp * m_invsize_x) + 0.5f);
+    const int ix = static_cast<int>((xp * invsize_x) + 0.5f);
     if(ix < 0 || ix >= size_x) break;
-    const int iy = static_cast<int>((yp * m_invsize_y) + 0.5f);
+    const int iy = static_cast<int>((yp * invsize_y) + 0.5f);
     if(iy < 0 || iy >= size_y) break;
-    const int iz = static_cast<int>((zp * m_invsize_z) + 0.5f);
+    const int iz = static_cast<int>((zp * invsize_z) + 0.5f);
     if(iz < 0 || iz >= size_z) break;
 
     const Tlabel seed_value = seeds(ix, iy, iz);
@@ -118,9 +132,18 @@ internal_ascension(const Point3df &start_point,
     }
 
     // Move along the field
-    float gx = m_interp_fieldx.value(current_point);
-    float gy = m_interp_fieldy.value(current_point);
-    float gz = m_interp_fieldz.value(current_point);
+    Point3df local_field;
+    float& gx = local_field[0], gy = local_field[1], gz = local_field[2];
+    try {
+      m_vector_field->evaluate(current_point, local_field);
+    } catch(const VectorField::UndefinedField&) {
+      if(m_verbose >= 2) {
+        clog << "    ascension at " << start_point << " aborted after "
+             << iter << " iterations: vector field is undefined at ("
+             << gx << ", " << gy << ", " << gz << ")" << endl;
+      }
+      return ResultChooser::failure_result();
+    }
 
     // Normalize the field, stop if too small or infinite or NaN.
     const float gn = std::sqrt(gx*gx + gy*gy + gz*gz);
@@ -240,6 +263,12 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
   const int size_y = seeds.getSizeY();
   const int size_z = seeds.getSizeZ();
 
+  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
+  assert(voxel_size->isArray());
+  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
+  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
+  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+
   if(m_verbose) {
     clog << "yl::PropagateAlongField::propagate_regions:\n"
             "  maximum propagation distance: " << m_step * m_max_iter
@@ -260,9 +289,9 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
     }
 
     if(seeds(x, y, z) == target_label) {
-      const Point3df point(x * m_voxel_size_x,
-                           y * m_voxel_size_y,
-                           z * m_voxel_size_z);
+      const Point3df point(x * voxel_size_x,
+                           y * voxel_size_y,
+                           z * voxel_size_z);
 
       std::pair<Tlabel, Point3df> result
         = internal_ascension(point, seeds, target_label,

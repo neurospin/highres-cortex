@@ -1,26 +1,31 @@
 #ifndef YL_PROPAGATE_ALONG_FIELD_HH
 #define YL_PROPAGATE_ALONG_FIELD_HH
 
+#include <boost/shared_ptr.hpp>
+
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
-#include <aims/resampling/linearInterpolator.h>
+#include <yleprince/vector_field.hh>
 
 namespace yl
 {
 
-  /** Propagate labels along a vector field.
+/** Propagate labels along a vector field.
 
-      From a given starting point, the field is followed in fixed-size steps
-      until a seed is reached, or the maximum number of iterations is exceeded.
-   */
+    From a given starting point, the field is followed in fixed-size steps
+    until a seed is reached, or the maximum number of iterations is exceeded.
+ */
 class PropagateAlongField
 {
 public:
+  PropagateAlongField(const boost::shared_ptr<VectorField>& vector_field);
   /** Provide the field as separate scalar components.
+
+      The field will be linearly interpolated.
    */
-  PropagateAlongField(const carto::VolumeRef<float> &fieldx,
-                      const carto::VolumeRef<float> &fieldy,
-                      const carto::VolumeRef<float> &fieldz);
+  PropagateAlongField(const carto::VolumeRef<float>& fieldx,
+                      const carto::VolumeRef<float>& fieldy,
+                      const carto::VolumeRef<float>& fieldz);
   virtual ~PropagateAlongField();
 
   /** Indicate progress on stderr.
@@ -30,7 +35,7 @@ public:
       - 2: show aborted field ascensions
       - more: for debugging, see source code and #debug_output.
    */
-  void setVerbose(int = 1);
+  void setVerbose(int=1);
 
   /** Move in steps of the specified size (millimetres).
 
@@ -98,9 +103,7 @@ public:
   static const unsigned int default_max_iter = 1000;
 
 private:
-  aims::LinearInterpolator<float> m_interp_fieldx;
-  aims::LinearInterpolator<float> m_interp_fieldy;
-  aims::LinearInterpolator<float> m_interp_fieldz;
+  boost::shared_ptr<VectorField> m_vector_field;
   float m_voxel_size_x, m_voxel_size_y, m_voxel_size_z;
   float m_invsize_x, m_invsize_y, m_invsize_z;
   unsigned int m_max_iter;
