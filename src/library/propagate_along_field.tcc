@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/tuple/tuple.hpp>
 
 using carto::VolumeRef;
@@ -163,6 +164,167 @@ internal_ascension(const Point3df &start_point,
 }
 
 
+class ScalarFieldSumVisitor
+{
+public:
+  ScalarFieldSumVisitor(const boost::shared_ptr<yl::ScalarField>& field)
+    : m_field(field), m_sum(0.f) {};
+
+  void init(const Point3df&) {};
+  void visit(const Point3df& point)
+  {
+    m_sum += m_field->evaluate(point);
+  };
+
+  float sum() const
+  { return m_sum; };
+private:
+  boost::shared_ptr<yl::ScalarField> m_field;
+  float m_sum;
+};
+
+class UnitSurfaceEvolver
+{
+public:
+  UnitSurfaceEvolver(const boost::shared_ptr<yl::ScalarField>& divergence_field)
+    : m_divergence_field(divergence_field), m_surface(1.f) {};
+
+  void init(const Point3df& point)
+  {
+    m_previous_point = point;
+  };
+
+  void visit(const Point3df& point)
+  {
+    const float step = (point - m_previous_point).norm();
+    m_surface *= (1.f + step * m_divergence_field->evaluate(point));
+  };
+
+  float end_surface() const
+  { return m_surface; };
+private:
+  boost::shared_ptr<yl::ScalarField> m_divergence_field;
+  float m_surface;
+  Point3df m_previous_point;
+};
+
+template <typename Tlabel>
+float yl::PropagateAlongField::
+evolve_unit_surface(const Point3df& start_point,
+                    const VolumeRef<Tlabel>& seeds,
+                    const boost::shared_ptr<yl::ScalarField>& divergence_field,
+                    const Tlabel ignore_label) const
+{
+  UnitSurfaceEvolver visitor(divergence_field);
+  if(visitor_ascension(start_point, seeds, ignore_label, visitor)) {
+    return visitor.end_surface();
+  } else {
+    throw AbortedAdvection();
+  }
+}
+
+template <typename Tlabel>
+float yl::PropagateAlongField::
+integrate_field_along_advection(const Point3df& start_point,
+                                const VolumeRef<Tlabel>& seeds,
+                                const boost::shared_ptr<yl::ScalarField>& field,
+                                const Tlabel ignore_label) const
+{
+  ScalarFieldSumVisitor visitor(field);
+  if(visitor_ascension(start_point, seeds, ignore_label, visitor)) {
+    return m_step * visitor.sum();
+  } else {
+    throw AbortedAdvection();
+  }
+}
+
+template <class TVisitor, typename Tlabel>
+bool
+yl::PropagateAlongField::
+visitor_ascension(const Point3df& start_point,
+                  const VolumeRef<Tlabel>& seeds,
+                  const Tlabel ignore_label,
+                  TVisitor& visitor) const
+{
+  if(debug_output >= 3 && m_verbose >= 3) {
+    clog << "    ascension at " << start_point << endl;
+  }
+
+  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
+  assert(voxel_size->isArray());
+  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
+  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
+  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const float invsize_x = 1.0f / voxel_size_x;
+  const float invsize_y = 1.0f / voxel_size_y;
+  const float invsize_z = 1.0f / voxel_size_z;
+  if(!std::isnormal(voxel_size_x) ||
+     !std::isnormal(voxel_size_y) ||
+     !std::isnormal(voxel_size_z)) {
+    throw std::runtime_error("inconsistent voxel_size value");
+  }
+
+  Point3df current_point = start_point;
+  visitor.init(start_point);
+
+  const int size_x = seeds.getSizeX();
+  const int size_y = seeds.getSizeY();
+  const int size_z = seeds.getSizeZ();
+
+  unsigned int iter;
+  for(iter = 0; iter < m_max_iter ; ++iter) {
+    const float xp = current_point[0],
+      yp = current_point[1], zp = current_point[2];
+
+    const int ix = static_cast<int>((xp * invsize_x) + 0.5f);
+    if(ix < 0 || ix >= size_x) break;
+    const int iy = static_cast<int>((yp * invsize_y) + 0.5f);
+    if(iy < 0 || iy >= size_y) break;
+    const int iz = static_cast<int>((zp * invsize_z) + 0.5f);
+    if(iz < 0 || iz >= size_z) break;
+
+    const Tlabel seed_value = seeds(ix, iy, iz);
+    if(debug_output >= 4 && m_verbose >= 4) {
+      clog << "      iteration " << iter << " at " << current_point
+           << ", seed_value = " << seed_value << endl;
+    }
+    visitor.visit(current_point);
+    if(seed_value != 0 && seed_value != ignore_label) {
+      return true;
+    }
+
+    // Move along the field
+    Point3df local_field;
+    float& gx = local_field[0], gy = local_field[1], gz = local_field[2];
+    try {
+      m_vector_field->evaluate(current_point, local_field);
+    } catch(const VectorField::UndefinedField&) {
+      if(m_verbose >= 2) {
+        clog << "    ascension at " << start_point << " aborted after "
+             << iter << " iterations: vector field is undefined at ("
+             << gx << ", " << gy << ", " << gz << ")" << endl;
+      }
+      return false;
+    }
+
+    // Normalize the field, stop if too small or infinite or NaN.
+    const float gn = std::sqrt(gx*gx + gy*gy + gz*gz);
+    if(!std::isnormal(gn)) break;
+    gx /= gn; gy /= gn; gz /= gn;
+
+    current_point[0] = xp + m_step * gx;
+    current_point[1] = yp + m_step * gy;
+    current_point[2] = zp + m_step * gz;
+  }
+
+  if(m_verbose >= 2) {
+    clog << "    ascension at " << start_point << " aborted after "
+         << iter << " iterations" << endl;
+  }
+  return false;
+}
+
+
 template <typename Tlabel>
 Tlabel
 yl::PropagateAlongField::
@@ -315,4 +477,73 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
          << n_dead_end << " dead-end, "
          << n_lost << " lost."<< endl;
   }
+}
+
+template<typename Tlabel>
+VolumeRef<float>
+yl::PropagateAlongField::
+evolve_unit_surface_from_region(const VolumeRef<Tlabel> &seeds,
+                                const boost::shared_ptr<ScalarField>& divergence_field,
+                                const Tlabel target_label) const
+{
+  const int size_x = seeds.getSizeX();
+  const int size_y = seeds.getSizeY();
+  const int size_z = seeds.getSizeZ();
+
+  carto::VolumeRef<float> result_volume(size_x, size_y, size_z);
+  result_volume.header() = seeds.header();
+  static const float aborted_result = -1.f;
+  static const float no_calculation_result = -2.f;
+  result_volume.fill(no_calculation_result);
+
+  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
+  assert(voxel_size->isArray());
+  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
+  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
+  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+
+  if(m_verbose) {
+    clog << "yl::PropagateAlongField::evolve_unit_surface_from_region:\n"
+            "  maximum propagation distance: " << m_step * m_max_iter
+         << " mm." << endl;
+  }
+
+  unsigned int n_propagated = 0, n_aborted = 0;
+
+  for(int z = 0; z < size_z; ++z)
+  for(int y = 0; y < size_y; ++y)
+  for(int x = 0; x < size_x; ++x)
+  {
+    if(m_verbose && x == 0 && y == 0) {
+      clog << "  at slice " << z << " / " << size_z << ", "
+           << n_propagated << " propagated, "
+           << n_aborted << " aborted." << endl;
+    }
+
+    if(seeds(x, y, z) == target_label) {
+      const Point3df point(x * voxel_size_x,
+                           y * voxel_size_y,
+                           z * voxel_size_z);
+
+      float local_result;
+      try {
+        local_result = evolve_unit_surface(point, seeds, divergence_field, target_label);
+      } catch(const AbortedAdvection&) {
+        ++n_aborted;
+        result_volume(x, y, z) = aborted_result;
+        continue;
+      }
+
+      result_volume(x, y, z) = local_result;
+      ++n_propagated;
+    }
+  }
+
+  if(m_verbose) {
+    clog << "End of yl::PropagateAlongField::integrate_from_regions: "
+         << n_propagated << " propagated, "
+         << n_aborted << " aborted." << endl;
+  }
+
+  return result_volume;
 }

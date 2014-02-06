@@ -1,5 +1,5 @@
-#ifndef YL_VECTOR_FIELD_HH_INCLUDED
-#define YL_VECTOR_FIELD_HH_INCLUDED
+#ifndef YL_FIELD_HH_INCLUDED
+#define YL_FIELD_HH_INCLUDED
 
 #include <aims/vector/vector.h>
 #include <aims/resampling/linearInterpolator.h>
@@ -7,19 +7,22 @@
 namespace yl
 {
 
-/** Provide access to a vector field at possibly non-integer coordinates */
-class VectorField
+class Field
 {
 public:
   /** Exception thrown when the field cannot be evaluated */
   class UndefinedField
   {
   };
+};
 
-
+/** Provide access to a vector field at possibly non-integer coordinates */
+class VectorField : public Field
+{
+public:
   /** Evaluate the vector field at possibly non-integer coordinates
 
-      \exception UndefinedVectorField if the field cannot be evaluated at the
+      \exception UndefinedField if the field cannot be evaluated at the
       given position.
    */
   Point3df evaluate(const Point3df& pos) const
@@ -31,10 +34,23 @@ public:
 
   /** Evaluate the vector field at possibly non-integer coordinates
 
-      \exception UndefinedVectorField if the field cannot be evaluated at the
+      \exception UndefinedField if the field cannot be evaluated at the
       given position.
   */
   virtual void evaluate(const Point3df& pos, Point3df& output) const = 0;
+};
+
+/** Provide access to a scalar field at possibly non-integer coordinates */
+class ScalarField : public Field
+{
+public:
+  /** Evaluate the scalar field at possibly non-integer coordinates
+
+      \exception UndefinedField if the field cannot be evaluated at the
+      given position.
+   */
+  virtual float evaluate(const Point3df& pos) const = 0;
+
 };
 
 /** Access a vector field stored as three volumes
@@ -55,6 +71,20 @@ private:
   aims::LinearInterpolator<float> m_interp_fieldz;
 };
 
+/** Access a scalar field stored in a volume
+
+    The field value is linearly interpolated between integer coordinates.
+ */
+class LinearlyInterpolatedScalarField : public ScalarField
+{
+public:
+  LinearlyInterpolatedScalarField(const carto::VolumeRef<float>& field_volume);
+
+  virtual float evaluate(const Point3df& pos) const;
+private:
+  aims::LinearInterpolator<float> m_interp_field;
+};
+
 }
 
-#endif // !defined(YL_VECTOR_FIELD_HH_INCLUDED)
+#endif // !defined(YL_FIELD_HH_INCLUDED)

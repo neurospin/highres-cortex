@@ -61,16 +61,30 @@ int16_t yl::PropagateAlongField::ascend_until_nonzero<int16_t>(
     int16_t ignore_label
 ) const;
 template
+float yl::PropagateAlongField::integrate_field_along_advection<int16_t>(
+    const Point3df &start_point,
+    const carto::VolumeRef<int16_t> &seeds,
+    const boost::shared_ptr<ScalarField>& field,
+    int16_t ignore_label
+) const;
+template
+carto::VolumeRef<float>
+yl::PropagateAlongField::evolve_unit_surface_from_region<int16_t>(
+    const carto::VolumeRef<int16_t> &seeds,
+    const boost::shared_ptr<ScalarField>& field,
+    int16_t target_label
+) const;
+template
 carto::VolumeRef<int16_t>
 yl::PropagateAlongField::propagate_regions<int16_t>(
     const carto::VolumeRef<int16_t> &seeds,
-    int16_t target_label=0
+    int16_t target_label
 ) const;
 template
 std::pair<carto::VolumeRef<int16_t>, carto::VolumeRef<float> >
 yl::PropagateAlongField::propagate_regions_keeping_dests<int16_t>(
     const carto::VolumeRef<int16_t> &seeds,
-    int16_t target_label=0
+    int16_t target_label
 ) const;
 
 template
@@ -80,14 +94,28 @@ int32_t yl::PropagateAlongField::ascend_until_nonzero<int32_t>(
     int32_t ignore_label
 ) const;
 template
+float yl::PropagateAlongField::integrate_field_along_advection<int32_t>(
+    const Point3df &start_point,
+    const carto::VolumeRef<int32_t> &seeds,
+    const boost::shared_ptr<ScalarField>& field,
+    int32_t ignore_label
+) const;
+template
+carto::VolumeRef<float>
+yl::PropagateAlongField::evolve_unit_surface_from_region<int32_t>(
+    const carto::VolumeRef<int32_t> &seeds,
+    const boost::shared_ptr<ScalarField>& field,
+    int32_t target_label
+) const;
+template
 carto::VolumeRef<int32_t>
 yl::PropagateAlongField::propagate_regions<int32_t>(
     const carto::VolumeRef<int32_t> &seeds,
-    int32_t target_label=0
+    int32_t target_label
 ) const;
 template
 std::pair<carto::VolumeRef<int32_t>, carto::VolumeRef<float> >
 yl::PropagateAlongField::propagate_regions_keeping_dests<int32_t>(
     const carto::VolumeRef<int32_t> &seeds,
-    int32_t target_label=0
+    int32_t target_label
 ) const;

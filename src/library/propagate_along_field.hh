@@ -5,7 +5,7 @@
 
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
-#include <yleprince/vector_field.hh>
+#include <yleprince/field.hh>
 
 namespace yl
 {
@@ -101,6 +101,59 @@ public:
 
   static const float default_step = 0.1f;
   static const unsigned int default_max_iter = 1000;
+
+  /** Visit each point along the advection path
+
+      \retval true if the advection succeeds (reaches a goal region).
+      \retval false if the advection it is stopped early and fails.
+   */
+  template <class TVisitor, typename Tlabel>
+  bool
+  visitor_ascension(const Point3df &start_point,
+                    const carto::VolumeRef<Tlabel> &seeds,
+                    Tlabel ignore_label,
+                    TVisitor& visitor) const;
+
+  /** Return the integral of a scalar field along an advection path.
+
+      \exception AbortedAdvection is thrown if the advection cannot be
+      completed.
+   */
+  template <typename Tlabel>
+  float
+  integrate_field_along_advection(const Point3df &start_point,
+                                  const carto::VolumeRef<Tlabel> &seeds,
+                                  const boost::shared_ptr<ScalarField>& field,
+                                  Tlabel ignore_label) const;
+
+  /** Evolve a unit surface along the advection path.
+
+      \exception AbortedAdvection is thrown if the advection cannot be
+      completed.
+   */
+  template <typename Tlabel>
+  float
+  evolve_unit_surface(const Point3df &start_point,
+                      const carto::VolumeRef<Tlabel> &seeds,
+                      const boost::shared_ptr<ScalarField>& divergence_field,
+                      Tlabel ignore_label) const;
+
+  /** Exception raised by certain members if an advection cannot be completed */
+  class AbortedAdvection
+  {
+  };
+
+  template<typename Tlabel>
+  carto::VolumeRef<float>
+  integrate_from_region(const carto::VolumeRef<Tlabel> &seeds,
+                        const boost::shared_ptr<ScalarField>& field,
+                        Tlabel target_label=0) const;
+
+  template<typename Tlabel>
+  carto::VolumeRef<float>
+  evolve_unit_surface_from_region(const carto::VolumeRef<Tlabel> &seeds,
+                                  const boost::shared_ptr<ScalarField>& divergence_field,
+                                  Tlabel target_label=0) const;
 
 private:
   boost::shared_ptr<VectorField> m_vector_field;
