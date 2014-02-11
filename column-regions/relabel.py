@@ -28,4 +28,4 @@ def relabel(labels):
     return output
 
 output = relabel(input_labels)
-aims.write(output, "merged_relabelled.nii.gz")
+aims.write(output, "merged_relabelled.nii")

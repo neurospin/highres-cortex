@@ -16,8 +16,11 @@ def relabel_conjunctions(labels1, labels2):
         for y in xrange(size_y):
             for x in xrange(size_x):
                 labels = (labels1.at(x, y, z), labels2.at(x, y, z))
-                if labels == (0, 0):
-                    new_label = 0
+                # Zeros are failed propagations, they should not be aggregated
+                # together
+                if labels[0] == 0 or labels[1] == 0:
+                    new_label = next_label
+                    next_label += 1
                 else:
                     try:
                         new_label = old_to_new_labels[labels]

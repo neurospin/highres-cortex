@@ -12,13 +12,13 @@ np_white_labels_on_CSF = np.asarray(white_labels_on_CSF)
 np_classif = np.asarray(classif)
 np_output = np.asarray(output)
 
-white_mask = (np_classif == 2)
+white_mask = (np_classif == 200)
 CSF_mask = (np_classif == 0)
 
 np_output[white_mask] = np_CSF_labels_on_white[white_mask]
 np_output[CSF_mask] = np_white_labels_on_CSF[CSF_mask]
 
-aims.write(output, "raw_exchanged_labels.nii.gz")
+aims.write(output, "raw_exchanged_labels.nii")
 
 
 # These “failed components” will probably be separated by connexity
@@ -27,14 +27,12 @@ aims.write(output, "raw_exchanged_labels.nii.gz")
 
 import subprocess
 subprocess.check_call(["AimsConnectComp",
-                       "-i",
-                       "raw_exchanged_labels.nii.gz",
-                       "-o",
-                       "connected_exchanged_labels.nii.gz"])
+                       "-i", "raw_exchanged_labels.nii",
+                       "-o", "connected_exchanged_labels.nii"])
 
 
 # The background is cut in one big region + many small, restore it then relabel
-propvol = aims.read("connected_exchanged_labels.nii.gz")
+propvol = aims.read("connected_exchanged_labels.nii")
 np_propvol = np.asarray(propvol)
 exclusion_mask = (np_CSF_labels_on_white == -1)
 bulk_mask = (np_CSF_labels_on_white == 0)

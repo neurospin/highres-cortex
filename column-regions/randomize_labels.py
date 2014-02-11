@@ -2,7 +2,7 @@
 import random
 from soma import aims
 
-input_labels = aims.read("./merged_relabelled.nii.gz")
+input_labels = aims.read("./merged_relabelled.nii")
 
 def relabel(labels):
     import numpy as np
