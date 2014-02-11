@@ -7,7 +7,7 @@ from soma import aimsalgo
 
 
 FLT_MAX = 3.4028234663852886e+38
-
+NaN = float("NaN")
 
 def fastmarching_negative(classif_vol,
                           propagation_labels=[1],
@@ -29,6 +29,8 @@ def fastmarching_negative(classif_vol,
     fm.setVerbose(verbose)
     dist = fm.doit(classif_vol, propagation_labels, seed_labels)
     np_dist = np.asarray(dist)
+    mask = (np_dist == FLT_MAX)
+    #np_dist[mask] = NaN
     np_classif[np_dist == 0] = border_label
 
     # The connectivity does not seem to matter here
@@ -37,7 +39,7 @@ def fastmarching_negative(classif_vol,
     dist_neg = fm.doit(classif_vol, seed_labels,
                        list(propagation_labels) + [border_label])
     np_dist_neg = np.asarray(dist_neg)
-    mask = (np_dist == FLT_MAX)
+    #np_dist_neg[np_dist_neg == FLT_MAX] = NaN
     np_dist[mask] = -np_dist_neg[mask]
 
     return dist
