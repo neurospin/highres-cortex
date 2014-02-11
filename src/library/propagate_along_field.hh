@@ -126,17 +126,6 @@ public:
                                   const boost::shared_ptr<ScalarField>& field,
                                   Tlabel ignore_label) const;
 
-  /** Evolve a unit surface along the advection path.
-
-      \exception AbortedAdvection is thrown if the advection cannot be
-      completed.
-   */
-  template <typename Tlabel>
-  float
-  evolve_unit_surface(const Point3df &start_point,
-                      const carto::VolumeRef<Tlabel> &seeds,
-                      const boost::shared_ptr<ScalarField>& divergence_field,
-                      Tlabel ignore_label) const;
 
   /** Exception raised by certain members if an advection cannot be completed */
   class AbortedAdvection
@@ -148,12 +137,6 @@ public:
   integrate_from_region(const carto::VolumeRef<Tlabel> &seeds,
                         const boost::shared_ptr<ScalarField>& field,
                         Tlabel target_label=0) const;
-
-  template<typename Tlabel>
-  carto::VolumeRef<float>
-  evolve_unit_surface_from_region(const carto::VolumeRef<Tlabel> &seeds,
-                                  const boost::shared_ptr<ScalarField>& divergence_field,
-                                  Tlabel target_label=0) const;
 
 private:
   boost::shared_ptr<VectorField3d> m_vector_field;
