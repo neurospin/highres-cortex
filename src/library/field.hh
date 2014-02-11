@@ -7,20 +7,21 @@
 namespace yl
 {
 
+/** Store and access a field (scalar or vector) defined over a 3D domain */
 class Field
 {
 public:
-  /** Exception thrown when the field cannot be evaluated */
+  /** Exception thrown when the field has no defined value */
   class UndefinedField
   {
   };
 };
 
-/** Provide access to a vector field at possibly non-integer coordinates */
-class VectorField : public Field
+/** Store a vector field and access it at any coordinates */
+class VectorField3d : public Field
 {
 public:
-  /** Evaluate the vector field at possibly non-integer coordinates
+  /** Evaluate the field's value at possibly non-integer coordinates
 
       \exception UndefinedField if the field cannot be evaluated at the
       given position.
@@ -32,7 +33,7 @@ public:
     return ret;
   };
 
-  /** Evaluate the vector field at possibly non-integer coordinates
+  /** Evaluate the field's value at possibly non-integer coordinates
 
       \exception UndefinedField if the field cannot be evaluated at the
       given position.
@@ -40,11 +41,11 @@ public:
   virtual void evaluate(const Point3df& pos, Point3df& output) const = 0;
 };
 
-/** Provide access to a scalar field at possibly non-integer coordinates */
+/** Store a scalar field and access it at any coordinates */
 class ScalarField : public Field
 {
 public:
-  /** Evaluate the scalar field at possibly non-integer coordinates
+  /** Evaluate the field's value at possibly non-integer coordinates
 
       \exception UndefinedField if the field cannot be evaluated at the
       given position.
@@ -57,10 +58,10 @@ public:
 
     The components are linearly interpolated between integer coordinates.
  */
-class LinearlyInterpolatedVectorField3D : public VectorField
+class LinearlyInterpolatedVectorField3d : public VectorField3d
 {
 public:
-  LinearlyInterpolatedVectorField3D(const carto::VolumeRef<float>& fieldx,
+  LinearlyInterpolatedVectorField3d(const carto::VolumeRef<float>& fieldx,
                                     const carto::VolumeRef<float>& fieldy,
                                     const carto::VolumeRef<float>& fieldz);
 
@@ -73,7 +74,7 @@ private:
 
 /** Access a scalar field stored in a volume
 
-    The field value is linearly interpolated between integer coordinates.
+    The field's value is linearly interpolated between integer coordinates.
  */
 class LinearlyInterpolatedScalarField : public ScalarField
 {

@@ -137,7 +137,7 @@ internal_ascension(const Point3df &start_point,
     float& gx = local_field[0], gy = local_field[1], gz = local_field[2];
     try {
       m_vector_field->evaluate(current_point, local_field);
-    } catch(const VectorField::UndefinedField&) {
+    } catch(const Field::UndefinedField&) {
       if(m_verbose >= 2) {
         clog << "    ascension at " << start_point << " aborted after "
              << iter << " iterations: vector field is undefined at ("
@@ -298,7 +298,7 @@ visitor_ascension(const Point3df& start_point,
     float& gx = local_field[0], gy = local_field[1], gz = local_field[2];
     try {
       m_vector_field->evaluate(current_point, local_field);
-    } catch(const VectorField::UndefinedField&) {
+    } catch(const Field::UndefinedField&) {
       if(m_verbose >= 2) {
         clog << "    ascension at " << start_point << " aborted after "
              << iter << " iterations: vector field is undefined at ("

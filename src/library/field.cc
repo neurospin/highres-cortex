@@ -1,7 +1,7 @@
 #include <yleprince/field.hh>
 
-yl::LinearlyInterpolatedVectorField3D::
-LinearlyInterpolatedVectorField3D(const carto::VolumeRef<float>& fieldx,
+yl::LinearlyInterpolatedVectorField3d::
+LinearlyInterpolatedVectorField3d(const carto::VolumeRef<float>& fieldx,
                                   const carto::VolumeRef<float>& fieldy,
                                   const carto::VolumeRef<float>& fieldz)
   : m_interp_fieldx(fieldx), m_interp_fieldy(fieldy), m_interp_fieldz(fieldz)
@@ -9,7 +9,7 @@ LinearlyInterpolatedVectorField3D(const carto::VolumeRef<float>& fieldx,
 }
 
 void
-yl::LinearlyInterpolatedVectorField3D::
+yl::LinearlyInterpolatedVectorField3d::
 evaluate(const Point3df& pos, Point3df& output) const
 {
   if(! m_interp_fieldx.isValid(pos[0], pos[1], pos[2])

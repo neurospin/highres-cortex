@@ -12,7 +12,7 @@ using boost::shared_ptr;
 using boost::make_shared;
 
 yl::PropagateAlongField::
-PropagateAlongField(const shared_ptr<VectorField>& vector_field)
+PropagateAlongField(const shared_ptr<VectorField3d>& vector_field)
   : m_vector_field(vector_field),
     m_max_iter(default_max_iter), m_step(default_step), m_verbose(debug_output)
 {
@@ -22,7 +22,7 @@ yl::PropagateAlongField::
 PropagateAlongField(const VolumeRef<float>& fieldx,
                     const VolumeRef<float>& fieldy,
                     const VolumeRef<float>& fieldz)
-  : m_vector_field(make_shared<LinearlyInterpolatedVectorField3D>(fieldx,
+  : m_vector_field(make_shared<LinearlyInterpolatedVectorField3d>(fieldx,
                                                                   fieldy,
                                                                   fieldz)),
     m_max_iter(default_max_iter), m_step(default_step), m_verbose(debug_output)
