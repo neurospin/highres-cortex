@@ -2,7 +2,7 @@
 import numpy as np
 from soma import aims
 
-input_labels = aims.read("./merged.nii.gz")
+input_labels = aims.read("./merged.nii")
 
 def relabel(labels):
     output = aims.Volume(labels)

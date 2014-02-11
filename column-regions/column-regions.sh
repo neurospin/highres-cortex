@@ -132,7 +132,7 @@ python relabel_conjunction.py  # -> ./conjunction.nii.gz
 
 ylMergeCortexColumnRegions --verbose 2 \
     -i conjunction.nii.gz \
-    -o merged.nii.gz \
+    -o merged.nii \
     --proj-csf heat_CSF_points_on_bulk.nii.gz \
     --proj-white ./heat_white_points_on_bulk.nii.gz \
     --goal-diametre 4 \
