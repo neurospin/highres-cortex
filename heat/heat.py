@@ -5,7 +5,7 @@ classif = aims.read("../classif.nii.gz", 1)
 conv = aims.Converter_Volume_S16_Volume_FLOAT()
 classif_float = conv(classif)
 
-mask = aims.read("./all_but_cortex.nii.gz", 1)
+mask = aims.read("./all_but_cortex.nii", 1)
 aimsmask = aims.AimsData(mask)  # Important for reference-counting!
 
 diff = aimsalgo.MaskedDiffusionSmoother_FLOAT(0.1)

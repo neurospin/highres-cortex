@@ -2,9 +2,9 @@
 from soma import aims
 from soma import aimsalgo
 
-gradnx = aims.read("heat_gradnx.nii.gz")
-gradny = aims.read("heat_gradny.nii.gz")
-gradnz = aims.read("heat_gradnz.nii.gz")
+gradnx = aims.read("heat_gradnx.nii")
+gradny = aims.read("heat_gradny.nii")
+gradnz = aims.read("heat_gradnz.nii")
 
 gradient = aimsalgo.AimsGradient_FLOAT()
 div_gradn = (gradient.X(gradnx) +
