@@ -94,6 +94,17 @@ python get_exchanged_propvol.py  # -> exchanged_propvol.nii.gz
 # skipped over. This would also prevent the advection path from crossing the
 # thin CSF surface within the sulcus (comes from skeleton).
 
+# I could take into account the fake cortex–CSF interface that exists at the
+# cut plane, by assigning it a special label (e.g. 500000000) in the
+# exchanged_propvol label. It would then need to be treated specially: any
+# voxel that projects onto this label would be excluded from the region list,
+# and thus would not take part in the merging step. This would prevent the
+# creation of regions that connect to this spurious surface, but this would not
+# prevent the nearby regions from being deformed by the perturbation of the
+# field. It would thus probably be overkill to implement this special case.
+# Care is needed when dealing with regions close to the cut plane anyway.
+
+
 ylPropagateAlongField --verbose \
     --fieldx ../heat/heat_gradx.nii.gz \
     --fieldy ../heat/heat_grady.nii.gz \
