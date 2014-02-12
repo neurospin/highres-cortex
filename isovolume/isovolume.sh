@@ -29,3 +29,12 @@ cartoLinearComb.py -f 'I1/I2' \
     -i pial-tube-volumes.nii.gz \
     -i pial-tube-surfaces.nii.gz \
     -o pial-tube-VoverS.nii.gz
+
+cartoLinearComb.py -f 'I1+I2' \
+    -i pial-tube-volumes.nii.gz \
+    -i white-tube-volumes.nii.gz \
+    -o total-tube-volumes.nii.gz
+cartoLinearComb.py -f 'I1/I2' \
+    -i pial-tube-volumes.nii.gz \
+    -i total-tube-volumes.nii.gz \
+    -o pial-volume-fraction.nii.gz
