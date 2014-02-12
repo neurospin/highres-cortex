@@ -139,23 +139,3 @@ ylMergeCortexColumnRegions --verbose 2 \
     --max-thickness 6
 python relabel.py
 python randomize_labels.py
-
-
-N=29719 ; python \
-    /volatile/yl232319/bv/src/perso/leprince/tools/proj_point_cloud.py \
-    heat_CSF_points_on_bulk.nii.gz \
-    merged_randomized.nii.gz \
-    csf_projected_points.gii \
-    $N \
-&& python \
-    /volatile/yl232319/bv/src/perso/leprince/tools/proj_point_cloud.py \
-    heat_white_points_on_bulk.nii.gz \
-    merged_randomized.nii.gz \
-    white_projected_points.gii \
-    $N \
-&& AimsThreshold -b -m eq -t $N \
-    -i merged_randomized.nii.gz \
-    -o focused_region.nii \
-&& AimsGraphConvert --bucket \
-    -i focused_region.nii \
-    -o focused_region.arg
