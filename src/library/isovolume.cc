@@ -1,5 +1,6 @@
 #include <yleprince/isovolume.hh>
 
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -21,9 +22,11 @@ class TubeAdvection : public yl::Advection::Visitor
 {
 public:
   TubeAdvection(const yl::ScalarField& divergence_field,
-                const yl::ScalarField& domain)
+                const yl::ScalarField& domain,
+                const bool opposite_direction=false)
     : m_divergence_field(divergence_field),
       m_domain(domain),
+      m_opposite_direction(opposite_direction),
       m_previous_point(),
       m_surface(1.f),
       m_volume(0.f),
@@ -40,12 +43,19 @@ public:
   {
     const float step = (point - m_previous_point).norm();
     const float old_surface = m_surface;
+    float divergence_value;
     try {
-      m_surface *= 1 + step * m_divergence_field.evaluate(point);
+      divergence_value = m_divergence_field.evaluate(point);
     } catch(const yl::Field::UndefinedField&) {
       m_abort = true;
       return;
     }
+
+    if(m_opposite_direction)
+      m_surface *= 1 - step * divergence_value;
+    else
+      m_surface *= 1 + step * divergence_value;
+
     if(m_surface < 0) {
       clog << "  Warning: TubeAdvection encountered negative surface, aborting" << endl;
       m_abort = true;
@@ -87,6 +97,7 @@ public:
 private:
   const yl::ScalarField& m_divergence_field;
   const yl::ScalarField& m_domain;
+  const bool m_opposite_direction;
   Point3df m_previous_point;
   float m_surface;
   float m_volume;
@@ -105,6 +116,8 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
                  const float step_size,
                  const int verbosity)
 {
+  assert(max_advection_distance > 0);
+
   const int size_x = domain.getSizeX();
   const int size_y = domain.getSizeY();
   const int size_z = domain.getSizeZ();
@@ -125,16 +138,17 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   unsigned int n_success = 0, n_aborted = 0;
 
   yl::ConstantStepAdvection advection(advection_field, step_size);
-  advection.set_max_iter(std::ceil(max_advection_distance / step_size));
+  advection.set_max_iter(std::ceil(max_advection_distance
+                                   / std::abs(step_size)));
   advection.set_verbose(verbosity - 1);
 
   // This could be more elegant: the domain is first converted as float, then
   // fed into a scalar field to ease interpolation.
   carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
-  // Work around bug #9410
-  carto::VolumeRef<float> float_domain(size_x, size_y, size_z);
-  conv.convert(domain, float_domain);
+  carto::VolumeRef<float> float_domain(*conv(domain));
   yl::LinearlyInterpolatedScalarField domain_field(float_domain);
+
+  const bool opposite_direction = step_size < 0;
 
   for(int z = 0; z < size_z; ++z)
   for(int y = 0; y < size_y; ++y)
@@ -151,7 +165,7 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
                            y * voxel_size_y,
                            z * voxel_size_z);
 
-      TubeAdvection visitor(divergence_field, domain_field);
+      TubeAdvection visitor(divergence_field, domain_field, opposite_direction);
       yl::Advection::Visitor& plain_visitor = visitor;
       const bool success = advection.visitor_advection(plain_visitor, point);
 

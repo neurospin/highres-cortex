@@ -15,7 +15,8 @@ class ScalarField;
     \arg divergence_field the divergence of the normalized advection field
     \arg domain the advection domain with zero outside, one inside
     \arg max_advection_distance the maximum length of the advection path
-    \arg step_size the constant length of an advection step
+    \arg step_size the constant length of an advection step. Can be negative to
+    advect in the opposite direction.
     \arg verbosity verbosity to stderr, (verbosity - 1) is passed to
     Advection::set_verbose()
 

@@ -80,7 +80,11 @@ private:
   unsigned int m_max_iter;
 };
 
-/** Forward advection using a constant step size */
+/** Forward advection using a constant step size
+
+    The step size can be negative, in which case the advection is done in the
+    opposite direction.
+ */
 class ConstantStepAdvection : public Advection
 {
 public:
