@@ -72,6 +72,19 @@ private:
   aims::LinearInterpolator<float> m_interp_fieldz;
 };
 
+class LinearlyInterpolatedScalarFieldGradient : public VectorField3d
+{
+public:
+  LinearlyInterpolatedScalarFieldGradient(
+    const carto::VolumeRef<float>& scalar_field);
+  virtual void evaluate(const Point3df& pos, Point3df& output) const;
+private:
+  carto::rc_ptr<aims::Interpolator> m_interp_gradx;
+  carto::rc_ptr<aims::Interpolator> m_interp_grady;
+  carto::rc_ptr<aims::Interpolator> m_interp_gradz;
+  float m_xoffset, m_yoffset, m_zoffset;
+};
+
 /** Access a scalar field stored in a volume
 
     The field's value is linearly interpolated between integer coordinates.

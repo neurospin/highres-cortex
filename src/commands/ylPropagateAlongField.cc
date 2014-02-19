@@ -2,6 +2,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <boost/make_shared.hpp>
+
 #include <cartobase/config/verbose.h>
 #include <cartodata/volume/volume.h>
 #include <aims/getopt/getopt2.h>
@@ -11,6 +13,7 @@
 #include <aims/io/writer.h>
 
 #include <yleprince/propagate_along_field.hh>
+#include <yleprince/field.hh>
 
 using std::clog;
 using std::endl;
@@ -22,6 +25,7 @@ using carto::verbose;
 namespace
 {
 
+const int EXIT_USAGE_ERROR = 2;
 std::string program_name;
 
 struct PropagateAlongFieldProcess : public aims::Process
@@ -29,6 +33,7 @@ struct PropagateAlongFieldProcess : public aims::Process
   PropagateAlongFieldProcess();
 
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
+  aims::Reader<VolumeRef<float> > grad_field_reader;
   int32_t target_label;
   float step;
   unsigned int max_iter;
@@ -43,20 +48,83 @@ bool doit(aims::Process& proc_base,
 {
   PropagateAlongFieldProcess &proc =
     dynamic_cast<PropagateAlongFieldProcess&>(proc_base);
-  if(verbose) clog << program_name << ": reading field..." << endl;
-  VolumeRef<float> fieldx, fieldy, fieldz;
-  proc.fieldx_reader.read(fieldx);
-  proc.fieldy_reader.read(fieldy);
-  proc.fieldz_reader.read(fieldz);
-  if(fieldx.getSizeX() != fieldy.getSizeX() ||
-     fieldx.getSizeX() != fieldz.getSizeX() ||
-     fieldx.getSizeY() != fieldy.getSizeY() ||
-     fieldx.getSizeY() != fieldz.getSizeY() ||
-     fieldx.getSizeZ() != fieldy.getSizeZ() ||
-     fieldx.getSizeZ() != fieldz.getSizeZ()) {
-    clog << program_name << ": the sizes of the field volumes do not match"
+
+  bool fieldx_provided = !proc.fieldx_reader.fileName().empty();
+  bool fieldy_provided = !proc.fieldy_reader.fileName().empty();
+  bool fieldz_provided = !proc.fieldz_reader.fileName().empty();
+  bool grad_field_provided = !proc.grad_field_reader.fileName().empty();
+
+  boost::shared_ptr<yl::VectorField3d> vector_field;
+  bool success = true;
+
+  if(!grad_field_provided && !(fieldx_provided
+                               && fieldy_provided
+                               && fieldz_provided)) {
+    clog << program_name
+         << ": must provide either --grad-field or --field{x,y,z}"
          << endl;
-    return false;
+    return EXIT_USAGE_ERROR;
+  }
+
+  if(grad_field_provided && (fieldx_provided
+                             || fieldy_provided
+                             || fieldz_provided)) {
+    clog << program_name
+         << ": must provide either --grad-field or --field{x,y,z}, not both"
+         << endl;
+    return EXIT_USAGE_ERROR;
+  }
+
+  if(grad_field_provided) {
+    // --grad-field provided
+    if(verbose) clog << program_name << ": reading field..." << endl;
+    VolumeRef<float> grad_field;
+    success = proc.grad_field_reader.read(grad_field);
+    if(!success) {
+      clog << program_name << ": error reading file '"
+           << proc.fieldx_reader.fileName()
+           << "'specified as --grad-field, aborting" << endl;
+      return EXIT_FAILURE;
+    }
+    vector_field = boost::make_shared<yl::LinearlyInterpolatedScalarFieldGradient>
+      (grad_field);
+  } else {
+    // --fieldx, --fieldy, --fieldz provided
+    if(verbose) clog << program_name << ": reading field..." << endl;
+    VolumeRef<float> fieldx, fieldy, fieldz;
+    success = proc.fieldx_reader.read(fieldx);
+    if(!success) {
+      clog << program_name << ": error reading file '"
+           << proc.fieldx_reader.fileName() << "'specified as --fieldx, aborting"
+           << endl;
+      return EXIT_FAILURE;
+    }
+    success = proc.fieldy_reader.read(fieldy);
+    if(!success) {
+      clog << program_name << ": error reading file '"
+           << proc.fieldy_reader.fileName() << "'specified as --fieldy, aborting"
+           << endl;
+      return EXIT_FAILURE;
+    }
+    success = proc.fieldz_reader.read(fieldz);
+    if(!success) {
+      clog << program_name << ": error reading file '"
+           << proc.fieldz_reader.fileName() << "'specified as --fieldz, aborting"
+           << endl;
+      return EXIT_FAILURE;
+    }
+    if(fieldx.getSizeX() != fieldy.getSizeX() ||
+       fieldx.getSizeX() != fieldz.getSizeX() ||
+       fieldx.getSizeY() != fieldy.getSizeY() ||
+       fieldx.getSizeY() != fieldz.getSizeY() ||
+       fieldx.getSizeZ() != fieldy.getSizeZ() ||
+       fieldx.getSizeZ() != fieldz.getSizeZ()) {
+      clog << program_name << ": the sizes of the field volumes do not match"
+           << endl;
+      return EXIT_FAILURE;
+    }
+    vector_field = boost::make_shared<yl::LinearlyInterpolatedVectorField3d>
+      (fieldx, fieldy, fieldz);
   }
 
   VolumeRef<Tlabel> seeds;
@@ -66,15 +134,7 @@ bool doit(aims::Process& proc_base,
     seeds_reader.read(seeds);
   }
 
-  if(seeds.getSizeX() != fieldx.getSizeX() ||
-     seeds.getSizeY() != fieldx.getSizeY() ||
-     seeds.getSizeZ() != fieldx.getSizeZ()) {
-    clog << program_name << ": the size of the seed volume does not match "
-      "the size of the field" << endl;
-    return false;
-  }
-
-  yl::PropagateAlongField propagator(fieldx, fieldy, fieldz);
+  yl::PropagateAlongField propagator(vector_field);
   propagator.setVerbose(verbose);
   propagator.setStep(proc.step);
   propagator.setMaxIter(proc.max_iter);
@@ -83,7 +143,7 @@ bool doit(aims::Process& proc_base,
   if(target_label != proc.target_label) {
     clog << program_name << ": --target-label value is out of the range "
       "permitted by the label data type " << finder.dataType() << endl;
-    return false;
+    return EXIT_FAILURE;
   }
 
   VolumeRef<Tlabel> regions;
@@ -98,7 +158,6 @@ bool doit(aims::Process& proc_base,
     regions = propagator.propagate_regions(seeds, target_label);
   }
 
-  bool success = true;
   if(!regions.isNull()) {
     if(verbose) clog << program_name << ": writing output regions "
                      << proc.output_regions_filename << " as Volume of "
@@ -112,7 +171,7 @@ bool doit(aims::Process& proc_base,
     success = proc.output_points_writer.write(points) && success;
   }
 
-  return success;
+  return EXIT_SUCCESS;
 };
 
 PropagateAlongFieldProcess::PropagateAlongFieldProcess()
@@ -145,9 +204,14 @@ int main(const int argc, const char **argv)
                 "- positive labels are seeds,\n"
                 "- zero is the region of propagation,\n"
                 "- negative labels are forbidden regions.");
-  app.addOption(proc.fieldx_reader, "--fieldx", "x component of vector field");
-  app.addOption(proc.fieldy_reader, "--fieldy", "y component of vector field");
-  app.addOption(proc.fieldz_reader, "--fieldz", "z component of vector field");
+  app.addOption(proc.grad_field_reader, "--grad-field",
+                "use the gradient of this scalar field", true);
+  app.addOption(proc.fieldx_reader, "--fieldx",
+                "x component of vector field", true);
+  app.addOption(proc.fieldy_reader, "--fieldy",
+                "y component of vector field", true);
+  app.addOption(proc.fieldz_reader, "--fieldz",
+                "z component of vector field", true);
   app.addOption(proc.target_label, "--target-label",
                 "voxels having this label are used as starting points "
                 "[default: 0]", true);
@@ -184,9 +248,8 @@ int main(const int argc, const char **argv)
   {
     clog << program_name << ": error processing command-line options: "
          << e.what() << endl;
-    return EXIT_FAILURE;
+    return EXIT_USAGE_ERROR;
   }
 
-  bool success = proc.execute(seeds_filename);
-  return success ? EXIT_SUCCESS : EXIT_FAILURE;
+  return proc.execute(seeds_filename);
 }
