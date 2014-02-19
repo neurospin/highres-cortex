@@ -3,8 +3,13 @@
 AimsThreshold -b -m di -t 100 \
     -i ../classif.nii.gz \
     -o ./all_but_cortex.nii
+AimsFileConvert -t FLOAT \
+    -i ../classif.nii.gz \
+    -o heat.nii.gz
 
-python heat.py
+# Each run refines the previous one
+python heat.py 500 0.01
+python heat.py 100 0.001
 
 # Normalized gradient
 ylNumpyComb.py -f 'sqrt(I1**2 + I2**2 + I3**2)' \
