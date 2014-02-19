@@ -5,9 +5,7 @@ AimsThreshold -b --fg 1 -m eq -t 100 \
 ylAdvectTubes --verbose \
     --step 0.05 \
     --domain ./domain.nii.gz \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --divergence ../heat/heat_div_gradn.nii.gz \
     --output-volumes white-tube-volumes.nii.gz \
     --output-surfaces white-tube-surfaces.nii.gz
@@ -19,9 +17,7 @@ cartoLinearComb.py -f 'I1/I2' \
 ylAdvectTubes --verbose \
     --step -0.05 \
     --domain ./domain.nii.gz \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --divergence ../heat/heat_div_gradn.nii.gz \
     --output-volumes pial-tube-volumes.nii.gz \
     --output-surfaces pial-tube-surfaces.nii.gz
