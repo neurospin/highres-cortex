@@ -134,6 +134,46 @@ bool doit(aims::Process& proc_base,
     seeds_reader.read(seeds);
   }
 
+  static const bool test_vector_field = false;
+  if(test_vector_field) {
+    const int size_x = seeds.getSizeX(),
+      size_y = seeds.getSizeY(),
+      size_z = seeds.getSizeZ();
+    const carto::Object& voxel_size = seeds.header().getProperty("voxel_size");
+    assert(voxel_size->isArray());
+    const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
+    const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
+    const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+
+    carto::VolumeRef<float> vector_field_volume(size_x, size_y, size_z, 3);
+    vector_field_volume.header() = seeds.header();
+    vector_field_volume.fill(0);
+    Point3df pos, field_value;
+    for(int z = 0; z < size_z; ++z) {
+      clog << "test slice " << z << " / " << size_z << endl;
+      pos[2] = z * voxel_size_z;
+      for(int y = 0; y < size_y; ++y) {
+        pos[1] = y * voxel_size_y;
+        for(int x = 0; x < size_x; ++x) {
+          if(seeds(x, y, z) >= 0) {
+            pos[0] = x * voxel_size_x;
+            try {
+              vector_field->evaluate(pos, field_value);
+            } catch(const yl::Field::UndefinedField&) {
+              clog << "undefined field at " << pos << endl;
+              continue;
+            }
+            vector_field_volume(x, y, z, 0) = field_value[0];
+            vector_field_volume(x, y, z, 1) = field_value[1];
+            vector_field_volume(x, y, z, 2) = field_value[2];
+          }
+        }
+      }
+    }
+    aims::Writer<VolumeRef<float> > writer("vector_field.nii");
+    writer.write(vector_field_volume);
+  }
+
   yl::PropagateAlongField propagator(vector_field);
   propagator.setVerbose(verbose);
   propagator.setStep(proc.step);
