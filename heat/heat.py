@@ -16,17 +16,3 @@ diff.setMask(aimsmask, 32767)
 heatmap = diff.doSmoothing(heatmap_before, n_iter, True)
 
 aims.write(heatmap, "./heat.nii.gz")
-
-
-gradient = aimsalgo.AimsGradient_FLOAT()
-gradx = gradient.X(heatmap)
-grady = gradient.Y(heatmap)
-gradz = gradient.Z(heatmap)
-aims.write(gradx, "./heat_gradx.nii.gz")
-aims.write(grady, "./heat_grady.nii.gz")
-aims.write(gradz, "./heat_gradz.nii.gz")
-
-laplacian = (gradient.X(gradx) +
-             gradient.Y(grady) +
-             gradient.Z(gradz))
-aims.write(laplacian, "./heat_laplacian.nii.gz")
