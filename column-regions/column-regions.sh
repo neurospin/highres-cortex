@@ -42,17 +42,13 @@ AimsMerge -m ao -v 100000000 \
 
 
 ylPropagateAlongField --verbose \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --seeds propvol_CSF_labels.nii.gz \
     --step -0.05 \
     --target-label 200000000 \
     --output heat_CSF_labels_on_white.nii.gz
 ylPropagateAlongField --verbose \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --seeds propvol_white_labels.nii.gz \
     --step 0.05 \
     --target-label 100000000 \
@@ -106,18 +102,14 @@ python get_exchanged_propvol.py  # -> exchanged_propvol.nii.gz
 
 
 ylPropagateAlongField --verbose \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --seeds exchanged_propvol.nii.gz \
     --step -0.05 \
     --target-label 0 \
     --output heat_CSF_on_bulk_raw.nii \
     --dest-points heat_CSF_points_on_bulk.nii.gz
 ylPropagateAlongField --verbose \
-    --fieldx ../heat/heat_gradx.nii.gz \
-    --fieldy ../heat/heat_grady.nii.gz \
-    --fieldz ../heat/heat_gradz.nii.gz \
+    --grad-field ../heat/heat.nii.gz \
     --seeds exchanged_propvol.nii.gz \
     --step 0.05 \
     --target-label 0 \
