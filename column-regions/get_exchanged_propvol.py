@@ -4,7 +4,7 @@ from soma import aims
 
 CSF_labels_on_white = aims.read("heat_CSF_labels_on_white.nii.gz")
 white_labels_on_CSF = aims.read("heat_white_labels_on_CSF.nii.gz")
-classif = aims.read("../classif.nii.gz")
+classif = aims.read("../classif_with_outer_boundaries.nii.gz")
 output = aims.Volume(CSF_labels_on_white)
 
 np_CSF_labels_on_white = np.asarray(CSF_labels_on_white)
@@ -12,8 +12,8 @@ np_white_labels_on_CSF = np.asarray(white_labels_on_CSF)
 np_classif = np.asarray(classif)
 np_output = np.asarray(output)
 
-white_mask = (np_classif == 200)
-CSF_mask = (np_classif == 0)
+white_mask = (np_classif == 150)
+CSF_mask = (np_classif == 50)
 
 np_output[white_mask] = np_CSF_labels_on_white[white_mask]
 np_output[CSF_mask] = np_white_labels_on_CSF[CSF_mask]

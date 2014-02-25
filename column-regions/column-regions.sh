@@ -1,10 +1,10 @@
 #! /bin/sh -e
 
-AimsThreshold -b -m eq -t 0 \
-    -i ../dist/distCSF.nii.gz \
+AimsThreshold -b -m eq -t 50 \
+    -i ../classif_with_outer_boundaries.nii.gz \
     -o CSF_interface.nii
-AimsThreshold -b -m eq -t 0 \
-    -i ../dist/distwhite.nii.gz \
+AimsThreshold -b -m eq -t 150 \
+    -i ../classif_with_outer_boundaries.nii.gz \
     -o white_interface.nii
 ylLabelEachVoxel --verbose \
     -i CSF_interface.nii.gz \
@@ -44,13 +44,13 @@ AimsMerge -m ao -v 100000000 \
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds propvol_CSF_labels.nii.gz \
-    --step -0.05 \
+    --step -0.01 \
     --target-label 200000000 \
     --output heat_CSF_labels_on_white.nii.gz
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds propvol_white_labels.nii.gz \
-    --step 0.05 \
+    --step 0.01 \
     --target-label 100000000 \
     --output heat_white_labels_on_CSF.nii.gz
 
@@ -100,23 +100,31 @@ python get_exchanged_propvol.py  # -> exchanged_propvol.nii.gz
 # field. It would thus probably be overkill to implement this special case.
 # Care is needed when dealing with regions close to the cut plane anyway.
 
+AimsMerge -m oo -l 150 -v 0 \
+    -i exchanged_propvol.nii.gz \
+    -M ../classif_with_outer_boundaries.nii.gz \
+    -o ./exchanged_labels_on_CSF.nii
+AimsMerge -m oo -l 50 -v 0 \
+    -i ./exchanged_propvol.nii.gz \
+    -M ../classif_with_outer_boundaries.nii.gz \
+    -o ./exchanged_labels_on_white.nii
 
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
-    --seeds exchanged_propvol.nii.gz \
-    --step -0.05 \
+    --seeds exchanged_labels_on_CSF.nii \
+    --step -0.01 \
     --target-label 0 \
     --output heat_CSF_on_bulk_raw.nii \
     --dest-points heat_CSF_points_on_bulk.nii.gz
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
-    --seeds exchanged_propvol.nii.gz \
-    --step 0.05 \
+    --seeds exchanged_labels_on_white.nii \
+    --step 0.01 \
     --target-label 0 \
     --output heat_white_on_bulk_raw.nii \
     --dest-points heat_white_points_on_bulk.nii.gz
 
-AimsThreshold -b -m eq -t 100 \
+AimsThreshold -b -m be -t 50 -u 150 \
     -i ../classif.nii.gz \
     -o cortex_mask.nii
 
@@ -130,8 +138,6 @@ AimsMask \
     -o heat_white_on_bulk.nii.gz
 
 python relabel_conjunction.py  # -> ./conjunction.nii.gz
-
-#AimsConnectComp -i conjunction.nii.gz -o conjunction_connected.nii.gz
 
 ylMergeCortexColumnRegions --verbose 2 \
     -i conjunction.nii.gz \
