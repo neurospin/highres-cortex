@@ -44,13 +44,13 @@ AimsMerge -m ao -v 100000000 \
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds propvol_CSF_labels.nii.gz \
-    --step -0.01 \
+    --step -0.05 \
     --target-label 200000000 \
     --output heat_CSF_labels_on_white.nii.gz
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds propvol_white_labels.nii.gz \
-    --step 0.01 \
+    --step 0.05 \
     --target-label 100000000 \
     --output heat_white_labels_on_CSF.nii.gz
 
@@ -112,14 +112,14 @@ AimsMerge -m oo -l 50 -v 0 \
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds exchanged_labels_on_CSF.nii \
-    --step -0.01 \
+    --step -0.05 \
     --target-label 0 \
     --output heat_CSF_on_bulk_raw.nii \
     --dest-points heat_CSF_points_on_bulk.nii.gz
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds exchanged_labels_on_white.nii \
-    --step 0.01 \
+    --step 0.05 \
     --target-label 0 \
     --output heat_white_on_bulk_raw.nii \
     --dest-points heat_white_points_on_bulk.nii.gz

@@ -3,7 +3,7 @@ AimsThreshold -b --fg 1 -m eq -t 100 \
     -o ./domain.nii.gz
 
 ylAdvectTubes --verbose \
-    --step 0.01 \
+    --step 0.05 \
     --domain ./domain.nii.gz \
     --grad-field ../heat/heat.nii.gz \
     --divergence ../heat/heat_div_gradn.nii.gz \
@@ -15,7 +15,7 @@ cartoLinearComb.py -f 'I1/I2' \
     -o white-tube-VoverS.nii.gz
 
 ylAdvectTubes --verbose \
-    --step -0.01 \
+    --step -0.05 \
     --domain ./domain.nii.gz \
     --grad-field ../heat/heat.nii.gz \
     --divergence ../heat/heat_div_gradn.nii.gz \
