@@ -1,13 +1,14 @@
 # -*- coding: utf-8; -*-
+import sys
 import numpy as np
 from soma import aims
 
 CSF_labels = aims.read("./heat_CSF_on_bulk.nii.gz")
 white_labels = aims.read("./heat_white_on_bulk.nii.gz")
-propvol = aims.read("./exchanged_propvol.nii.gz")
 
 def relabel_conjunctions(labels1, labels2):
     output = aims.Volume(labels1)
+    output.fill(0)
     size_x = output.getSizeX()
     size_y = output.getSizeY()
     size_z = output.getSizeZ()
@@ -18,7 +19,7 @@ def relabel_conjunctions(labels1, labels2):
             for x in xrange(size_x):
                 labels = (labels1.at(x, y, z), labels2.at(x, y, z))
                 # Negative means outside propagation region
-                if propvol.at(x, y, z) < 0:
+                if labels[0] < 0 or labels[1] < 0:
                     continue
                 # Zeros are failed propagations, they should not be aggregated
                 # together
@@ -33,6 +34,8 @@ def relabel_conjunctions(labels1, labels2):
                         old_to_new_labels[labels] = new_label
                         next_label += 1
                 output.setValue(new_label, x, y, z)
+    sys.stderr.write("{0}: {1} regions in conjunction\n"
+                     .format(sys.argv[0], next_label - 1))
     return output
 
 output = relabel_conjunctions(CSF_labels, white_labels)

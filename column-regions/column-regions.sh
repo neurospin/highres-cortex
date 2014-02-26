@@ -114,28 +114,15 @@ ylPropagateAlongField --verbose \
     --seeds exchanged_labels_on_CSF.nii \
     --step -0.05 \
     --target-label 0 \
-    --output heat_CSF_on_bulk_raw.nii \
+    --output heat_CSF_on_bulk.nii.gz \
     --dest-points heat_CSF_points_on_bulk.nii.gz
 ylPropagateAlongField --verbose \
     --grad-field ../heat/heat.nii.gz \
     --seeds exchanged_labels_on_white.nii \
     --step 0.05 \
     --target-label 0 \
-    --output heat_white_on_bulk_raw.nii \
+    --output heat_white_on_bulk.nii.gz \
     --dest-points heat_white_points_on_bulk.nii.gz
-
-AimsThreshold -b -m be -t 50 -u 150 \
-    -i ../classif.nii.gz \
-    -o cortex_mask.nii
-
-AimsMask \
-    -i heat_CSF_on_bulk_raw.nii \
-    -m cortex_mask.nii \
-    -o heat_CSF_on_bulk.nii.gz
-AimsMask \
-    -i heat_white_on_bulk_raw.nii \
-    -m cortex_mask.nii \
-    -o heat_white_on_bulk.nii.gz
 
 python relabel_conjunction.py  # -> ./conjunction.nii.gz
 
@@ -144,7 +131,7 @@ ylMergeCortexColumnRegions --verbose 2 \
     -o merged.nii \
     --proj-csf heat_CSF_points_on_bulk.nii.gz \
     --proj-white ./heat_white_points_on_bulk.nii.gz \
-    --goal-diametre 4 \
+    --goal-diametre 1 \
     --max-thickness 6
 python relabel.py
 python randomize_labels.py
