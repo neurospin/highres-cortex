@@ -17,7 +17,7 @@ namespace
 
 float diametre_to_pseudo_area(float diametre)
 {
-  return 0.125 * square(diametre);
+  return 0.125f * square(diametre);
 }
 
 } // end of anonymous namespace

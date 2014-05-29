@@ -102,9 +102,6 @@ int main(const int argc, const char **argv)
 
   yl::IterativeRegionMerger<int32_t, QualityCriterion>
     region_merger(input_regions, quality_criterion, verbose);
-  const std::size_t max_region_size
-    = std::ceil(2 * max_thickness / get_smallest_voxel_spacing(CSF_projections));
-  region_merger.set_max_region_size(max_region_size);
 
   region_merger.merge_worst_regions_iteratively();
 

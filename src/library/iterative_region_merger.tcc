@@ -171,7 +171,6 @@ IterativeRegionMerger(const LabelVolume<Tlabel>& label_vol,
                       const RegionQualityCriterion& criterion,
                       const int verbosity)
   : m_label_volume(label_vol), m_criterion(criterion),
-    m_max_region_size(std::numeric_limits<std::size_t>::max()),
     m_verbosity(verbosity)
 {
 }
@@ -213,11 +212,6 @@ merge_worst_regions_iteratively()
   {
     const Tlabel label = *labels_it;
 
-    if(m_label_volume.region_size(label) > m_max_region_size) {
-      ++oversized_regions_ignored;
-      continue;
-    }
-
     Handle handle = queue.push(
       RegionInQueue<Tlabel>(label,
                             m_criterion.evaluate(m_label_volume, label)));
@@ -227,9 +221,7 @@ merge_worst_regions_iteratively()
   }
 
   if(m_verbosity) {
-    std::clog << "  ignoring " << oversized_regions_ignored
-              << " regions larger than " << m_max_region_size << " voxels.\n"
-              << "  " << queue.size() << " regions will be processed.\n"
+    std::clog << "  " << queue.size() << " regions will be processed.\n"
               << "  filling in neighbourhoods..." << std::endl;
   }
 
