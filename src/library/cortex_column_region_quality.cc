@@ -3,9 +3,11 @@
 
 #include <yleprince/cortex_column_region_quality.tcc>
 
+template yl::CortexColumnRegionQuality::Cache
+yl::CortexColumnRegionQuality::cache<int32_t>(
+  const LabelVolume<int32_t>&, int32_t) const;
 template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
   const LabelVolume<int32_t>&, int32_t) const;
-
 template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
   const LabelVolume<int32_t>&, int32_t, int32_t) const;
 

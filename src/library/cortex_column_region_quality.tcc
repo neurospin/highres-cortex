@@ -28,82 +28,50 @@ inline bool proj_is_valid(float xproj, float, float)
   return xproj >= 0;
 }
 
-struct MomentAccumulator
+float large_eigenvalue(const yl::MomentAccumulator& mom,
+                       gsl_eigen_symm_workspace* w)
 {
-public:
-  MomentAccumulator()
-    : m_000(0.f),
-      m_100(0.f), m_010(0.f), m_001(0.f),
-      m_200(0.f),
-      m_110(0.f), m_020(0.f),
-      m_101(0.f), m_011(0.f), m_002(0.f) {}
+  if(mom.m_000 == 0)
+    return 0.f;
 
-  void update(float x, float y, float z)
+  double centered_moment_matrix[3 * 3];
+
+  // Only the lower triangular part is referenced
+  centered_moment_matrix[0 * 3 + 0]
+    = (mom.m_200 - mom.m_100 * mom.m_100 / mom.m_000) / mom.m_000;
+  centered_moment_matrix[1 * 3 + 0]
+    = (mom.m_110 - mom.m_100 * mom.m_010 / mom.m_000) / mom.m_000;
+  centered_moment_matrix[1 * 3 + 1]
+    = (mom.m_020 - mom.m_010 * mom.m_010 / mom.m_000) / mom.m_000;
+  centered_moment_matrix[2 * 3 + 0]
+    = (mom.m_101 - mom.m_100 * mom.m_001 / mom.m_000) / mom.m_000;
+  centered_moment_matrix[2 * 3 + 1]
+    = (mom.m_011 - mom.m_010 * mom.m_001 / mom.m_000) / mom.m_000;
+  centered_moment_matrix[2 * 3 + 2]
+    = (mom.m_002 - mom.m_001 * mom.m_001 / mom.m_000) / mom.m_000;
+
+  double eigenvalues[3];
+
+  gsl_matrix_view mat_view
+    = gsl_matrix_view_array(centered_moment_matrix, 3, 3);
+  gsl_vector_view eval_view
+    = gsl_vector_view_array(eigenvalues, 3);
+
+  gsl_eigen_symm(&mat_view.matrix, &eval_view.vector, w);
+
+  return std::max(0.f, static_cast<float>(gsl_vector_max(&eval_view.vector)));
+};
+
+float large_eigenvalue(const yl::MomentAccumulator& moments)
+{
+  struct WorkspaceHolder
   {
-    m_000 += 1;
-    m_100 += x; m_010 += y; m_001 += z;
-    m_200 += x * x;
-    m_110 += y * x; m_020 += y * y;
-    m_101 += z * x; m_011 += z * y; m_002 += z * z;
+    WorkspaceHolder(gsl_eigen_symm_workspace* w_) : w(w_) {};
+    ~WorkspaceHolder() {gsl_eigen_symm_free(w);};
+    gsl_eigen_symm_workspace* const w;
   };
-
-  const AimsFastAllocationData<float>& degenerate_eigenvalues()
-  {
-    static AimsFastAllocationData<float> ret(3);
-    ret = 0.f;
-    return ret;
-  };
-
-  float large_eigenvalue(gsl_eigen_symm_workspace* w)
-  {
-    if(m_000 == 0)
-      return 0.f;
-
-    double centered_moment_matrix[3 * 3];
-
-    // Only the lower triangular part is referenced
-    centered_moment_matrix[0 * 3 + 0]
-      = (m_200 - m_100 * m_100 / m_000) / m_000;
-    centered_moment_matrix[1 * 3 + 0]
-      = (m_110 - m_100 * m_010 / m_000) / m_000;
-    centered_moment_matrix[1 * 3 + 1]
-      = (m_020 - m_010 * m_010 / m_000) / m_000;
-    centered_moment_matrix[2 * 3 + 0]
-      = (m_101 - m_100 * m_001 / m_000) / m_000;
-    centered_moment_matrix[2 * 3 + 1]
-      = (m_011 - m_010 * m_001 / m_000) / m_000;
-    centered_moment_matrix[2 * 3 + 2]
-      = (m_002 - m_001 * m_001 / m_000) / m_000;
-
-    double eigenvalues[3];
-
-    gsl_matrix_view mat_view
-      = gsl_matrix_view_array(centered_moment_matrix, 3, 3);
-    gsl_vector_view eval_view
-      = gsl_vector_view_array(eigenvalues, 3);
-
-    gsl_eigen_symm(&mat_view.matrix, &eval_view.vector, w);
-
-    return std::max(0.f, static_cast<float>(gsl_vector_max(&eval_view.vector)));
-  };
-
-  float large_eigenvalue()
-  {
-    struct WorkspaceHolder
-    {
-      WorkspaceHolder(gsl_eigen_symm_workspace* w_) : w(w_) {};
-      ~WorkspaceHolder() {gsl_eigen_symm_free(w);};
-      gsl_eigen_symm_workspace* const w;
-    };
-    WorkspaceHolder wh(gsl_eigen_symm_alloc(3));
-    return large_eigenvalue(wh.w);
-  };
-
-  std::size_t m_000;
-  float m_100, m_010, m_001;
-  float m_200;
-  float m_110, m_020;
-  float m_101, m_011, m_002;
+  WorkspaceHolder wh(gsl_eigen_symm_alloc(3));
+  return large_eigenvalue(moments, wh.w);
 };
 
 
@@ -151,14 +119,49 @@ private:
 namespace yl
 {
 
-template <class PointIterator>
-inline float CortexColumnRegionQuality::
-evaluate(const PointIterator& point_it_begin,
-         const PointIterator& point_it_end) const
+float CortexColumnRegionQuality::evaluate(const Cache& cache) const
 {
-  MomentAccumulator CSF_moment, white_moment;
+  std::size_t region_size = cache.region_size();
 
-  std::size_t region_size = 0;
+  return region_size / m_pseudo_area_cutoff;
+}
+
+float CortexColumnRegionQuality::
+evaluate_without_size_penalty(const Cache& cache) const
+{
+  const yl::MomentAccumulator& CSF_moment = cache.CSF_moments();
+  const yl::MomentAccumulator& white_moment = cache.white_moments();
+  std::size_t region_size = cache.region_size();
+
+  // The moments are calculated based on the projected point cloud, thus the
+  // thicker regions lead to a denser point cloud and weigh more. Is this good?
+
+  const float CSF_large_eigenval = large_eigenvalue(CSF_moment);
+  const float white_large_eigenval = large_eigenvalue(white_moment);
+
+  float pseudo_circular_area = CSF_large_eigenval + white_large_eigenval;
+
+  /*
+  if(pseudo_circular_area < m_pseudo_area_reliability_threshold)
+    pseudo_circular_area = 0.5f * (m_pseudo_area_reliability_threshold
+                                   + pseudo_circular_area);
+  if(pseudo_circular_area > m_pseudo_area_cutoff)
+    pseudo_circular_area = square(pseudo_circular_area) / m_pseudo_area_cutoff;
+  */
+
+  return region_size / pseudo_circular_area;
+}
+
+template <class PointIterator>
+CortexColumnRegionQuality::Cache CortexColumnRegionQuality::
+cache(const PointIterator& point_it_begin,
+      const PointIterator& point_it_end) const
+{
+  Cache cache;
+  yl::MomentAccumulator& CSF_moment = cache.CSF_moments();
+  yl::MomentAccumulator& white_moment = cache.white_moments();
+  std::size_t& region_size = cache.region_size();
+
   for(PointIterator point_it = point_it_begin;
       point_it != point_it_end;
       ++point_it)
@@ -189,25 +192,23 @@ evaluate(const PointIterator& point_it_begin,
     }
   }
 
-  // The moments are calculated based on the projected point cloud, thus the
-  // thicker regions lead to a denser point cloud and weigh more. Is this good?
+  return cache;
+}
 
-  const float CSF_large_eigenval = CSF_moment.large_eigenvalue();
-  const float white_large_eigenval = white_moment.large_eigenvalue();
+template <typename Tlabel>
+CortexColumnRegionQuality::Cache CortexColumnRegionQuality::
+cache(const LabelVolume<Tlabel>& label_vol, const Tlabel label) const
+{
+  return cache(label_vol.region_begin(label),
+               label_vol.region_end(label));
+}
 
-  float pseudo_circular_area = CSF_large_eigenval + white_large_eigenval;
-
-  if(pseudo_circular_area < m_pseudo_area_reliability_threshold)
-    pseudo_circular_area = 0.5f * (m_pseudo_area_reliability_threshold
-                                   + pseudo_circular_area);
-
-  if(pseudo_circular_area > m_pseudo_area_cutoff)
-    pseudo_circular_area = square(pseudo_circular_area) / m_pseudo_area_cutoff;
-
-  const float ret = std::min(region_size / pseudo_circular_area,
-                             m_max_criterion);
-  assert(std::isfinite(ret));
-  return ret;
+template <class PointIterator>
+float CortexColumnRegionQuality::
+evaluate(const PointIterator& point_it_begin,
+         const PointIterator& point_it_end) const
+{
+  return evaluate(cache(point_it_begin, point_it_end));
 }
 
 template <typename Tlabel>

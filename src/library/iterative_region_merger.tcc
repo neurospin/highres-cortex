@@ -113,6 +113,31 @@ private:
   float m_quality;
 };
 
+template <typename Tlabel, typename CacheType>
+class CachingRegion : public Region<Tlabel>
+{
+public:
+  CachingRegion(const Tlabel region_label,
+                float initial_quality,
+                const CacheType& cache)
+    : Region<Tlabel>(region_label, initial_quality),
+      m_cache(cache)
+  {
+  }
+
+  CachingRegion(const CachingRegion<Tlabel, CacheType>& other)
+    : Region<Tlabel>(other),
+      m_cache(other.m_cache)
+  {
+  }
+
+  const CacheType& cache() const { return m_cache; };
+  void set_cache(const CacheType& new_cache) { m_cache = new_cache; };
+
+private:
+  CacheType m_cache;
+};
+
 template <typename Tlabel>
 std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region)
 {
@@ -122,22 +147,24 @@ std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region)
   return stream;
 }
 
-template <typename Tlabel>
-class RegionInQueue : public Region<Tlabel>
+template <typename Tlabel, typename CacheType>
+class RegionInQueue : public CachingRegion<Tlabel, CacheType>
 {
 public:
-  typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel>,
+  typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel, CacheType>,
                                   boost::heap::arity<2>,
                                   boost::heap::mutable_<true> > RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
 
-  RegionInQueue(const Tlabel region_label, const float initial_quality)
-    : Region<Tlabel>(region_label, initial_quality), m_handle()
+  RegionInQueue(const Tlabel region_label, const float initial_quality,
+                const CacheType& cache)
+    : CachingRegion<Tlabel, CacheType>(region_label, initial_quality, cache),
+      m_handle()
   {
   }
 
-  RegionInQueue(const RegionInQueue<Tlabel>& other)
-    : Region<Tlabel>(other), m_handle(other.m_handle)
+  RegionInQueue(const RegionInQueue<Tlabel, CacheType>& other)
+    : CachingRegion<Tlabel, CacheType>(other), m_handle(other.m_handle)
   {
   }
 
@@ -194,7 +221,9 @@ merge_worst_regions_iteratively()
               << std::endl;
   }
 
-  typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel>,
+  typedef typename RegionQualityCriterion::Cache CacheType;
+  typedef RegionInQueue<Tlabel, CacheType> RegionType;
+  typedef boost::heap::d_ary_heap<RegionType,
                                   boost::heap::arity<2>,
                                   boost::heap::mutable_<true> > RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
@@ -203,7 +232,6 @@ merge_worst_regions_iteratively()
   RegionQueue queue;
   std::map<Tlabel, Handle> label_to_handle;
 
-  unsigned int oversized_regions_ignored = 0;
   for(typename LabelVolume<Tlabel>::const_regions_iterator
         labels_it = m_label_volume.regions_begin(),
         labels_end = m_label_volume.regions_end();
@@ -211,10 +239,11 @@ merge_worst_regions_iteratively()
       ++labels_it)
   {
     const Tlabel label = *labels_it;
+    const CacheType cache
+      = m_criterion.cache(m_label_volume, label);
+    const float initial_quality = m_criterion.evaluate(cache);
 
-    Handle handle = queue.push(
-      RegionInQueue<Tlabel>(label,
-                            m_criterion.evaluate(m_label_volume, label)));
+    Handle handle = queue.push(RegionType(label, initial_quality, cache));
     (*handle).set_handle(handle);
     assert(label_to_handle.find(label) == label_to_handle.end());
     label_to_handle[label] = handle;
@@ -275,14 +304,15 @@ merge_worst_regions_iteratively()
   // region can be improved further by merging a neighbour.
   while(!queue.empty())
   {
-    const RegionInQueue<Tlabel>& worst_region = queue.top();
+    const RegionType& worst_region = queue.top();
     const Tlabel worst_label = worst_region.label();
 
     // const_cast is ok because the "best neighbour region" is used only if it
     // is actually a neighbour region. The pointer is left alone if it retains
     // its original value (see "if" below).
-    Region<Tlabel>* best_neighbour_region_p
-      = const_cast<RegionInQueue<Tlabel>*>(&worst_region);
+    RegionType* best_neighbour_region_p
+      = const_cast<RegionType*>(&worst_region);
+    CacheType best_cache;
     float best_quality = worst_region.quality();
 
     if(m_verbosity >= 2) {
@@ -303,28 +333,31 @@ merge_worst_regions_iteratively()
         neighbour_it != neighbour_end;
         ++neighbour_it)
     {
-      Region<Tlabel>& neighbour_region = *neighbour_it;
-      const Tlabel neighbour_label = neighbour_region.label();
-      const float conjunction_quality =
-        m_criterion.evaluate(m_label_volume, worst_label, neighbour_label);
+      RegionType& neighbour_region = dynamic_cast<RegionType&>(*neighbour_it);
+      const CacheType conjunction_cache
+        = worst_region.cache() + neighbour_region.cache();
+      const float conjunction_quality
+        = m_criterion.evaluate_without_size_penalty(conjunction_cache);
       if(conjunction_quality > best_quality) {
         best_quality = conjunction_quality;
+        best_cache = conjunction_cache;
         best_neighbour_region_p = &neighbour_region;
       }
     }
 
-    RegionInQueue<Tlabel>& best_neighbour_region
-      = *dynamic_cast<RegionInQueue<Tlabel>*>(best_neighbour_region_p);
+    RegionType& best_neighbour_region = *best_neighbour_region_p;
     const Tlabel best_neighbour_label = best_neighbour_region.label();
 
     if(best_neighbour_region != worst_region) {
       if(m_verbosity >= 3) {
         std::clog << "\n    merging with best neighbour " << best_neighbour_region
-                  << " (new q=" << best_quality << ")" << std::endl;
+                  << " (q=" << best_quality << ")" << std::endl;
       }
 
       // Region with worst_label is eaten by its neighbour_label
       m_label_volume.merge_regions(best_neighbour_label, worst_label);
+
+      best_neighbour_region.set_cache(best_cache);
 
       // Update new region's neighbourhood
       for(typename Region<Tlabel>::neighbour_iterator
@@ -343,7 +376,8 @@ merge_worst_regions_iteratively()
       // heap!
       queue.pop();
 
-      best_neighbour_region.update_quality(best_quality);
+      const float new_quality = m_criterion.evaluate(best_neighbour_region.cache());
+      best_neighbour_region.update_quality(new_quality);
       queue.update(best_neighbour_region.handle());
     } else {
       if(m_verbosity >= 3) {
