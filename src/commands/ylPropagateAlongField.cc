@@ -185,8 +185,9 @@ bool doit(aims::Process& proc_base,
     return EXIT_FAILURE;
   }
 
-  VolumeRef<Tlabel> regions;
-  VolumeRef<float> points;
+  // Initialize with null pointers
+  VolumeRef<Tlabel> regions(static_cast<carto::Volume<Tlabel>*>(0));
+  VolumeRef<float> points(static_cast<carto::Volume<float>*>(0));
 
   if(!proc.output_points_writer.fileName().empty()) {
     std::pair<VolumeRef<Tlabel>, VolumeRef<float> > outputs =
@@ -197,14 +198,15 @@ bool doit(aims::Process& proc_base,
     regions = propagator.propagate_regions(seeds, target_label);
   }
 
-  if(!regions.isNull()) {
+  if(regions != 0) {
     if(verbose) clog << program_name << ": writing output regions "
                      << proc.output_regions_filename << " as Volume of "
                      << finder.dataType() << "..." << endl;
     aims::Writer<VolumeRef<Tlabel> > writer(proc.output_regions_filename);
     success = writer.write(regions) && success;
   }
-  if(!points.isNull()) {
+
+  if(points != 0) {
     if(verbose) clog << program_name
                      << ": writing destination points " << endl;
     success = proc.output_points_writer.write(points) && success;
