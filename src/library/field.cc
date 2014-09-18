@@ -41,11 +41,10 @@ LinearlyInterpolatedScalarFieldGradient(const carto::VolumeRef<float>& scalar_fi
   // means that the interpolation is meaningless near these borders.
   // This is worked around non-elegantly in the evaluate method.
 
-  const carto::Object& voxel_size = scalar_field.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  m_xoffset = -0.5f * voxel_size->getArrayItem(0)->value<float>();
-  m_yoffset = -0.5f * voxel_size->getArrayItem(1)->value<float>();
-  m_zoffset = -0.5f * voxel_size->getArrayItem(2)->value<float>();
+  const std::vector<float> voxel_size = scalar_field->getVoxelSize();
+  m_xoffset = -0.5f * voxel_size[0];
+  m_yoffset = -0.5f * voxel_size[1];
+  m_zoffset = -0.5f * voxel_size[2];
 }
 
 void

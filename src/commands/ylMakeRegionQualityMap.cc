@@ -84,7 +84,7 @@ int main(const int argc, const char **argv)
   const int extension_y = input_regions.getSizeY();
   const int extension_z = input_regions.getSizeZ();
   carto::Volume<float> output_volume(extension_x, extension_y, extension_z);
-  output_volume.header() = input_regions->header();
+  output_volume.copyHeaderFrom(input_regions->header());
   output_volume.fill(0);
 
   QualityCriterion quality_criterion(CSF_projections,

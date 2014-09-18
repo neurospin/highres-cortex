@@ -139,11 +139,10 @@ bool doit(aims::Process& proc_base,
     const int size_x = seeds.getSizeX(),
       size_y = seeds.getSizeY(),
       size_z = seeds.getSizeZ();
-    const carto::Object& voxel_size = seeds.header().getProperty("voxel_size");
-    assert(voxel_size->isArray());
-    const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-    const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-    const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+    const std::vector<float> voxel_size = seeds->getVoxelSize();
+    const float voxel_size_x = voxel_size[0];
+    const float voxel_size_y = voxel_size[1];
+    const float voxel_size_z = voxel_size[2];
 
     carto::VolumeRef<float> vector_field_volume(size_x, size_y, size_z, 3);
     vector_field_volume.header() = seeds.header();

@@ -22,13 +22,10 @@ namespace {
 template <class VolumeType>
 float get_smallest_voxel_spacing(const VolumeType& volume)
 {
-  const carto::Object& voxel_size = volume.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  float voxel_sizes[] = {voxel_size->getArrayItem(0)->value<float>(),
-                         voxel_size->getArrayItem(1)->value<float>(),
-                         voxel_size->getArrayItem(2)->value<float>()};
-  std::sort(voxel_sizes, voxel_sizes + 3);
-  return voxel_sizes[0];
+  std::vector<float> voxel_size = volume->getVoxelSize();
+  voxel_size.resize(3);
+  std::sort(voxel_size.begin(), voxel_size.end());
+  return voxel_size[0];
 }
 
 } // end of anonymous namespace

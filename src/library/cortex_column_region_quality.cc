@@ -12,6 +12,9 @@ template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
   const LabelVolume<int32_t>&, int32_t, int32_t) const;
 
 
+#include <algorithm>
+
+
 using carto::VolumeRef;
 
 namespace
@@ -30,15 +33,16 @@ CortexColumnRegionQuality(const VolumeRef<float>& CSF_projections,
   : m_CSF_projections(CSF_projections),
     m_white_projections(white_projections)
 {
-  const carto::Object& voxel_size = CSF_projections.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  m_sorted_voxel_sizes[0] = voxel_size->getArrayItem(0)->value<float>();
-  m_sorted_voxel_sizes[1] = voxel_size->getArrayItem(1)->value<float>();
-  m_sorted_voxel_sizes[2] = voxel_size->getArrayItem(2)->value<float>();
-  std::sort(m_sorted_voxel_sizes, m_sorted_voxel_sizes + 3);
+  std::vector<float> voxel_size = CSF_projections->getVoxelSize();
+  voxel_size.resize(3);
+  std::sort(voxel_size.begin(), voxel_size.end());
+  std::copy(voxel_size.begin(), voxel_size.end(), m_sorted_voxel_sizes);
+
   m_pseudo_area_reliability_threshold
     = 0.5 * m_sorted_voxel_sizes[0] * m_sorted_voxel_sizes[1];
   setShapeParametres(default_goal_diametre(), default_max_thickness());
+  assert(m_CSF_projections.getSizeT() == 3);
+  assert(m_white_projections.getSizeT() == 3);
 }
 
 void

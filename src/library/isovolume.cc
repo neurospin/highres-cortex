@@ -122,17 +122,16 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   const int size_y = domain.getSizeY();
   const int size_z = domain.getSizeZ();
 
-  const carto::Object& voxel_size = domain.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const std::vector<float> voxel_size = domain->getVoxelSize();
+  const float voxel_size_x = voxel_size[0];
+  const float voxel_size_y = voxel_size[1];
+  const float voxel_size_z = voxel_size[2];
 
   carto::VolumeRef<float> surface_result(size_x, size_y, size_z);
-  surface_result.header() = domain.header();
+  surface_result->copyHeaderFrom(domain.header());
   surface_result.fill(TubeAdvection::no_value);
   carto::VolumeRef<float> volume_result(size_x, size_y, size_z);
-  volume_result.header() = domain.header();
+  volume_result->copyHeaderFrom(domain.header());
   volume_result.fill(TubeAdvection::no_value);
 
   unsigned int n_success = 0, n_aborted = 0;

@@ -1,5 +1,6 @@
 #include <yleprince/propagate_along_field.hh>
 
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -91,11 +92,10 @@ internal_ascension(const Point3df &start_point,
     clog << "    ascension at " << start_point << endl;
   }
 
-  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const std::vector<float> voxel_size = seeds->getVoxelSize();
+  const float voxel_size_x = voxel_size[0];
+  const float voxel_size_y = voxel_size[1];
+  const float voxel_size_z = voxel_size[2];
   const float invsize_x = 1.0f / voxel_size_x;
   const float invsize_y = 1.0f / voxel_size_y;
   const float invsize_z = 1.0f / voxel_size_z;
@@ -210,11 +210,10 @@ visitor_ascension(const Point3df& start_point,
     clog << "    ascension at " << start_point << endl;
   }
 
-  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const std::vector<float> voxel_size = seeds->getVoxelSize();
+  const float voxel_size_x = voxel_size[0];
+  const float voxel_size_y = voxel_size[1];
+  const float voxel_size_z = voxel_size[2];
   const float invsize_x = 1.0f / voxel_size_x;
   const float invsize_y = 1.0f / voxel_size_y;
   const float invsize_z = 1.0f / voxel_size_z;
@@ -326,8 +325,9 @@ public:
     : m_seed_values(new carto::Volume<Tlabel>(*seeds)),
       m_points(seeds.getSizeX(), seeds.getSizeY(), seeds.getSizeZ(), 3)
   {
-    m_points.header() = seeds.header();
+    m_points->copyHeaderFrom(seeds.header());
     m_points.fill(-1);
+    assert(m_points.getSizeT() == 3);
   };
 
   void record(const int x, const int y, const int z,
@@ -385,16 +385,15 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
   const int size_y = seeds.getSizeY();
   const int size_z = seeds.getSizeZ();
 
-  const carto::Object &voxel_size = seeds.header().getProperty("voxel_size");
-  assert(voxel_size->isArray());
-  const float voxel_size_x = voxel_size->getArrayItem(0)->value<float>();
-  const float voxel_size_y = voxel_size->getArrayItem(1)->value<float>();
-  const float voxel_size_z = voxel_size->getArrayItem(2)->value<float>();
+  const std::vector<float> voxel_size = seeds->getVoxelSize();
+  const float voxel_size_x = voxel_size[0];
+  const float voxel_size_y = voxel_size[1];
+  const float voxel_size_z = voxel_size[2];
 
   if(m_verbose) {
     clog << "yl::PropagateAlongField::propagate_regions:\n"
-            "  maximum propagation distance: " << m_step * m_max_iter
-         << " mm." << endl;
+            "  maximum propagation distance: "
+         << std::abs(m_step * m_max_iter) << " mm." << endl;
   }
 
   unsigned int n_propagated = 0, n_dead_end = 0, n_lost = 0;
