@@ -33,9 +33,10 @@ class HalfcenteredGradients:
 grad = HalfcenteredGradients(heat)
 gradx, grady, gradz = grad.gradxyz()
 gradn = np.sqrt(gradx ** 2 + grady ** 2 + gradz ** 2)
-gradx /= gradn
-grady /= gradn
-gradz /= gradn
+with np.errstate(divide="ignore", invalid="ignore"):
+    gradx /= gradn
+    grady /= gradn
+    gradz /= gradn
 
 grad = HalfcenteredGradients(gradx)
 ggradx = grad.gradx()
