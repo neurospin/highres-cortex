@@ -33,8 +33,4 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-"""Yann Leprince's personal Python module in BioProj
-
-A collection of functions, classes, and various objects that I use in
-my Python scripts.  Please see README if you want to re-use.
-"""
+"""Tools to process high-resolution images of the cerebral cortex."""
