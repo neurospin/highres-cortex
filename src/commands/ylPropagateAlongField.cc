@@ -49,8 +49,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
 
-#include <yleprince/propagate_along_field.hh>
-#include <yleprince/field.hh>
+#include <highres-cortex/propagate_along_field.hh>
+#include <highres-cortex/field.hh>
 
 using std::clog;
 using std::endl;

@@ -47,8 +47,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
 
-#include <yleprince/field.hh>
-#include <yleprince/isovolume.hh>
+#include <highres-cortex/field.hh>
+#include <highres-cortex/isovolume.hh>
 
 using std::clog;
 using std::endl;

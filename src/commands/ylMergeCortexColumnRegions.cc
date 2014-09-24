@@ -45,8 +45,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
 
-#include <yleprince/iterative_region_merger.hh>
-#include <yleprince/cortex_column_region_quality.hh>
+#include <highres-cortex/iterative_region_merger.hh>
+#include <highres-cortex/cortex_column_region_quality.hh>
 
 using std::clog;
 using std::endl;

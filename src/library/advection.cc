@@ -35,7 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <yleprince/advection.hh>
+#include <highres-cortex/advection.hh>
 #include <cmath>
 
 yl::Advection::Advection(const VectorField3d& advection_field)
@@ -66,7 +66,7 @@ move_one_step(Point3df& point,
   point[2] += m_step * gz;
 }
 
-#include <yleprince/advection.tcc>
+#include <highres-cortex/advection.tcc>
 
 template bool yl::Advection::visitor_advection<yl::Advection::Visitor>
 (yl::Advection::Visitor& visitor, Point3df starst_point) const;

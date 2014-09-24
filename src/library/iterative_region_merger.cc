@@ -35,8 +35,8 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <yleprince/iterative_region_merger.hh>
-#include <yleprince/cortex_column_region_quality.hh>
+#include <highres-cortex/iterative_region_merger.hh>
+#include <highres-cortex/cortex_column_region_quality.hh>
 
 #include "iterative_region_merger.tcc"
 

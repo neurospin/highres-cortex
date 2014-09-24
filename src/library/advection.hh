@@ -38,7 +38,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #ifndef YL_ADVECTION_HH_INCLUDED
 #define YL_ADVECTION_HH_INCLUDED
 
-#include <yleprince/field.hh>
+#include <highres-cortex/field.hh>
 
 namespace yl
 {
