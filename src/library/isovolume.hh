@@ -1,0 +1,72 @@
+/*
+Copyright CEA (2014).
+Copyright Université Paris XI (2014).
+
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+
+This file is part of highres-cortex, a collection of software designed
+to process high-resolution magnetic resonance images of the cerebral
+cortex.
+
+This software is governed by the CeCILL licence under French law and
+abiding by the rules of distribution of free software. You can use,
+modify and/or redistribute the software under the terms of the CeCILL
+licence as circulated by CEA, CNRS and INRIA at the following URL:
+<http://www.cecill.info/>.
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the licence, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability.
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of scientific
+software, that may mean that it is complicated to manipulate, and that
+also therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and, more generally, to use and operate it in the
+same conditions as regards security.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL licence and that you accept its terms.
+*/
+
+#ifndef YL_ISOVOLUME_HH_INCLUDED
+#define YL_ISOVOLUME_HH_INCLUDED
+
+#include <cartodata/volume/volume.h>
+
+namespace yl
+{
+
+class VectorField3d;
+class ScalarField;
+
+/** Advect a tube along a field, starting with unit surface
+
+    \arg advection_field vector field to advect along
+    \arg divergence_field the divergence of the normalized advection field
+    \arg domain the advection domain with zero outside, one inside
+    \arg max_advection_distance the maximum length of the advection path
+    \arg step_size the constant length of an advection step. Can be negative to
+    advect in the opposite direction.
+    \arg verbosity verbosity to stderr, (verbosity - 1) is passed to
+    Advection::set_verbose()
+
+    \return pair of (tube's volume, tube's end surface)
+ */
+std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
+advect_tubes(const yl::VectorField3d& advection_field,
+             const yl::ScalarField& divergence_field,
+             const carto::VolumeRef<int16_t>& domain,
+             float max_advection_distance,
+             float step_size,
+             int verbosity=0);
+
+} // namespace yl
+
+#endif // !defined(YL_ISOVOLUME_HH_INCLUDED)
