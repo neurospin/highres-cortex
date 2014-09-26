@@ -19,7 +19,7 @@ The source is organized in three components, from high-level to low-level:
 This package is compiled using the BrainVISA compilation system, which is an extension to CMake. Follow the [instructions at brainvisa.info](http://brainvisa.info/repository.html#use_brainvisa_sources) to clone the source tree. You need to include two lines in `bv_maker.cfg` in order to clone and compile `highres-cortex`. Here is a minimal `bv_maker.cfg`:
 
     [ source $HOME/brainvisa/source/trunk ]
-      anatomist trunk
+      + anatomist trunk
       git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
     [ build $HOME/brainvisa/build/trunk ]
