@@ -20,7 +20,7 @@ This package is compiled using the BrainVISA compilation system, which is an ext
 
     [ source $HOME/brainvisa/source/trunk ]
       anatomist trunk
-      git git@github.com:neurospin/highres-cortex.git master highres-cortex
+      git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
     [ build $HOME/brainvisa/build/trunk ]
       anatomist trunk $HOME/brainvisa/source/trunk
