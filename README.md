@@ -10,7 +10,7 @@ If you use this work in an academic publication, **please cite** the relevant re
 The source is organized in three components, from high-level to low-level:
 
   - Scripts to do the high-level processing, under [`scripts/`](scripts/).
-  - A Python package, under [`python/highres-cortex/`](python/highres-cortex/).
+  - A Python package, under [`python/highres_cortex/`](python/highres_cortex/).
   - A library and compiled executables, written in C++, under [`src`](src/).
 
 
