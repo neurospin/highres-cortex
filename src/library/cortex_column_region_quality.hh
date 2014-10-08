@@ -102,7 +102,7 @@ public:
   CortexColumnRegionQuality(const carto::VolumeRef<float>& CSF_projections,
                             const carto::VolumeRef<float>& white_projections);
 
-  void setShapeParametres(float goal_diametre, float max_thickness);
+  void setShapeParametres(float goal_diametre);
 
   template <typename Tlabel>
   float evaluate(const LabelVolume<Tlabel>&, Tlabel) const;
@@ -148,7 +148,6 @@ public:
   Cache cache(const LabelVolume<Tlabel>&, Tlabel) const;
 
   static float default_goal_diametre();
-  static float default_max_thickness();
 
 private:
   carto::VolumeRef<float> m_CSF_projections;
@@ -156,7 +155,6 @@ private:
   float m_sorted_voxel_sizes[3];
   float m_pseudo_area_reliability_threshold;
   float m_pseudo_area_cutoff;
-  float m_max_criterion;
 }; // class CortexColumnRegionQuality
 
 }; // namespace yl

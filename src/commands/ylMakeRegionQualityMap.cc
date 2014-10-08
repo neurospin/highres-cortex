@@ -63,7 +63,6 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<float> > CSF_projections_reader;
   aims::Reader<VolumeRef<float> > white_projections_reader;
   float goal_diametre = QualityCriterion::default_goal_diametre();
-  float max_thickness = QualityCriterion::default_max_thickness();
   aims::Writer<carto::Volume<float> > output_writer;
   aims::AimsApplication app(argc, argv,
     "TODO");
@@ -77,13 +76,6 @@ int main(const int argc, const char **argv)
     help_str << "goal region diametre (in millimetres) [default: "
              << goal_diametre << "]";
     app.addOption(goal_diametre, "--goal-diametre",
-                  help_str.str(), true);
-  }
-  {
-    std::ostringstream help_str;
-    help_str << "maximum cortex thickness [default: "
-             << max_thickness << "]";
-    app.addOption(max_thickness, "--max-thickness",
                   help_str.str(), true);
   }
   app.addOption(output_writer, "--output", "output quality map");
@@ -126,7 +118,7 @@ int main(const int argc, const char **argv)
 
   QualityCriterion quality_criterion(CSF_projections,
                                      white_projections);
-  quality_criterion.setShapeParametres(goal_diametre, max_thickness);
+  quality_criterion.setShapeParametres(goal_diametre);
 
   for(typename yl::LabelVolume<int32_t>::const_regions_iterator
         labels_it = label_volume.regions_begin(),

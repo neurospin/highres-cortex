@@ -77,7 +77,6 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<float> > CSF_projections_reader;
   aims::Reader<VolumeRef<float> > white_projections_reader;
   float goal_diametre = QualityCriterion::default_goal_diametre();
-  float max_thickness = QualityCriterion::default_max_thickness();
   aims::Writer<VolumeRef<int32_t> > output_writer;
   aims::AimsApplication app(argc, argv,
     "Aggregate oversegmented cortex column regions");
@@ -91,13 +90,6 @@ int main(const int argc, const char **argv)
     help_str << "goal region diametre (millimetres) [default: "
              << goal_diametre << "]";
     app.addOption(goal_diametre, "--goal-diametre",
-                  help_str.str(), true);
-  }
-  {
-    std::ostringstream help_str;
-    help_str << "maximum cortex thickness (millimetres) [default: "
-             << max_thickness << "]";
-    app.addOption(max_thickness, "--max-thickness",
                   help_str.str(), true);
   }
   app.addOption(output_writer, "--output", "output label volume");
@@ -132,7 +124,7 @@ int main(const int argc, const char **argv)
 
   QualityCriterion quality_criterion(CSF_projections,
                                      white_projections);
-  quality_criterion.setShapeParametres(goal_diametre, max_thickness);
+  quality_criterion.setShapeParametres(goal_diametre);
 
   yl::IterativeRegionMerger<int32_t, QualityCriterion>
     region_merger(input_regions, quality_criterion, verbose);
