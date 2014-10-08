@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -33,8 +36,6 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-"""Tools to process high-resolution images of the cerebral cortex."""
-# -*- coding: utf-8; -*-
 import sys
 import numpy as np
 from soma import aims

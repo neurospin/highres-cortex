@@ -1,3 +1,5 @@
+#! /bin/sh -e
+#
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -33,7 +35,6 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-"""Tools to process high-resolution images of the cerebral cortex."""
 AimsThreshold -b --fg 1 -m eq -t 100 \
     -i ../classif.nii.gz \
     -o ./domain.nii.gz
