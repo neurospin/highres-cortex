@@ -14,6 +14,6 @@ Each script should be run within its containing directory (i.e. cd dist).
    pial-volume-fraction.nii.gz.
 
 4. Run column-regions/column-regions.sh. The output is in
-   merged_randomized.nii.gz. The main parameter is --goal-diametre at the end
+   merged_randomized.nii.gz. The main parameter is --goal-diameter at the end
    of the script, it controls the typical diameter of merged regions (in
    millimetres).

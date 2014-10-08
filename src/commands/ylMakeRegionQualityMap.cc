@@ -62,20 +62,20 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<int32_t> > input_reader;
   aims::Reader<VolumeRef<float> > CSF_projections_reader;
   aims::Reader<VolumeRef<float> > white_projections_reader;
-  float goal_diametre = QualityCriterion::default_goal_diametre();
+  float goal_diameter = QualityCriterion::default_goal_diameter();
   aims::Writer<carto::Volume<float> > output_writer;
   aims::AimsApplication app(argc, argv,
     "TODO");
   app.addOption(input_reader, "--input", "input label volume");
   app.addOption(CSF_projections_reader, "--proj-csf",
-                "projected coordinates of the CSF surfate");
+                "projected coordinates of the CSF surface");
   app.addOption(white_projections_reader, "--proj-white",
-                "projected coordinates of the white surfate");
+                "projected coordinates of the white surface");
   {
     std::ostringstream help_str;
-    help_str << "goal region diametre (in millimetres) [default: "
-             << goal_diametre << "]";
-    app.addOption(goal_diametre, "--goal-diametre",
+    help_str << "goal region diameter (in millimetres) [default: "
+             << goal_diameter << "]";
+    app.addOption(goal_diameter, "--goal-diameter",
                   help_str.str(), true);
   }
   app.addOption(output_writer, "--output", "output quality map");
@@ -118,7 +118,7 @@ int main(const int argc, const char **argv)
 
   QualityCriterion quality_criterion(CSF_projections,
                                      white_projections);
-  quality_criterion.setShapeParametres(goal_diametre);
+  quality_criterion.setShapeParametres(goal_diameter);
 
   for(typename yl::LabelVolume<int32_t>::const_regions_iterator
         labels_it = label_volume.regions_begin(),

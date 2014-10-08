@@ -344,7 +344,7 @@ merge_worst_regions_iteratively()
     const RegionType& worst_region = queue.top();
     const Tlabel worst_label = worst_region.label();
 
-    // const_cast is ok because the "best neighbour region" is used only if it
+    // const_cast is OK because the "best neighbour region" is used only if it
     // is actually a neighbour region. The pointer is left alone if it retains
     // its original value (see "if" below).
     RegionType* best_neighbour_region_p

@@ -69,4 +69,4 @@ move_one_step(Point3df& point,
 #include <highres-cortex/advection.tcc>
 
 template bool yl::Advection::visitor_advection<yl::Advection::Visitor>
-(yl::Advection::Visitor& visitor, Point3df starst_point) const;
+(yl::Advection::Visitor& visitor, Point3df start_point) const;

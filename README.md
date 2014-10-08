@@ -29,7 +29,7 @@ This package is compiled using the BrainVISA compilation system, which is an ext
 
 # Dependencies
 
-  - AIMS version 4.5 or later (in developement at the time of this writing, use the `trunk` version from SVN). This image processing library is distributed as part of [BrainVISA](http://brainvisa.info/).
+  - AIMS version 4.5 or later (in development at the time of this writing, use the `trunk` version from SVN). This image processing library is distributed as part of [BrainVISA](http://brainvisa.info/).
   - [GSL (GNU Scientific Library)](http://www.gnu.org/software/gsl/).
   - [Boost](http://www.boost.org/) version 1.49 or later.
   - [CMake](http://www.cmake.org/) version 2.6 or later, with its extension `brainvisa-cmake` (distributed with [BrainVISA](http://brainvisa.info/)).
@@ -38,7 +38,7 @@ This package is compiled using the BrainVISA compilation system, which is an ext
 
 # Licence
 
-The source code of this work is placed under the [CeCILL licence](LICENCE.CeCILL.txt). Compiled code that links to the GPL-licenced [GSL (GNU Scientific Library)](http://www.gnu.org/software/gsl/) forms a derivated work thereof, and thus must be redistributed under the [GNU General Public Licence](LICENCE.GPLv3.txt).
+The source code of this work is placed under the [CeCILL licence](LICENCE.CeCILL.txt). Compiled code that links to the GPL-licensed [GSL (GNU Scientific Library)](http://www.gnu.org/software/gsl/) forms a derivative work thereof, and thus must be redistributed under the [GNU General Public Licence](LICENCE.GPLv3.txt).
 
 
 # Legalese

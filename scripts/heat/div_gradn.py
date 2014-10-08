@@ -43,7 +43,7 @@ voxel_size_x, voxel_size_y, voxel_size_z = header["voxel_size"][:3]
 
 heat = np.asarray(heatmap_volume)
 
-class HalfcenteredGradients:
+class HalfcentredGradients:
     def __init__(self, array):
         self.ppp = array[1:, 1:, 1:]
         self.ppm = array[1:, 1:, :-1]
@@ -66,7 +66,7 @@ class HalfcenteredGradients:
     def gradxyz(self):
         return self.gradx(), self.grady(), self.gradz()
 
-grad = HalfcenteredGradients(heat)
+grad = HalfcentredGradients(heat)
 gradx, grady, gradz = grad.gradxyz()
 gradn = np.sqrt(gradx ** 2 + grady ** 2 + gradz ** 2)
 with np.errstate(divide="ignore", invalid="ignore"):
@@ -74,11 +74,11 @@ with np.errstate(divide="ignore", invalid="ignore"):
     grady /= gradn
     gradz /= gradn
 
-grad = HalfcenteredGradients(gradx)
+grad = HalfcentredGradients(gradx)
 ggradx = grad.gradx()
-grad = HalfcenteredGradients(grady)
+grad = HalfcentredGradients(grady)
 ggrady = grad.grady()
-grad = HalfcenteredGradients(gradz)
+grad = HalfcentredGradients(gradz)
 ggradz = grad.gradz()
 
 div = ggradx + ggrady + ggradz

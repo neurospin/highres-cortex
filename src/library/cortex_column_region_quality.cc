@@ -57,9 +57,9 @@ using carto::VolumeRef;
 namespace
 {
 
-float diametre_to_pseudo_area(float diametre)
+float diameter_to_pseudo_area(float diameter)
 {
-  return 0.125f * square(diametre);
+  return 0.125f * square(diameter);
 }
 
 } // end of anonymous namespace
@@ -77,19 +77,19 @@ CortexColumnRegionQuality(const VolumeRef<float>& CSF_projections,
 
   m_pseudo_area_reliability_threshold
     = 0.5 * m_sorted_voxel_sizes[0] * m_sorted_voxel_sizes[1];
-  setShapeParametres(default_goal_diametre());
+  setShapeParametres(default_goal_diameter());
   assert(m_CSF_projections.getSizeT() == 3);
   assert(m_white_projections.getSizeT() == 3);
 }
 
 void
 yl::CortexColumnRegionQuality::
-setShapeParametres(float goal_diametre)
+setShapeParametres(float goal_diameter)
 {
-  m_pseudo_area_cutoff = diametre_to_pseudo_area(goal_diametre);
+  m_pseudo_area_cutoff = diameter_to_pseudo_area(goal_diameter);
 }
 
-float yl::CortexColumnRegionQuality::default_goal_diametre()
+float yl::CortexColumnRegionQuality::default_goal_diameter()
 {
   return 0.5f;
 }

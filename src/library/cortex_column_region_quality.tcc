@@ -71,26 +71,26 @@ float large_eigenvalue(const yl::MomentAccumulator& mom,
   if(mom.m_000 == 0)
     return 0.f;
 
-  double centered_moment_matrix[3 * 3];
+  double centred_moment_matrix[3 * 3];
 
   // Only the lower triangular part is referenced
-  centered_moment_matrix[0 * 3 + 0]
+  centred_moment_matrix[0 * 3 + 0]
     = (mom.m_200 - mom.m_100 * mom.m_100 / mom.m_000) / mom.m_000;
-  centered_moment_matrix[1 * 3 + 0]
+  centred_moment_matrix[1 * 3 + 0]
     = (mom.m_110 - mom.m_100 * mom.m_010 / mom.m_000) / mom.m_000;
-  centered_moment_matrix[1 * 3 + 1]
+  centred_moment_matrix[1 * 3 + 1]
     = (mom.m_020 - mom.m_010 * mom.m_010 / mom.m_000) / mom.m_000;
-  centered_moment_matrix[2 * 3 + 0]
+  centred_moment_matrix[2 * 3 + 0]
     = (mom.m_101 - mom.m_100 * mom.m_001 / mom.m_000) / mom.m_000;
-  centered_moment_matrix[2 * 3 + 1]
+  centred_moment_matrix[2 * 3 + 1]
     = (mom.m_011 - mom.m_010 * mom.m_001 / mom.m_000) / mom.m_000;
-  centered_moment_matrix[2 * 3 + 2]
+  centred_moment_matrix[2 * 3 + 2]
     = (mom.m_002 - mom.m_001 * mom.m_001 / mom.m_000) / mom.m_000;
 
   double eigenvalues[3];
 
   gsl_matrix_view mat_view
-    = gsl_matrix_view_array(centered_moment_matrix, 3, 3);
+    = gsl_matrix_view_array(centred_moment_matrix, 3, 3);
   gsl_vector_view eval_view
     = gsl_vector_view_array(eigenvalues, 3);
 

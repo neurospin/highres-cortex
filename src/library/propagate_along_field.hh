@@ -93,7 +93,7 @@ public:
       \arg \a seeds is interpreted as for propagate_regions().
       \arg \a ignore_label counts as propagation region.
 
-      Return the value of the seed encontered, or zero in the following cases:
+      Return the value of the seed encountered, or zero in the following cases:
       - the path leads outside of the image;
       - the maximum number of iterations is exceeded (e.g. the path loops);
       - a vector field value is encountered that is too close to zero, or

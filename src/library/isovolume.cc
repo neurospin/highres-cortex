@@ -192,7 +192,7 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   {
     if(verbosity && x == 0 && y == 0) {
       clog << "\r  at slice " << z << " / " << size_z << ", "
-           << n_success << " succesfully advected, "
+           << n_success << " successfully advected, "
            << n_aborted << " aborted." << flush;
     }
 

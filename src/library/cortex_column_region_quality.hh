@@ -102,7 +102,7 @@ public:
   CortexColumnRegionQuality(const carto::VolumeRef<float>& CSF_projections,
                             const carto::VolumeRef<float>& white_projections);
 
-  void setShapeParametres(float goal_diametre);
+  void setShapeParametres(float goal_diameter);
 
   template <typename Tlabel>
   float evaluate(const LabelVolume<Tlabel>&, Tlabel) const;
@@ -147,7 +147,7 @@ public:
   template <typename Tlabel>
   Cache cache(const LabelVolume<Tlabel>&, Tlabel) const;
 
-  static float default_goal_diametre();
+  static float default_goal_diameter();
 
 private:
   carto::VolumeRef<float> m_CSF_projections;

@@ -167,6 +167,6 @@ ylMergeCortexColumnRegions --verbose 2 \
     -o merged.nii \
     --proj-csf heat_CSF_points_on_bulk.nii.gz \
     --proj-white heat_white_points_on_bulk.nii.gz \
-    --goal-diametre 1
+    --goal-diameter 1
 python relabel.py
 python randomize_labels.py
