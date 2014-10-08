@@ -65,7 +65,7 @@ int main(const int argc, const char **argv)
   float goal_diameter = QualityCriterion::default_goal_diameter();
   aims::Writer<carto::Volume<float> > output_writer;
   aims::AimsApplication app(argc, argv,
-    "TODO");
+    "Map the quality of cortex column regions");
   app.addOption(input_reader, "--input", "input label volume");
   app.addOption(CSF_projections_reader, "--proj-csf",
                 "projected coordinates of the CSF surface");
