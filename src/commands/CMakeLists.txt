@@ -9,6 +9,7 @@
 # without any warranty.
 
 set(_commands
+  ylAdvectEuclidean
   ylAdvectTubes
   ylPropagateAlongField
   ylLabelEachVoxel

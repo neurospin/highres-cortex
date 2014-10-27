@@ -35,7 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <highres-cortex/isovolume.hh>
+#include <highres-cortex/cortex_advection.hh>
 
 #include <cassert>
 #include <cmath>
@@ -54,6 +54,8 @@ using namespace std;
 
 // Anonymous namespace for file-local symbols
 namespace {
+
+const float no_value = std::numeric_limits<float>::quiet_NaN();
 
 class TubeAdvection : public yl::Advection::Visitor
 {
@@ -129,8 +131,6 @@ public:
       return m_volume;
   };
 
-  static const float no_value;
-
 private:
   const yl::ScalarField& m_divergence_field;
   const yl::ScalarField& m_domain;
@@ -141,7 +141,54 @@ private:
   bool m_abort;
 };
 
-const float TubeAdvection::no_value = std::numeric_limits<float>::quiet_NaN();
+class EuclideanAdvection : public yl::Advection::Visitor
+{
+public:
+  EuclideanAdvection(const yl::ScalarField& domain)
+    : m_domain(domain),
+      m_previous_point(),
+      m_length(0.f),
+      m_abort(false)
+  {
+  };
+
+  void first(const Point3df& point)
+  {
+    m_previous_point = point;
+  };
+
+  void visit(const Point3df& point)
+  {
+    const float step = (point - m_previous_point).norm();
+    m_length += step;
+    m_previous_point = point;
+  };
+
+  bool move_on(const Point3df& point) const
+  {
+    if(m_abort)
+      return false;
+    try {
+      return m_domain.evaluate(point) >= 0.5f;
+    } catch(const yl::Field::UndefinedField&) {
+      return false;
+    }
+  };
+
+  float length() const
+  {
+    if(m_abort)
+      return no_value;
+    else
+      return m_length;
+  };
+
+private:
+  const yl::ScalarField& m_domain;
+  Point3df m_previous_point;
+  float m_length;
+  bool m_abort;
+};
 
 } // end of anonymous namespace
 
@@ -166,10 +213,10 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
 
   carto::VolumeRef<float> surface_result(size_x, size_y, size_z);
   surface_result->copyHeaderFrom(domain.header());
-  surface_result.fill(TubeAdvection::no_value);
+  surface_result.fill(no_value);
   carto::VolumeRef<float> volume_result(size_x, size_y, size_z);
   volume_result->copyHeaderFrom(domain.header());
-  volume_result.fill(TubeAdvection::no_value);
+  volume_result.fill(no_value);
 
   unsigned int n_success = 0, n_aborted = 0;
 
@@ -221,4 +268,75 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
          << n_aborted << " aborted." << endl;
 
   return std::make_pair(volume_result, surface_result);
+}
+
+VolumeRef<float>
+yl::advect_euclidean(const yl::VectorField3d& advection_field,
+                     const VolumeRef<int16_t>& domain,
+                     const float max_advection_distance,
+                     const float step_size,
+                     const int verbosity)
+{
+  assert(max_advection_distance > 0);
+
+  const int size_x = domain.getSizeX();
+  const int size_y = domain.getSizeY();
+  const int size_z = domain.getSizeZ();
+
+  const std::vector<float> voxel_size = domain->getVoxelSize();
+  const float voxel_size_x = voxel_size[0];
+  const float voxel_size_y = voxel_size[1];
+  const float voxel_size_z = voxel_size[2];
+
+  carto::VolumeRef<float> length_result(size_x, size_y, size_z);
+  length_result->copyHeaderFrom(domain.header());
+  length_result.fill(no_value);
+
+  unsigned int n_success = 0, n_aborted = 0;
+
+  yl::ConstantStepAdvection advection(advection_field, step_size);
+  advection.set_max_iter(std::ceil(max_advection_distance
+                                   / std::abs(step_size)));
+  advection.set_verbose(verbosity - 1);
+
+  // This could be more elegant: the domain is first converted as float, then
+  // fed into a scalar field to ease interpolation.
+  carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
+  carto::VolumeRef<float> float_domain(*conv(domain));
+  yl::LinearlyInterpolatedScalarField domain_field(float_domain);
+
+  for(int z = 0; z < size_z; ++z)
+  for(int y = 0; y < size_y; ++y)
+  for(int x = 0; x < size_x; ++x)
+  {
+    if(verbosity && x == 0 && y == 0) {
+      clog << "\r  at slice " << z << " / " << size_z << ", "
+           << n_success << " successfully advected, "
+           << n_aborted << " aborted." << flush;
+    }
+
+    if(domain(x, y, z)) {
+      const Point3df point(x * voxel_size_x,
+                           y * voxel_size_y,
+                           z * voxel_size_z);
+
+      EuclideanAdvection visitor(domain_field);
+      yl::Advection::Visitor& plain_visitor = visitor;
+      const bool success = advection.visitor_advection(plain_visitor, point);
+
+      if(success) {
+        length_result(x, y, z) = visitor.length();
+        ++n_success;
+      } else {
+        ++n_aborted;
+      }
+   }
+  }
+
+  if(verbosity)
+    clog << "\ryl::advect_unit_surface: "
+         << n_success << " propagated, "
+         << n_aborted << " aborted." << endl;
+
+  return length_result;
 }

@@ -69,11 +69,10 @@ int main(const int argc, const char **argv)
   // Initialize command-line option parsing
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
-  aims::Reader<VolumeRef<float> > divergence_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
   float step = 0.03f;
   float max_advection_distance = 6.f;
-  aims::Writer<VolumeRef<float> > volume_output_writer, surface_output_writer;
+  aims::Writer<VolumeRef<float> > length_output_writer;
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
@@ -89,12 +88,8 @@ int main(const int argc, const char **argv)
                 "y component of vector field", true);
   app.addOption(fieldz_reader, "--fieldz",
                 "z component of vector field", true);
-  app.addOption(divergence_field_reader, "--divergence",
-                "divergence of the normalized vector field");
-  app.addOption(volume_output_writer, "--output-volumes",
-                "output volume containing the tubes' volume");
-  app.addOption(surface_output_writer, "--output-surfaces",
-                "output volume containing the tubes' end surface");
+  app.addOption(length_output_writer, "--output-length",
+                "output volume containing the advection distance");
   {
     std::ostringstream help_str;
     help_str << "move in steps this big (millimetres) [default: "
@@ -212,30 +207,13 @@ int main(const int argc, const char **argv)
     return EXIT_FAILURE;
   }
 
-  if(verbose) clog << program_name << ": reading divergence volume..." << endl;
-  VolumeRef<float> divergence_field_volume;
-  if(!divergence_field_reader.read(divergence_field_volume)) {
-    return false; // Failure
-  }
-  yl::LinearlyInterpolatedScalarField divergence_field(divergence_field_volume);
+  VolumeRef<float> result_distance =
+    yl::advect_euclidean(*advection_field, domain_volume,
+                         max_advection_distance, step, verbose);
 
-  std::pair<VolumeRef<float>, VolumeRef<float> > results =
-    yl::advect_tubes(*advection_field, divergence_field, domain_volume,
-                     max_advection_distance, step, verbose);
-
-  {
-    bool write_success = volume_output_writer.write(results.first);
-    if(!write_success) {
-      clog << program_name << ": cannot write output volume" << endl;
-    }
-    success = success && write_success;
-  }
-  {
-    bool write_success = surface_output_writer.write(results.second);
-    if(!write_success) {
-      clog << program_name << ": cannot write output surface" << endl;
-    }
-    success = success && write_success;
+  success = length_output_writer.write(result_distance);
+  if(!success) {
+    clog << program_name << ": cannot write output volume" << endl;
   }
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;

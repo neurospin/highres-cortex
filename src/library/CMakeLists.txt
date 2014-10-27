@@ -12,7 +12,7 @@ set(_headers
   field.hh
   advection.hh
   advection.tcc
-  isovolume.hh
+  cortex_advection.hh
   propagate_along_field.hh
   propagate_along_field.tcc
   label_volume.hh
@@ -25,7 +25,7 @@ set(_headers
 set(_sources
   field.cc
   advection.cc
-  isovolume.cc
+  cortex_advection.cc
   propagate_along_field.cc
   label_volume.cc
   iterative_region_merger.cc
