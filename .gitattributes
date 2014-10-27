@@ -1,0 +1,12 @@
+* whitespace="trailing-space,tab-in-indent"
+
+*.cc text diff=cpp
+*.hh text diff=cpp
+*.tcc text diff=cpp
+*.py text diff=python
+*.sh eol=lf
+*.cmake text
+*.tex text diff=tex
+*.bib text diff=bibtex
+*.txt text
+*.md text
