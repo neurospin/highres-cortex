@@ -16,6 +16,10 @@ BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
 include("${AIMS-FREE_USE_FILE}")
 
 find_package(Boost 1.49 REQUIRED)
+if(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1.49)
+    message(FATAL_ERROR "Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} found - need at least 1.49")
+endif()
+
 BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV)
 
 find_package(GSL REQUIRED)
