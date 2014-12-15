@@ -12,19 +12,38 @@ cmake_minimum_required(VERSION 2.6)
 find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT()
 
+
 BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
 include("${AIMS-FREE_USE_FILE}")
 
-find_package(Boost 1.49 REQUIRED)
-if(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1.49)
-    message(FATAL_ERROR "Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} found - need at least 1.49")
-endif()
 
-BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV)
+# Do not use BoostConfig.cmake from boost-cmake, because its behaviour may be
+# different from regular FindBoost.cmake.
+set(Boost_NO_BOOST_CMAKE ON)
+# All suitable Boost versions should be included here, if they are not already
+# contained in the FindBoost.cmake module provided with CMake. Hence, new
+# versions should be added here as they are released...
+set(Boost_ADDITIONAL_VERSIONS
+  "1.57.0" "1.57"
+  "1.56.0" "1.56" "1.55.0" "1.55" "1.54.0" "1.54" "1.53.0" "1.53" "1.52.0"
+  "1.52" "1.51.0" "1.51" "1.50.0" "1.50" "1.49.0" "1.49")
+find_package(Boost 1.49 REQUIRED)
+# The version of Boost is not checked by find_package if it is in the cache.
+if(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1.49)
+    message(FATAL_ERROR
+      "Unsuitable Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}."
+      "${Boost_SUBMINOR_VERSION} is already in the CMake cache. "
+      "Please set the BOOST_ROOT variable to a directory containing "
+      "Boost 1.49 or newer (under BOOST_ROOT/include).")
+endif()
+BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
+
 
 find_package(GSL REQUIRED)
 
+
 find_package(python REQUIRED)
+
 
 BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/python"
                                  ${PROJECT_NAME})
