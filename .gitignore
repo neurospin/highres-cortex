@@ -1,0 +1,16 @@
+# CMake build files
+/CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# brainvisa-cmake files
+/python/brainvisa/compilation_info.py
+/src/library/Doxyfile
+/CPackConfig.cmake
+/CPackSourceConfig.cmake
+
+# Python
+__pycache__/
+*.py[cod]
