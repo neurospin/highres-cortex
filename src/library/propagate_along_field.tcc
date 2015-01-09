@@ -48,6 +48,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 using carto::VolumeRef;
 using std::clog;
 using std::endl;
+using std::flush;
 
 namespace
 {
@@ -435,42 +436,54 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
 
   unsigned int n_propagated = 0, n_dead_end = 0, n_lost = 0;
 
+  int slices_done = 0;
+  #pragma omp parallel for schedule(dynamic)
   for(int z = 0; z < size_z; ++z)
-  for(int y = 0; y < size_y; ++y)
-  for(int x = 0; x < size_x; ++x)
   {
-    if(m_verbose && x == 0 && y == 0) {
-      clog << "  at slice " << z << " / " << size_z << ", "
-           << n_propagated << " propagated, "
-           << n_dead_end << " dead-end, "
-           << n_lost << " lost."<< endl;
+    for(int y = 0; y < size_y; ++y)
+    for(int x = 0; x < size_x; ++x)
+    {
+      if(seeds(x, y, z) == target_label) {
+        const Point3df point(x * voxel_size_x,
+                             y * voxel_size_y,
+                             z * voxel_size_z);
+
+        std::pair<Tlabel, Point3df> result
+          = internal_ascension(point, seeds, target_label,
+                               ascension_result_chooser);
+        const Tlabel& result_label = result.first;
+
+        if(result_label > 0) {
+          result_recorder.record(x, y, z, result);
+          #pragma omp atomic
+          ++n_propagated;
+        } else if(result_label < 0) {
+          #pragma omp atomic
+          ++n_dead_end;
+        } else {  // result_label == 0
+          #pragma omp atomic
+          ++n_lost;
+        }
+      }
     }
 
-    if(seeds(x, y, z) == target_label) {
-      const Point3df point(x * voxel_size_x,
-                           y * voxel_size_y,
-                           z * voxel_size_z);
+    #pragma omp atomic
+    ++slices_done;
 
-      std::pair<Tlabel, Point3df> result
-        = internal_ascension(point, seeds, target_label,
-                             ascension_result_chooser);
-      const Tlabel& result_label = result.first;
-
-      if(result_label > 0) {
-        result_recorder.record(x, y, z, result);
-        ++n_propagated;
-      } else if(result_label < 0) {
-        ++n_dead_end;
-      } else {  // result_label == 0
-        ++n_lost;
-      }
+    if(m_verbose) {
+      #pragma omp critical(print_stderr)
+      clog << "\r  " << slices_done << " / "
+           << size_z << " slices processed. "
+           << n_propagated << " voxels propagated, "
+           << n_dead_end << " dead-end, "
+           << n_lost << " lost..." << flush;
     }
   }
 
   if(m_verbose) {
-    clog << "End of yl::PropagateAlongField::propagate_regions: "
+    clog << "\nyl::PropagateAlongField::propagate_regions: "
          << n_propagated << " propagated, "
          << n_dead_end << " dead-end, "
-         << n_lost << " lost."<< endl;
+         << n_lost << " lost." << endl;
   }
 }
