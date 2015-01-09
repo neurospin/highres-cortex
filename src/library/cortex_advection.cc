@@ -245,14 +245,17 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
                              y * voxel_size_y,
                              z * voxel_size_z);
 
-        TubeAdvection visitor(divergence_field, domain_field, opposite_direction);
+        TubeAdvection visitor(divergence_field, domain_field,
+                              opposite_direction);
         yl::Advection::Visitor& plain_visitor = visitor;
         const bool success = advection.visitor_advection(plain_visitor, point);
 
         if(success) {
-          #pragma omp atomic write
+          // Each thread writes to different array elements, as a result no
+          // synchronization should be needed. However, while this is safe on
+          // most platforms, it does not seem to be guaranteed by the OpenMP
+          // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
           volume_result(x, y, z) = visitor.volume();
-          #pragma omp atomic write
           surface_result(x, y, z) = visitor.surface();
           ++slice_success;
         } else {
@@ -261,11 +264,11 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
       }
     }
 
-    #pragma omp atomic update
+    #pragma omp atomic
     n_success += slice_success;
-    #pragma omp atomic update
+    #pragma omp atomic
     n_aborted += slice_aborted;
-    #pragma omp atomic update
+    #pragma omp atomic
     ++slices_done;
 
     if(verbosity) {
