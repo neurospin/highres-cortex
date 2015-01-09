@@ -24,6 +24,9 @@ BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV)
 
 find_package(GSL REQUIRED)
 
+# OpenMP is optional
+find_package(OpenMP)
+
 find_package(python REQUIRED)
 
 BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/python"

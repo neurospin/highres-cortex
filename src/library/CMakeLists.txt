@@ -35,8 +35,18 @@ set(_sources
 BRAINVISA_COPY_AND_INSTALL_HEADERS(_headers ${PROJECT_NAME} headersTarget)
 
 include_directories(${GSL_INCLUDE_DIR})
+
 add_library(${PROJECT_NAME} SHARED ${_sources})
 add_dependencies(${PROJECT_NAME} ${headersTarget})
+
+if(OPENMP_FOUND)
+  set_source_files_properties(${_sources} PROPERTIES
+    COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
+  # This is needed for GCC, untested with any other compiler.
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    LINK_FLAGS ${OpenMP_CXX_FLAGS})
+endif()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${PROJECT_NAME} ${AIMS-FREE_LIBRARIES} ${GSL_LIBRARIES})
 BRAINVISA_INSTALL(TARGETS ${PROJECT_NAME}
