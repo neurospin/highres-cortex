@@ -236,7 +236,6 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   int slices_done = 0;
   #pragma omp parallel for schedule(dynamic)
   for(int z = 0; z < size_z; ++z) {
-    unsigned int slice_success = 0, slice_aborted = 0;
     for(int y = 0; y < size_y; ++y)
     for(int x = 0; x < size_x; ++x)
     {
@@ -257,17 +256,15 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
           // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
           volume_result(x, y, z) = visitor.volume();
           surface_result(x, y, z) = visitor.surface();
-          ++slice_success;
+          #pragma omp atomic
+          ++n_success;
         } else {
-          ++slice_aborted;
+          #pragma omp atomic
+          ++n_aborted;
         }
       }
     }
 
-    #pragma omp atomic
-    n_success += slice_success;
-    #pragma omp atomic
-    n_aborted += slice_aborted;
     #pragma omp atomic
     ++slices_done;
 
