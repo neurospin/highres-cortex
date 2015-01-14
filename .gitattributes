@@ -9,4 +9,4 @@
 *.tex text diff=tex
 *.bib text diff=bibtex
 *.txt text
-*.md text
+*.rst text
