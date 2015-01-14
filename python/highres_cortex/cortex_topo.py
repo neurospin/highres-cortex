@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
