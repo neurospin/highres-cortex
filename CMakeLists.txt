@@ -10,7 +10,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 find_package(brainvisa-cmake REQUIRED)
-BRAINVISA_PROJECT()
+BRAINVISA_PROJECT(CXX)
 
 
 BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
