@@ -117,15 +117,20 @@ public:
   class Cache
   {
   public:
-    Cache() : m_CSF_moments(), m_white_moments() {};
+    Cache() : m_CSF_moments(), m_white_moments(), m_region_size(0) {};
     Cache(const MomentAccumulator& CSF_moments,
-          const MomentAccumulator& white_moments)
-      : m_CSF_moments(CSF_moments), m_white_moments(white_moments) {};
+          const MomentAccumulator& white_moments,
+          std::size_t region_size)
+      : m_CSF_moments(CSF_moments),
+        m_white_moments(white_moments),
+        m_region_size(region_size)
+    {};
 
     Cache operator + (const Cache& other) const
     {
       return Cache(CSF_moments() + other.CSF_moments(),
-                   white_moments() + other.white_moments());
+                   white_moments() + other.white_moments(),
+                   region_size() + other.region_size());
     };
 
     const MomentAccumulator& CSF_moments() const {return m_CSF_moments;};
