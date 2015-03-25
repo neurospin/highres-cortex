@@ -263,7 +263,7 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   }
 
   if(verbosity)
-    clog << "\ryl::advect_unit_surface: "
+    clog << "\ryl::advect_tubes: "
          << n_success << " propagated, "
          << n_aborted << " aborted." << endl;
 

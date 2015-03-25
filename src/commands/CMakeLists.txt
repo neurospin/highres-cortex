@@ -17,6 +17,8 @@ set(_commands
   ylMakeRegionQualityMap
 )
 
+include_directories("${CMAKE_BINARY_DIR}/include")
+
 foreach(_command ${_commands})
   add_executable(${_command} ${_command}.cc)
   target_link_libraries(${_command} ${PROJECT_NAME} ${AIMS-FREE_LIBRARIES})
