@@ -39,7 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #define CORTEX_COLUMN_REGION_QUALITY_HH_INCLUDED
 
 #include <cartodata/volume/volume.h>
-#include <highres-cortex/label_volume.hh>
+#include "label_volume.hh"
 
 namespace yl
 {

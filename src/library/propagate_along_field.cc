@@ -35,7 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <highres-cortex/propagate_along_field.hh>
+#include "propagate_along_field.hh"
 
 #include <cmath>
 #include <stdexcept>

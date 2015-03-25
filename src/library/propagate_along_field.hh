@@ -42,7 +42,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
-#include <highres-cortex/field.hh>
+#include "field.hh"
 
 namespace yl
 {

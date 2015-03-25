@@ -35,7 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <highres-cortex/cortex_column_region_quality.hh>
+#include "cortex_column_region_quality.hh"
 
 #include <cmath>
 #include <limits>

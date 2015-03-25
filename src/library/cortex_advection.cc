@@ -35,7 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
-#include <highres-cortex/cortex_advection.hh>
+#include "cortex_advection.hh"
 
 #include <cassert>
 #include <cmath>
@@ -46,8 +46,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <cartodata/volume/volume.h>
 #include <aims/utility/converter_volume.h>
 
-#include <highres-cortex/advection.hh>
-#include <highres-cortex/field.hh>
+#include "advection.hh"
+#include "field.hh"
 
 using carto::VolumeRef;
 using namespace std;
