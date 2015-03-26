@@ -177,8 +177,6 @@ private:
   carto::VolumeRef<float> m_CSF_projections;
   carto::VolumeRef<float> m_white_projections;
   carto::VolumeRef<int16_t> m_classif;
-  float m_sorted_voxel_sizes[3];
-  float m_pseudo_area_reliability_threshold;
   float m_pseudo_area_cutoff;
 }; // class CortexColumnRegionQuality
 

@@ -72,13 +72,6 @@ CortexColumnRegionQuality(const VolumeRef<float>& CSF_projections,
     m_white_projections(white_projections),
     m_classif(classif)
 {
-  std::vector<float> voxel_size = CSF_projections->getVoxelSize();
-  voxel_size.resize(3);
-  std::sort(voxel_size.begin(), voxel_size.end());
-  std::copy(voxel_size.begin(), voxel_size.end(), m_sorted_voxel_sizes);
-
-  m_pseudo_area_reliability_threshold
-    = 0.5 * m_sorted_voxel_sizes[0] * m_sorted_voxel_sizes[1];
   setShapeParametres(default_goal_diameter());
   assert(m_CSF_projections.getSizeT() == 3);
   assert(m_white_projections.getSizeT() == 3);

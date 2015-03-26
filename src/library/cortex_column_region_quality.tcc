@@ -178,14 +178,6 @@ evaluate_without_size_penalty(const Cache& cache) const
 
   float pseudo_circular_area = CSF_large_eigenval + white_large_eigenval;
 
-  /*
-  if(pseudo_circular_area < m_pseudo_area_reliability_threshold)
-    pseudo_circular_area = 0.5f * (m_pseudo_area_reliability_threshold
-                                   + pseudo_circular_area);
-  if(pseudo_circular_area > m_pseudo_area_cutoff)
-    pseudo_circular_area = square(pseudo_circular_area) / m_pseudo_area_cutoff;
-  */
-
   return region_size / pseudo_circular_area;
 }
 
