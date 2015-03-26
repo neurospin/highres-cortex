@@ -43,9 +43,9 @@ knowledge of the CeCILL licence and that you accept its terms.
 template yl::CortexColumnRegionQuality::Cache
 yl::CortexColumnRegionQuality::cache<int32_t>(
   const LabelVolume<int32_t>&, int32_t) const;
-template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
+template float yl::CortexColumnRegionQuality::fusion_ordering<int32_t>(
   const LabelVolume<int32_t>&, int32_t) const;
-template float yl::CortexColumnRegionQuality::evaluate<int32_t>(
+template float yl::CortexColumnRegionQuality::fusion_ordering<int32_t>(
   const LabelVolume<int32_t>&, int32_t, int32_t) const;
 
 
@@ -81,6 +81,7 @@ void
 yl::CortexColumnRegionQuality::
 setShapeParametres(float goal_diameter)
 {
+  assert(goal_diameter >= 0.f);
   m_pseudo_area_cutoff = diameter_to_pseudo_area(goal_diameter);
 }
 

@@ -34,7 +34,6 @@ set(_sources
 
 BRAINVISA_COPY_AND_INSTALL_HEADERS(_headers ${PROJECT_NAME} headersTarget)
 
-include_directories("${CMAKE_BINARY_DIR}/include")
 include_directories(${GSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} SHARED ${_sources})
 add_dependencies(${PROJECT_NAME} ${headersTarget})

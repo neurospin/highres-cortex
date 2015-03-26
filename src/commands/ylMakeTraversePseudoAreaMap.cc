@@ -133,7 +133,8 @@ int main(const int argc, const char **argv)
       ++labels_it)
   {
     const int32_t label = *labels_it;
-    const float quality = quality_criterion.evaluate(label_volume, label);
+    const QualityCriterion::Cache cache = quality_criterion.cache(label_volume, label);
+    const float quality = quality_criterion.pseudo_area(cache);
     for(yl::LabelVolume<int32_t>::const_point_iterator
           point_it = label_volume.region_begin(label),
           point_end = label_volume.region_end(label);

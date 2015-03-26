@@ -156,19 +156,23 @@ private:
 namespace yl
 {
 
-float CortexColumnRegionQuality::evaluate(const Cache& cache) const
+float CortexColumnRegionQuality::fusion_ordering(const Cache& cache) const
 {
-  std::size_t region_size = cache.region_size();
+  const std::size_t region_size = cache.region_size();
 
-  return region_size / m_pseudo_area_cutoff;
+  return region_size;
+}
+
+bool CortexColumnRegionQuality::want_fusion(const Cache& cache) const
+{
+  return pseudo_area(cache) < m_pseudo_area_cutoff;
 }
 
 float CortexColumnRegionQuality::
-evaluate_without_size_penalty(const Cache& cache) const
+pseudo_area(const Cache& cache) const
 {
   const yl::MomentAccumulator& CSF_moment = cache.CSF_moments();
   const yl::MomentAccumulator& white_moment = cache.white_moments();
-  std::size_t region_size = cache.region_size();
 
   // The moments are calculated based on the projected point cloud, thus the
   // thicker regions lead to a denser point cloud and weigh more. Is this good?
@@ -176,9 +180,7 @@ evaluate_without_size_penalty(const Cache& cache) const
   const float CSF_large_eigenval = large_eigenvalue(CSF_moment);
   const float white_large_eigenval = large_eigenvalue(white_moment);
 
-  float pseudo_circular_area = CSF_large_eigenval + white_large_eigenval;
-
-  return region_size / pseudo_circular_area;
+  return CSF_large_eigenval + white_large_eigenval;
 }
 
 template <class PointIterator>
@@ -248,32 +250,33 @@ cache(const LabelVolume<Tlabel>& label_vol, const Tlabel label) const
 
 template <class PointIterator>
 float CortexColumnRegionQuality::
-evaluate(const PointIterator& point_it_begin,
-         const PointIterator& point_it_end) const
+fusion_ordering(const PointIterator& point_it_begin,
+                 const PointIterator& point_it_end) const
 {
-  return evaluate(cache(point_it_begin, point_it_end));
+  return fusion_ordering(cache(point_it_begin, point_it_end));
 }
 
 template <typename Tlabel>
 float CortexColumnRegionQuality::
-evaluate(const LabelVolume<Tlabel>& label_vol, const Tlabel label) const
+fusion_ordering(const LabelVolume<Tlabel>& label_vol, const Tlabel label) const
 {
-  return evaluate(label_vol.region_begin(label),
-                  label_vol.region_end(label));
+  return fusion_ordering(label_vol.region_begin(label),
+                          label_vol.region_end(label));
 }
 
 template <typename Tlabel>
 float CortexColumnRegionQuality::
-evaluate(const LabelVolume<Tlabel>& label_vol,
-         const Tlabel label1,
-         const Tlabel label2) const
+fusion_ordering(const LabelVolume<Tlabel>& label_vol,
+                 const Tlabel label1,
+                 const Tlabel label2) const
 {
   typedef ChainedIterator<typename LabelVolume<Tlabel>::const_point_iterator>
     ChainedPointIterator;
-  return evaluate(ChainedPointIterator(label_vol.region_begin(label1),
-                                       label_vol.region_end(label1),
-                                       label_vol.region_begin(label2)),
-                  ChainedPointIterator(label_vol.region_end(label2)));
+  return fusion_ordering(
+    ChainedPointIterator(label_vol.region_begin(label1),
+                         label_vol.region_end(label1),
+                         label_vol.region_begin(label2)),
+    ChainedPointIterator(label_vol.region_end(label2)));
 }
 
 }; // namespace yl

@@ -108,14 +108,14 @@ public:
   void setShapeParametres(float goal_diameter);
 
   template <typename Tlabel>
-  float evaluate(const LabelVolume<Tlabel>&, Tlabel) const;
+  float fusion_ordering(const LabelVolume<Tlabel>&, Tlabel) const;
 
   template <typename Tlabel>
-  float evaluate(const LabelVolume<Tlabel>&, Tlabel, Tlabel) const;
+  float fusion_ordering(const LabelVolume<Tlabel>&, Tlabel, Tlabel) const;
 
   template <class PointIterator>
-  inline float evaluate(const PointIterator& point_it_begin,
-                        const PointIterator& point_it_end) const;
+  inline float fusion_ordering(const PointIterator& point_it_begin,
+                               const PointIterator& point_it_end) const;
 
   class Cache
   {
@@ -159,8 +159,9 @@ public:
     bool m_touches_CSF;
     bool m_touches_white;
   };
-  float evaluate(const Cache&) const;
-  float evaluate_without_size_penalty(const Cache&) const;
+  float fusion_ordering(const Cache&) const;
+  bool want_fusion (const Cache&) const;
+  float pseudo_area(const Cache&) const;
   template <class PointIterator>
   Cache cache(const PointIterator& point_it_begin,
               const PointIterator& point_it_end) const;
