@@ -66,9 +66,11 @@ float diameter_to_pseudo_area(float diameter)
 
 yl::CortexColumnRegionQuality::
 CortexColumnRegionQuality(const VolumeRef<float>& CSF_projections,
-                          const VolumeRef<float>& white_projections)
+                          const VolumeRef<float>& white_projections,
+                          const VolumeRef<int16_t>& classif)
   : m_CSF_projections(CSF_projections),
-    m_white_projections(white_projections)
+    m_white_projections(white_projections),
+    m_classif(classif)
 {
   std::vector<float> voxel_size = CSF_projections->getVoxelSize();
   voxel_size.resize(3);

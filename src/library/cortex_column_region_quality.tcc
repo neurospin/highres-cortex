@@ -198,6 +198,11 @@ cache(const PointIterator& point_it_begin,
   yl::MomentAccumulator& CSF_moment = cache.CSF_moments();
   yl::MomentAccumulator& white_moment = cache.white_moments();
   std::size_t& region_size = cache.region_size();
+  bool& touches_CSF = cache.touches_CSF();
+  bool& touches_white = cache.touches_white();
+  region_size = 0;
+  touches_CSF = false;
+  touches_white = false;
 
   for(PointIterator point_it = point_it_begin;
       point_it != point_it_end;
@@ -227,6 +232,15 @@ cache(const PointIterator& point_it_begin,
         white_moment.update(xproj, yproj, zproj);
       }
     }
+
+    const int16_t voxel_classif = m_classif.at(x, y, z);
+    if(voxel_classif == CLASSIF_CSF)
+      touches_CSF = true;
+    else if(voxel_classif == CLASSIF_WHITE)
+      touches_white = true;
+    else if(voxel_classif != CLASSIF_CORTEX)
+      std::clog << "WARNING: CortexColumnRegionQuality: unknown classif label "
+                << voxel_classif << std::endl;
   }
 
   return cache;

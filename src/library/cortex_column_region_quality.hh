@@ -35,6 +35,8 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL licence and that you accept its terms.
 */
 
+// TODO rename this to cortical_traverse_quality
+
 #ifndef CORTEX_COLUMN_REGION_QUALITY_HH_INCLUDED
 #define CORTEX_COLUMN_REGION_QUALITY_HH_INCLUDED
 
@@ -100,7 +102,8 @@ class CortexColumnRegionQuality
 {
 public:
   CortexColumnRegionQuality(const carto::VolumeRef<float>& CSF_projections,
-                            const carto::VolumeRef<float>& white_projections);
+                            const carto::VolumeRef<float>& white_projections,
+                            const carto::VolumeRef<int16_t>& classif);
 
   void setShapeParametres(float goal_diameter);
 
@@ -117,32 +120,44 @@ public:
   class Cache
   {
   public:
-    Cache() : m_CSF_moments(), m_white_moments(), m_region_size(0) {};
+    Cache() : m_CSF_moments(), m_white_moments() {};
     Cache(const MomentAccumulator& CSF_moments,
           const MomentAccumulator& white_moments,
-          std::size_t region_size)
+          std::size_t region_size,
+          bool touches_CSF,
+          bool touches_white)
       : m_CSF_moments(CSF_moments),
         m_white_moments(white_moments),
-        m_region_size(region_size)
+        m_region_size(region_size),
+        m_touches_CSF(touches_CSF),
+        m_touches_white(touches_white)
     {};
 
     Cache operator + (const Cache& other) const
     {
       return Cache(CSF_moments() + other.CSF_moments(),
                    white_moments() + other.white_moments(),
-                   region_size() + other.region_size());
+                   region_size() + other.region_size(),
+                   touches_CSF() || other.touches_CSF(),
+                   touches_white() || other.touches_white());
     };
 
     const MomentAccumulator& CSF_moments() const {return m_CSF_moments;};
     MomentAccumulator& CSF_moments() {return m_CSF_moments;};
     const MomentAccumulator& white_moments() const {return m_white_moments;};
     MomentAccumulator& white_moments() {return m_white_moments;};
-    const std::size_t& region_size() const {return m_region_size;};
+    std::size_t region_size() const {return m_region_size;};
     std::size_t& region_size() {return m_region_size;};
+    bool touches_CSF() const {return m_touches_CSF;};
+    bool& touches_CSF() {return m_touches_CSF;};
+    bool touches_white() const {return m_touches_white;};
+    bool& touches_white() {return m_touches_white;};
   private:
     MomentAccumulator m_CSF_moments;
     MomentAccumulator m_white_moments;
     std::size_t m_region_size;
+    bool m_touches_CSF;
+    bool m_touches_white;
   };
   float evaluate(const Cache&) const;
   float evaluate_without_size_penalty(const Cache&) const;
@@ -154,9 +169,14 @@ public:
 
   static float default_goal_diameter();
 
+  static const int16_t CLASSIF_CSF = 0;
+  static const int16_t CLASSIF_CORTEX = 100;
+  static const int16_t CLASSIF_WHITE = 200;
+
 private:
   carto::VolumeRef<float> m_CSF_projections;
   carto::VolumeRef<float> m_white_projections;
+  carto::VolumeRef<int16_t> m_classif;
   float m_sorted_voxel_sizes[3];
   float m_pseudo_area_reliability_threshold;
   float m_pseudo_area_cutoff;

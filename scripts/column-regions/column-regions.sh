@@ -161,11 +161,16 @@ ylPropagateAlongField --verbose \
 
 python relabel_conjunction.py  # -> ./conjunction.nii.gz
 
-ylMergeCortexColumnRegions --verbose 2 \
+AimsConnectComp -c 26 \
     -i conjunction.nii.gz \
+    -o conjunction_connected.nii.gz
+
+ylMergeCortexColumnRegions --verbose 2 \
+    -i conjunction_connected.nii.gz \
     -o merged.nii \
     --proj-csf heat_CSF_points_on_bulk.nii.gz \
     --proj-white heat_white_points_on_bulk.nii.gz \
+    --classif ../classif.nii.gz \
     --goal-diameter 1
 python relabel.py
 python randomize_labels.py

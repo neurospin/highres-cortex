@@ -171,6 +171,11 @@ public:
   const CacheType& cache() const { return m_cache; };
   void set_cache(const CacheType& new_cache) { m_cache = new_cache; };
 
+  bool traversing() const
+  {
+    return m_cache.touches_CSF() && m_cache.touches_white();
+  };
+
 private:
   CacheType m_cache;
 };
@@ -205,9 +210,18 @@ public:
   {
   }
 
-  bool operator < (const Region<Tlabel>& other) const
+  bool operator < (const RegionInQueue<Tlabel, CacheType>& other) const
   {
-    return this->quality() > other.quality();
+    // Be careful: Boost's heap is a MAX-heap (priority queue), whereas we want
+    // a MIN-heap (lower quality gets out first). Therefore, the logic of this
+    // test is reversed: A < B means region A is of HIGHER quality than region
+    // B.
+    if(this->traversing() && !other.traversing())
+      return true;
+    else if(!this->traversing() && other.traversing())
+      return false;
+    else
+     return this->quality() > other.quality();
   }
 
   void set_handle(const Handle& handle)
@@ -333,8 +347,11 @@ merge_worst_regions_iteratively()
     }
   }
 
+  unsigned int phase = 1;
   if(m_verbosity) {
-    std::clog << "  iteratively merging regions..." << std::endl;
+    std::clog << "  iteratively merging regions..."
+               "\n  Phase 1: processing non-traversing regions"
+              << std::endl;
   }
 
   // Iteratively merge the worst region with one of its neighbours, until no
@@ -342,15 +359,14 @@ merge_worst_regions_iteratively()
   while(!queue.empty())
   {
     const RegionType& worst_region = queue.top();
-    const Tlabel worst_label = worst_region.label();
+    const bool worst_region_is_traversing = worst_region.traversing();
 
-    // const_cast is OK because the "best neighbour region" is used only if it
-    // is actually a neighbour region. The pointer is left alone if it retains
-    // its original value (see "if" below).
-    RegionType* best_neighbour_region_p
-      = const_cast<RegionType*>(&worst_region);
-    CacheType best_cache;
-    float best_quality = worst_region.quality();
+    if(phase == 1 && worst_region_is_traversing) {
+      phase = 2;
+      if(m_verbosity)
+        std::clog << "\n  Phase 2: all regions are traversing, "
+                     "merging until goal diametre" << std::endl;
+    }
 
     if(m_verbosity >= 2) {
       std::clog << "  ";
@@ -358,11 +374,12 @@ merge_worst_regions_iteratively()
         std::clog << queue.size() << " to go, ";
       }
       std::clog << m_label_volume.n_regions() << " regions, q = "
-                << best_quality << "\r" << std::flush;
+                << worst_region.quality() << "\r" << std::flush;
     }
 
-    // assert(approx_equal(m_criterion.evaluate(m_label_volume, worst_label),
-    //                     best_quality));
+    RegionType* best_neighbour_region_p = 0;
+    CacheType best_cache;
+    float best_quality;
 
     for(typename Region<Tlabel>::neighbour_iterator
           neighbour_it = worst_region.neighbours_begin(),
@@ -375,24 +392,32 @@ merge_worst_regions_iteratively()
         = worst_region.cache() + neighbour_region.cache();
       const float conjunction_quality
         = m_criterion.evaluate_without_size_penalty(conjunction_cache);
-      if(conjunction_quality > best_quality) {
+      if(!best_neighbour_region_p || conjunction_quality > best_quality) {
         best_quality = conjunction_quality;
         best_cache = conjunction_cache;
         best_neighbour_region_p = &neighbour_region;
       }
     }
 
-    RegionType& best_neighbour_region = *best_neighbour_region_p;
-    const Tlabel best_neighbour_label = best_neighbour_region.label();
-
-    if(best_neighbour_region != worst_region) {
+    if(!best_neighbour_region_p) {
+      // The region has no neighbours, discard it
       if(m_verbosity >= 3) {
+        std::clog << "\n    region " << worst_region
+                  << " has no neighbours, discarding it." << std::endl;
+      }
+      queue.pop();
+    } else if(!worst_region_is_traversing
+              || best_quality > worst_region.quality()) {
+      // The region is merged with its best candidate neighbour
+      RegionType& best_neighbour_region = *best_neighbour_region_p;
+      if(m_verbosity >= 4) {
         std::clog << "\n    merging with best neighbour " << best_neighbour_region
                   << " (q=" << best_quality << ")" << std::endl;
       }
 
-      // Region with worst_label is eaten by its neighbour_label
-      m_label_volume.merge_regions(best_neighbour_label, worst_label);
+      // worst_region is eaten by its best_neighbour_region
+      m_label_volume.merge_regions(best_neighbour_region.label(),
+                                   worst_region.label());
 
       best_neighbour_region.set_cache(best_cache);
 
@@ -417,9 +442,17 @@ merge_worst_regions_iteratively()
       best_neighbour_region.update_quality(new_quality);
       queue.update(best_neighbour_region.handle());
     } else {
+      // This case can only be reached when worst_region.traversing() is true
+      // (see previous case). All regions are guaranteed to be traversing if
+      // worst_region is so, because the ordering criterion puts all traversing
+      // region above non-traversing regions. Thus, when all regions are
+      // traversing then we can begin to drop regions (i.e. consider them
+      // definitive). If we dropped regions before that, it could prevent
+      // adjacent non-traversing regions from merging.
+      assert(worst_region_is_traversing);
       if(m_verbosity >= 3) {
-        std::clog << "\n    region " << worst_label << " (quality=" << best_quality
-                  << ") cannot be improved by merging a neighbour" << std::endl;
+        std::clog << "\n    region " << worst_region
+                  << " cannot be improved by merging a neighbour" << std::endl;
       }
       queue.pop();
     }
