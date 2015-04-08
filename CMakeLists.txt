@@ -41,6 +41,8 @@ BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
 
 find_package(GSL REQUIRED)
 
+# OpenMP is optional
+find_package(OpenMP)
 
 find_package(python REQUIRED)
 

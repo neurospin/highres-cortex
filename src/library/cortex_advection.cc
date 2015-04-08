@@ -233,38 +233,52 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
 
   const bool opposite_direction = step_size < 0;
 
-  for(int z = 0; z < size_z; ++z)
-  for(int y = 0; y < size_y; ++y)
-  for(int x = 0; x < size_x; ++x)
-  {
-    if(verbosity && x == 0 && y == 0) {
-      clog << "\r  at slice " << z << " / " << size_z << ", "
-           << n_success << " successfully advected, "
-           << n_aborted << " aborted." << flush;
+  int slices_done = 0;
+  #pragma omp parallel for schedule(dynamic)
+  for(int z = 0; z < size_z; ++z) {
+    for(int y = 0; y < size_y; ++y)
+    for(int x = 0; x < size_x; ++x)
+    {
+      if(domain(x, y, z)) {
+        const Point3df point(x * voxel_size_x,
+                             y * voxel_size_y,
+                             z * voxel_size_z);
+
+        TubeAdvection visitor(divergence_field, domain_field,
+                              opposite_direction);
+        yl::Advection::Visitor& plain_visitor = visitor;
+        const bool success = advection.visitor_advection(plain_visitor, point);
+
+        if(success) {
+          // Each thread writes to different array elements, as a result no
+          // synchronization should be needed. However, while this is safe on
+          // most platforms, it does not seem to be guaranteed by the OpenMP
+          // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
+          volume_result(x, y, z) = visitor.volume();
+          surface_result(x, y, z) = visitor.surface();
+          #pragma omp atomic
+          ++n_success;
+        } else {
+          #pragma omp atomic
+          ++n_aborted;
+        }
+      }
     }
 
-    if(domain(x, y, z)) {
-      const Point3df point(x * voxel_size_x,
-                           y * voxel_size_y,
-                           z * voxel_size_z);
+    #pragma omp atomic
+    ++slices_done;
 
-      TubeAdvection visitor(divergence_field, domain_field, opposite_direction);
-      yl::Advection::Visitor& plain_visitor = visitor;
-      const bool success = advection.visitor_advection(plain_visitor, point);
-
-      if(success) {
-        volume_result(x, y, z) = visitor.volume();
-        surface_result(x, y, z) = visitor.surface();
-        ++n_success;
-      } else {
-        ++n_aborted;
-      }
-   }
+    if(verbosity) {
+      #pragma omp critical(print_stderr)
+      clog << "\r  " << slices_done << " / " << size_z << " slices processed. "
+           << n_success << " voxels successfully advected, "
+           << n_aborted << " aborted..." << flush;
+    }
   }
 
   if(verbosity)
-    clog << "\ryl::advect_tubes: "
-         << n_success << " propagated, "
+    clog << "\nyl::advect_tubes: "
+         << n_success << " voxels successfully advected, "
          << n_aborted << " aborted." << endl;
 
   return std::make_pair(volume_result, surface_result);
@@ -305,37 +319,51 @@ yl::advect_euclidean(const yl::VectorField3d& advection_field,
   carto::VolumeRef<float> float_domain(*conv(domain));
   yl::LinearlyInterpolatedScalarField domain_field(float_domain);
 
+  int slices_done = 0;
+  #pragma omp parallel for schedule(dynamic)
   for(int z = 0; z < size_z; ++z)
-  for(int y = 0; y < size_y; ++y)
-  for(int x = 0; x < size_x; ++x)
   {
-    if(verbosity && x == 0 && y == 0) {
-      clog << "\r  at slice " << z << " / " << size_z << ", "
-           << n_success << " successfully advected, "
-           << n_aborted << " aborted." << flush;
+    for(int y = 0; y < size_y; ++y)
+    for(int x = 0; x < size_x; ++x)
+    {
+      if(domain(x, y, z)) {
+        const Point3df point(x * voxel_size_x,
+                             y * voxel_size_y,
+                             z * voxel_size_z);
+
+        EuclideanAdvection visitor(domain_field);
+        yl::Advection::Visitor& plain_visitor = visitor;
+        const bool success = advection.visitor_advection(plain_visitor, point);
+
+        if(success) {
+          // Each thread writes to different array elements, as a result no
+          // synchronization should be needed. However, while this is safe on
+          // most platforms, it does not seem to be guaranteed by the OpenMP
+          // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
+          length_result(x, y, z) = visitor.length();
+          #pragma omp atomic
+          ++n_success;
+        } else {
+          #pragma omp atomic
+          ++n_aborted;
+        }
+      }
     }
 
-    if(domain(x, y, z)) {
-      const Point3df point(x * voxel_size_x,
-                           y * voxel_size_y,
-                           z * voxel_size_z);
+    #pragma omp atomic
+    ++slices_done;
 
-      EuclideanAdvection visitor(domain_field);
-      yl::Advection::Visitor& plain_visitor = visitor;
-      const bool success = advection.visitor_advection(plain_visitor, point);
-
-      if(success) {
-        length_result(x, y, z) = visitor.length();
-        ++n_success;
-      } else {
-        ++n_aborted;
-      }
-   }
+    if(verbosity) {
+      #pragma omp critical(print_stderr)
+      clog << "\r  " << slices_done << " / " << size_z << " slices processed. "
+           << n_success << " voxels successfully advected, "
+           << n_aborted << " aborted..." << flush;
+    }
   }
 
   if(verbosity)
-    clog << "\ryl::advect_unit_surface: "
-         << n_success << " propagated, "
+    clog << "\nyl::advect_euclidean: "
+         << n_success << " voxels successfully advected, "
          << n_aborted << " aborted." << endl;
 
   return length_result;
