@@ -35,6 +35,7 @@ Dependencies
 ------------
 
 - AIMS version 4.5 or later (in development at the time of this writing, use the ``trunk`` version from SVN). This image processing library is distributed as part of BrainVISA_.
+- The ``VipHomotopic`` tool from the Morphologist image segmentation pipeline, distributed as part of BrainVISA_.
 - GSL_ (GNU Scientific Library).
 - Boost_ version 1.49 or later.
 - CMake_ version 2.6 or later, with its extension ``brainvisa-cmake`` (distributed with BrainVISA_).
