@@ -181,6 +181,10 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
 
     This method will change voxels from the cortex class to either the white
     matter or the CSF class, as needed to ensure the topology.
+
+    Note that the output is not a deterministic function of the input, because
+    the homotopic operations use a pseudo-random order for the front
+    propagation.
     """
     fclosing = float(fclosing)
     assert fclosing >= 0
