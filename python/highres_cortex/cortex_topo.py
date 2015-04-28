@@ -242,8 +242,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
         cortex = aims.read(os.path.join(tmp_dir, "cortex.nii.gz"))
         pial_surface = aims.read(os.path.join(tmp_dir, "pial_surface.nii.gz"))
     finally:
-        pass
-        #shutil.rmtree(tmp_dir, ignore_errors=True)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     array_cortex = np.asarray(cortex)
     array_pial_surface = np.asarray(pial_surface)
 
