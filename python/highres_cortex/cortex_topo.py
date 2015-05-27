@@ -51,7 +51,7 @@ from soma import aimsalgo
 FLT_MAX = 3.4028234663852886e+38
 NaN = np.nan
 
-VOID_LABEL = 0
+CSF_LABEL = 0
 CORTEX_LABEL = 100
 WHITE_LABEL = 200
 
@@ -98,7 +98,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     The topology of a hollow sphere is imposed onto a voxelwise segmentation of
     the cortex, which consists of the following labels:
 
-    Label 0 (`VOID_LABEL`)
+    Label 0 (`CSF_LABEL`)
         Outside of the cortex, corresponding to the cerebrospinal fluid,
         defined in 26-connectivity.
 
@@ -282,7 +282,7 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
 
     tmp_classif = aims.Volume(classif)
     array_tmp_classif = np.asarray(tmp_classif)
-    array_tmp_classif[np.logical_and(array_tmp_classif == VOID_LABEL,
+    array_tmp_classif[np.logical_and(array_tmp_classif == CSF_LABEL,
                                      array_dilated != 0)] = CORTEX_LABEL
     del dilated, array_dilated
 
@@ -296,7 +296,7 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # been copied in the constructor because a border is requested.
     white.header().update(classif.header())
     array_white = np.asarray(white.volume())
-    array_white[array_white != WHITE_LABEL] = VOID_LABEL
+    array_white[array_white != WHITE_LABEL] = CSF_LABEL
     dilated_white = aimsalgo.AimsMorphoDilation(white, filling_size)
     del white, array_white
     array_dilated_white = np.asarray(dilated_white.volume())
