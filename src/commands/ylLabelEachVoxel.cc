@@ -49,7 +49,14 @@ using std::clog;
 using std::endl;
 using carto::VolumeRef;
 using carto::verbose;
+using soma::AllocatorStrategy;
+using soma::AllocatorContext;
 
+namespace
+{
+const int EXIT_USAGE_ERROR = 2;
+std::string program_name;
+}
 
 int main(const int argc, const char **argv)
 {
@@ -57,6 +64,8 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<int16_t> > input_reader;
   aims::Writer<VolumeRef<int32_t> > output_writer;
   int32_t first_label = 1;
+
+  program_name = argv[0];
   aims::AimsApplication app(argc, argv,
     "Assign a unique label to each voxel of a mask.\n"
     "\n"
@@ -87,12 +96,14 @@ int main(const int argc, const char **argv)
   }
   catch(const std::runtime_error &e)
   {
-    clog << argv[0] << ": error processing command-line options: "
+    clog << program_name << ": error processing command-line options: "
          << e.what() << endl;
-    return EXIT_FAILURE;
+    return EXIT_USAGE_ERROR;
   }
 
   VolumeRef<int16_t> input_mask;
+  input_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   input_reader.read(input_mask);
   const int size_x = input_mask.getSizeX();
   const int size_y = input_mask.getSizeY();
@@ -113,7 +124,7 @@ int main(const int argc, const char **argv)
   }
 
   if(verbose) {
-    clog << argv[0] << ": assigned labels between " << first_label
+    clog << program_name << ": assigned labels between " << first_label
          << " and " << next_label - 1 << "." << endl;
   }
 

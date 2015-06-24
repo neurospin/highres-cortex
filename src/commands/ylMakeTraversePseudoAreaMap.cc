@@ -52,7 +52,14 @@ using std::clog;
 using std::endl;
 using carto::VolumeRef;
 using carto::verbose;
+using soma::AllocatorStrategy;
+using soma::AllocatorContext;
 
+namespace
+{
+const int EXIT_USAGE_ERROR = 2;
+std::string program_name;
+}
 
 int main(const int argc, const char **argv)
 {
@@ -65,6 +72,8 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<int16_t> > classif_reader;
   float goal_diameter = QualityCriterion::default_goal_diameter();
   aims::Writer<carto::Volume<float> > output_writer;
+
+  program_name = argv[0];
   aims::AimsApplication app(argc, argv,
     "Map the quality of cortex column regions");
   app.addOption(input_reader, "--input", "input label volume");
@@ -98,19 +107,29 @@ int main(const int argc, const char **argv)
   }
   catch(const std::runtime_error &e)
   {
-    clog << argv[0] << ": error processing command-line options: "
+    clog << program_name << ": error processing command-line options: "
          << e.what() << endl;
-    return EXIT_FAILURE;
+    return EXIT_USAGE_ERROR;
   }
 
   VolumeRef<int32_t> input_regions;
+  input_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   input_reader.read(input_regions);
   yl::LabelVolume<int32_t> label_volume(input_regions);
 
+  CSF_projections_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   VolumeRef<float> CSF_projections;
   CSF_projections_reader.read(CSF_projections);
+
+  white_projections_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   VolumeRef<float> white_projections;
   white_projections_reader.read(white_projections);
+
+  classif_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   VolumeRef<int16_t> classif;
   classif_reader.read(classif);
 

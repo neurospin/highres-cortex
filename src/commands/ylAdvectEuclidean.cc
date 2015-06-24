@@ -41,6 +41,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <boost/make_shared.hpp>
 
+#include <soma-io/allocator/allocator.h>
 #include <cartobase/config/verbose.h>
 #include <cartodata/volume/volume.h>
 #include <aims/getopt/getopt2.h>
@@ -54,6 +55,8 @@ using std::clog;
 using std::endl;
 using carto::VolumeRef;
 using carto::verbose;
+using soma::AllocatorStrategy;
+using soma::AllocatorContext;
 
 
 // Anonymous namespace for file-local symbols
@@ -118,7 +121,7 @@ int main(const int argc, const char **argv)
   {
     clog << program_name << ": error processing command-line options: "
          << e.what() << endl;
-    return EXIT_FAILURE;
+    return EXIT_USAGE_ERROR;
   }
 
   boost::shared_ptr<yl::VectorField3d> advection_field;
@@ -151,6 +154,8 @@ int main(const int argc, const char **argv)
     // --grad-field provided
     if(verbose) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> grad_field;
+    grad_field_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = grad_field_reader.read(grad_field);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -164,6 +169,8 @@ int main(const int argc, const char **argv)
     // --fieldx, --fieldy, --fieldz provided
     if(verbose) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> fieldx, fieldy, fieldz;
+    fieldx_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = fieldx_reader.read(fieldx);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -171,6 +178,8 @@ int main(const int argc, const char **argv)
            << endl;
       return EXIT_FAILURE;
     }
+    fieldy_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = fieldy_reader.read(fieldy);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -178,6 +187,8 @@ int main(const int argc, const char **argv)
            << endl;
       return EXIT_FAILURE;
     }
+    fieldz_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = fieldz_reader.read(fieldz);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -201,6 +212,8 @@ int main(const int argc, const char **argv)
 
   VolumeRef<int16_t> domain_volume;
   if(verbose) clog << program_name << ": reading domain volume..." << endl;
+  domain_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
   if(!domain_reader.read(domain_volume))
   {
     clog << program_name << ": cannot read domain volume" << endl;

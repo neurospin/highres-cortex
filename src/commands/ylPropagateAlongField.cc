@@ -56,6 +56,8 @@ using std::clog;
 using std::endl;
 using carto::VolumeRef;
 using carto::verbose;
+using soma::AllocatorStrategy;
+using soma::AllocatorContext;
 
 
 // Anonymous namespace for file-local symbols
@@ -115,6 +117,8 @@ bool doit(aims::Process& proc_base,
   if(grad_field_provided) {
     // --grad-field provided
     if(verbose) clog << program_name << ": reading field..." << endl;
+    proc.grad_field_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     VolumeRef<float> grad_field;
     success = proc.grad_field_reader.read(grad_field);
     if(!success) {
@@ -129,6 +133,8 @@ bool doit(aims::Process& proc_base,
     // --fieldx, --fieldy, --fieldz provided
     if(verbose) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> fieldx, fieldy, fieldz;
+    proc.fieldx_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = proc.fieldx_reader.read(fieldx);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -136,6 +142,8 @@ bool doit(aims::Process& proc_base,
            << endl;
       return EXIT_FAILURE;
     }
+    proc.fieldy_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = proc.fieldy_reader.read(fieldy);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -143,6 +151,8 @@ bool doit(aims::Process& proc_base,
            << endl;
       return EXIT_FAILURE;
     }
+    proc.fieldz_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     success = proc.fieldz_reader.read(fieldz);
     if(!success) {
       clog << program_name << ": error reading file '"
@@ -168,6 +178,8 @@ bool doit(aims::Process& proc_base,
   {
     if(verbose) clog << program_name << ": reading seeds..." << endl;
     aims::Reader<VolumeRef<Tlabel> > seeds_reader(seeds_filename);
+    seeds_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
     seeds_reader.read(seeds);
   }
 
