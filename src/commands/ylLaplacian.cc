@@ -141,6 +141,7 @@ SolveLaplace_SOR(VolumeRef<float> solution,
   do {
     max_residual = 0;
     for(int even_odd = 0; even_odd <= 1; ++even_odd) {
+      #pragma omp parallel for schedule(dynamic) reduction(max:max_residual)
       for(int z = 0 ; z < size_z ; ++z)
         for(int y = 0 ; y < size_y ; ++y)
           for(int x = (y + z + even_odd) % 2 ; x < size_x ; x += 2) {
