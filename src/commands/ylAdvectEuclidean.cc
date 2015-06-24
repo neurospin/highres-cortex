@@ -76,7 +76,7 @@ int main(const int argc, const char **argv)
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-"Advect a tube from each voxel, keeping track of its volume and end surface."
+"Advect a line from each voxel, keeping track of its length."
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
