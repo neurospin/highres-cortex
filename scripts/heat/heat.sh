@@ -1,5 +1,6 @@
 #!/bin/sh -e
 #
+# Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -35,16 +36,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-AimsThreshold -b -m di -t 100 \
-    -i ../classif.nii.gz \
-    -o ./all_but_cortex.nii
-AimsFileConvert -t FLOAT \
-    -i ../classif.nii.gz \
-    -o heat.nii.gz
-
-# Each run refines the previous one
-python heat.py 500 0.01
-python heat.py 100 0.001
+ylLaplacian --classif ../classif.nii.gz --output heat.nii.gz
 
 # Normalized gradient's divergence
 python div_gradn.py

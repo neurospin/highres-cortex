@@ -1,3 +1,4 @@
+# Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -9,6 +10,7 @@
 # without any warranty.
 
 set(_headers
+  cortex.hh
   field.hh
   advection.hh
   advection.tcc
