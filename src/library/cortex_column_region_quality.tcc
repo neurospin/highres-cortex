@@ -46,6 +46,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/data/fastAllocationData.h>
 #include <aims/math/eigen.h>
 
+#include "cortex.hh"
+
 using aims::AimsFastAllocationData;
 
 namespace
@@ -228,11 +230,11 @@ cache(const PointIterator& point_it_begin,
     }
 
     const int16_t voxel_classif = m_classif.at(x, y, z);
-    if(voxel_classif == CLASSIF_CSF)
+    if(voxel_classif == CSF_LABEL)
       touches_CSF = true;
-    else if(voxel_classif == CLASSIF_WHITE)
+    else if(voxel_classif == WHITE_LABEL)
       touches_white = true;
-    else if(voxel_classif != CLASSIF_CORTEX)
+    else if(voxel_classif != CORTEX_LABEL)
       std::clog << "WARNING: CortexColumnRegionQuality: unknown classif label "
                 << voxel_classif << std::endl;
   }

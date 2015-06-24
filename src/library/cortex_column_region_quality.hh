@@ -170,10 +170,6 @@ public:
 
   static float default_goal_diameter();
 
-  static const int16_t CLASSIF_CSF = 0;
-  static const int16_t CLASSIF_CORTEX = 100;
-  static const int16_t CLASSIF_WHITE = 200;
-
 private:
   carto::VolumeRef<float> m_CSF_projections;
   carto::VolumeRef<float> m_white_projections;
