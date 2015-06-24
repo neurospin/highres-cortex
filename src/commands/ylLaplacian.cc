@@ -83,8 +83,8 @@ PrepareInitialization(const VolumeRef<int16_t> classif)
   // matter, 0.5 in the cortex)
   {
     carto::RescalerInfo rescaler_info;
-    rescaler_info.vmin = CSF_LABEL;  // 0
-    rescaler_info.vmax = WHITE_LABEL;  // 200
+    rescaler_info.vmin = yl::CSF_LABEL;  // 0
+    rescaler_info.vmax = yl::WHITE_LABEL;  // 200
     rescaler_info.omin = 0;
     rescaler_info.omax = 1;
 
