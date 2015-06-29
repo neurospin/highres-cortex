@@ -12,6 +12,7 @@
 set(_headers
   cortex.hh
   field.hh
+  front.cc
   advection.hh
   advection.tcc
   cortex_advection.hh
@@ -23,15 +24,21 @@ set(_headers
   iterative_region_merger.tcc
   cortex_column_region_quality.hh
   cortex_column_region_quality.tcc
+  upwinding.hh
+  volume_util.hh
+  volume_util.tcc
 )
 set(_sources
   field.cc
+  front.cc
   advection.cc
   cortex_advection.cc
   propagate_along_field.cc
   label_volume.cc
   iterative_region_merger.cc
   cortex_column_region_quality.cc
+  upwinding.cc
+  volume_util.cc
 )
 
 BRAINVISA_COPY_AND_INSTALL_HEADERS(_headers ${PROJECT_NAME} headersTarget)
@@ -63,5 +70,7 @@ if(DOXYGEN_FOUND)
 
   BRAINVISA_GENERATE_DOXYGEN_DOC(_headers
                                  INPUT_PREFIX "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
+
+  #TODO fix warning for out-of-tree build
   add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen graph-doxygen cartobase-doxygen cartodata-doxygen pyaims-doxygen)
 endif(DOXYGEN_FOUND)

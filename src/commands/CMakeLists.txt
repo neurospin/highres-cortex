@@ -17,6 +17,7 @@ set(_commands
   ylLaplacian
   ylMergeCortexColumnRegions
   ylMakeTraversePseudoAreaMap
+  ylUpwindDistance
 )
 
 include_directories("${CMAKE_BINARY_DIR}/include")
