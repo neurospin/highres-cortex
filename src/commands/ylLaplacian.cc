@@ -70,14 +70,10 @@ PrepareInitialization(const VolumeRef<int16_t> classif)
 {
   // Allocate the solution volume with a border
   static const int border_width = 1;
-  VolumeRef<float> initialization(classif->getSizeX() + 2 * border_width,
-                                  classif->getSizeY() + 2 * border_width,
-                                  classif->getSizeZ() + 2 * border_width);
-  initialization.reset( new carto::Volume<float>(
-    initialization,
-    Volume<float>::Position4Di(border_width, border_width, border_width, 0),
-    Volume<float>::Position4Di(
-      classif->getSizeX(), classif->getSizeY(), classif->getSizeZ(), 1)));
+  VolumeRef<float> initialization(classif->getSizeX(),
+                                  classif->getSizeY(),
+                                  classif->getSizeZ(),
+                                  1, border_width);
 
   // Initialize the output volume to a reasonable value (0 in CSF, 1 in white
   // matter, 0.5 in the cortex)
