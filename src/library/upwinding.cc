@@ -40,6 +40,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <cmath>
 #include <iostream>
 
+#include <aims/connectivity/structuring_element.h>
 #include <aims/vector/vector.h>
 
 #include "front.hh"

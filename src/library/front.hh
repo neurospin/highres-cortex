@@ -45,7 +45,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
-#include <aims/connectivity/structuring_element.h>
 
 
 namespace yl
