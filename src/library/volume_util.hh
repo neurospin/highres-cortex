@@ -44,7 +44,18 @@ knowledge of the CeCILL licence and that you accept its terms.
 namespace yl
 {
 
+/** Minimum border width along X, Y, and Z dimensions
+ *
+ * Call this function like this, or use the overload xyz_min_border(const carto::VolumeRef<T>&):
+ * \code
+ * yl::xyz_min_border(volume->getBorders())
+ * \endcode
+ */
 int xyz_min_border(const std::vector<int>& borders);
+
+/** Minimum border width along X, Y, and Z dimensions */
+template <typename T>
+int xyz_min_border(const carto::VolumeRef<T>& volume);
 
 template <typename T, class Predicate>
 bool

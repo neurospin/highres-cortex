@@ -48,27 +48,29 @@ enum {
 };
 
 /** Compute the distance along the gradient of a scalar field.
-
-  In the object defined by domain_label, the distance \f$d\f$ to origin_label
-  is computed along the field lines of the gradient of upwind_field (\f$T\f$).
-  This is done by integrating the following equation, in a single sweep through
-  the domain, using an upwinding condition on \f$T\f$:
-
-  \f[
-  \nabla d \cdot \frac{\nabla T}{\|\nabla T\|} = 1
-  \f]
-
-  The domain image will be modified in-place for keeping track of the front
-  (front_label) and visited voxels (done_label).
-
-  Preconditions:
-   - upwind_field must have at least a 1-voxel border, which must be
-     filled with NaN
-   - domain must have at least a 1-voxel border, which will must not contain
-     domain_label
-   - domain_label, origin_label, done_label, and front_label must all have
-     different values
-*/
+ *
+ * In the object defined by \p domain_label, the distance \f$d\f$ to \p
+ * origin_label is computed along the field lines of the gradient of \p
+ * upwind_field (\f$T\f$). This is done by integrating the following equation
+ * in a single sweep through the domain, using an upwinding condition on
+ * \f$T\f$:
+ *
+ * \f[
+ * \nabla d \cdot \frac{\nabla T}{\|\nabla T\|} = 1
+ * \f]
+ *
+ * The \p domain image will be modified in-place for keeping track of the front
+ * (\p front_label) and visited voxels (\p done_label).
+ *
+ * Preconditions:
+ *  \arg \p upwind_field must have at least a 1-voxel border, which must be
+ *    filled with \e NaN
+ *  \arg \p domain must have at least a 1-voxel border, which will must not
+ *    contain \p domain_label
+ *  \arg \p domain_label, \p origin_label, \p done_label, and \p front_label
+ *    must all have different values (except \p origin_label and \p done_label
+ *    can be equal)
+ */
 carto::VolumeRef<float>
 upwind_distance(const carto::VolumeRef<float> upwind_field,
                 carto::VolumeRef<int16_t> domain,

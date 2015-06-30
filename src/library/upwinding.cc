@@ -80,11 +80,18 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
                     const int16_t done_label,
                     const int16_t front_label)
 {
-  assert(yl::xyz_min_border(domain->getBorders()) >= 1);
+  assert(domain_label != origin_label);
+  assert(domain_label != front_label);
+  assert(domain_label != done_label);
+  assert(domain_label != front_label);
+  assert(origin_label != front_label);
+  assert(done_label != front_label);
+
+  assert(yl::xyz_min_border(domain) >= 1);
   assert(yl::check_border_values(domain,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
-  assert(yl::xyz_min_border(upwind_field->getBorders()) >= 1);
+  assert(yl::xyz_min_border(upwind_field) >= 1);
   assert(yl::check_border_values(upwind_field, std::isnan<float>));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(

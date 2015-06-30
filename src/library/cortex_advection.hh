@@ -48,14 +48,14 @@ class ScalarField;
 
 /** Advect a tube along a field, starting with unit surface
 
-    \arg advection_field vector field to advect along
-    \arg divergence_field the divergence of the normalized advection field
-    \arg domain the advection domain with zero outside, one inside
-    \arg max_advection_distance the maximum length of the advection path
-    \arg step_size the constant length of an advection step. Can be negative to
-    advect in the opposite direction.
-    \arg verbosity verbosity to stderr, (verbosity - 1) is passed to
-    Advection::set_verbose()
+    \arg \p advection_field : vector field to advect along
+    \arg \p divergence_field : the divergence of the normalized advection field
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
 
     \return pair of (tube's volume, tube's end surface)
  */
@@ -67,15 +67,15 @@ advect_tubes(const yl::VectorField3d& advection_field,
              float step_size,
              int verbosity=0);
 
-/** Advect a tube along a field, starting with unit surface
+/** Advect a point along a field, keeping track of the distance
 
-    \arg advection_field vector field to advect along
-    \arg domain the advection domain with zero outside, one inside
-    \arg max_advection_distance the maximum length of the advection path
-    \arg step_size the constant length of an advection step. Can be negative to
-    advect in the opposite direction.
-    \arg verbosity verbosity to stderr, (verbosity - 1) is passed to
-    Advection::set_verbose()
+    \arg \p advection_field : vector field to advect along
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
 
     \return Euclidean length of the advection path
  */

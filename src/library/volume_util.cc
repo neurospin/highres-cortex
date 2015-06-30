@@ -46,3 +46,8 @@ yl::xyz_min_border(const std::vector<int>& borders)
     std::min_element(borders.begin(), borders.begin() + 6);
   return *it;
 }
+
+#include "volume_util.tcc"
+
+template int yl::xyz_min_border(const carto::VolumeRef<float>&);
+template int yl::xyz_min_border(const carto::VolumeRef<int16_t>&);

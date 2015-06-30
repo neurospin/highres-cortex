@@ -85,3 +85,9 @@ yl::check_border_values(const carto::VolumeRef<T>& volume,
 
   return true;
 }
+
+template <typename T>
+int yl::xyz_min_border(const carto::VolumeRef<T>& volume)
+{
+  return xyz_min_border(volume->getBorders());
+}
