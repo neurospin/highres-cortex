@@ -12,7 +12,7 @@
 set(_headers
   cortex.hh
   field.hh
-  front.cc
+  front.hh
   advection.hh
   advection.tcc
   cortex_advection.hh
