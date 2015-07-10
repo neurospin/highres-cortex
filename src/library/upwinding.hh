@@ -39,13 +39,10 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <cartodata/volume/volume.h>
 
+#include "front.hh"
+
 namespace yl
 {
-
-enum {
-  DEFAULT_FRONT_LABEL = -123,
-  DEFAULT_DONE_LABEL = -10
-};
 
 /** Compute the distance along the gradient of a scalar field.
  *

@@ -63,6 +63,11 @@ struct PointHasher : std::unary_function<Point, std::size_t>
   }
 };
 
+enum {
+  DEFAULT_FRONT_LABEL = -123,
+  DEFAULT_DONE_LABEL = -10
+};
+
 class VariablePrioritySortedFront
 {
 public:
