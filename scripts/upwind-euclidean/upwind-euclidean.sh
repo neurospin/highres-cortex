@@ -41,7 +41,7 @@ ylUpwindDistance --verbose \
     --domain-label 100 \
     --origin-label 0 \
     --field ../heat/heat.nii.gz \
-    --output white-length.nii.gz
+    --output pial-length.nii.gz
 
 ylUpwindDistance --verbose \
     --domain ../classif.nii.gz \
@@ -49,7 +49,7 @@ ylUpwindDistance --verbose \
     --origin-label 200 \
     --invert \
     --field ../heat/heat.nii.gz \
-    --output pial-length.nii.gz
+    --output white-length.nii.gz
 
 cartoLinearComb.py -f 'I1+I2' \
     -i pial-length.nii.gz \
