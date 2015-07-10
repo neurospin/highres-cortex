@@ -53,8 +53,6 @@ using aims::AimsFastAllocationData;
 namespace
 {
 
-const float pi = 3.14159265358979323846f;
-
 inline float square(float x)
 {
   return x * x;
