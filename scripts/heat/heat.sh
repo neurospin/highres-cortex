@@ -36,7 +36,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-ylLaplacian --precision 1e-6 --classif ../classif.nii.gz --output heat.nii.gz
+ylLaplacian --classif ../classif.nii.gz --output heat.nii.gz
 
 # Normalized gradient's divergence
 python div_gradn.py
