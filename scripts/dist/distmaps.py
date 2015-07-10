@@ -41,7 +41,7 @@ from soma import aims, aimsalgo
 
 import highres_cortex.cortex_topo
 
-classif = aims.read("../classif.nii")
+classif = aims.read("../classif.nii.gz")
 
 dist_from_white = highres_cortex.cortex_topo.fastmarching_negative(
     classif, [100], [200], 150)
