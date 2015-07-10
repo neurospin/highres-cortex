@@ -24,6 +24,8 @@ set(_headers
   iterative_region_merger.tcc
   cortex_column_region_quality.hh
   cortex_column_region_quality.tcc
+  laplace_solver.hh
+  laplace_solver.tcc
   upwinding.hh
   volume_util.hh
   volume_util.tcc
@@ -37,6 +39,7 @@ set(_sources
   label_volume.cc
   iterative_region_merger.cc
   cortex_column_region_quality.cc
+  laplace_solver.cc
   upwinding.cc
   volume_util.cc
 )

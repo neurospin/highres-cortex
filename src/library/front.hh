@@ -50,6 +50,19 @@ knowledge of the CeCILL licence and that you accept its terms.
 namespace yl
 {
 
+/** Helper class to use Point3d & friends in hash tables */
+template <class Point>
+struct PointHasher : std::unary_function<Point, std::size_t>
+{
+  std::size_t operator()(const Point& point) const
+  {
+    std::size_t seed = 0;
+    for(int i = 0; i < point.size(); ++i)
+      boost::hash_combine(seed, point[i]);
+    return seed;
+  }
+};
+
 class VariablePrioritySortedFront
 {
 public:
@@ -101,20 +114,8 @@ private:
   typedef FrontQueue::handle_type QueueHandle;
   FrontQueue m_queue;
 
-  // TODO check if this is a good hash
-  struct Point3dHasher {
-    std::size_t operator() (const Point3d& point) const
-    {
-      static const std::size_t shift_bits1 =
-        std::numeric_limits<std::size_t>::digits / 3;
-      static const std::size_t shift_bits2 =
-        2 * std::numeric_limits<std::size_t>::digits / 3;
-      return (static_cast<std::size_t>(point[2]) << shift_bits2)
-        | (static_cast<std::size_t>(point[1]) << shift_bits1)
-        | static_cast<std::size_t>(point[0]);
-    };
-  };
-  std::tr1::unordered_map<Point3d, QueueHandle, Point3dHasher> m_handle_map;
+  std::tr1::unordered_map<Point3d, QueueHandle, PointHasher<Point3d> >
+    m_handle_map;
 
   carto::VolumeRef<int16_t> m_domain;
   const int16_t m_front_label;
