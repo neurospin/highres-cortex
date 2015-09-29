@@ -145,7 +145,7 @@ int main(const int argc, const char **argv)
                                      classif);
   quality_criterion.setShapeParametres(goal_diameter);
 
-  for(typename yl::LabelVolume<int32_t>::const_regions_iterator
+  for(yl::LabelVolume<int32_t>::const_regions_iterator
         labels_it = label_volume.regions_begin(),
         labels_end = label_volume.regions_end();
       labels_it != labels_end;
