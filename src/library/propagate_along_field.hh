@@ -136,8 +136,8 @@ public:
                                   Tlabel target_label=0) const;
 
 
-  static const float default_step = 0.1f;
-  static const unsigned int default_max_iter = 1000;
+  static const float default_step;
+  static const unsigned int default_max_iter;
 
   /** Visit each point along the advection path
 

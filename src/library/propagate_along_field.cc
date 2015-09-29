@@ -48,6 +48,10 @@ using std::endl;
 using boost::shared_ptr;
 using boost::make_shared;
 
+
+const float yl::PropagateAlongField::default_step = 0.1f;
+const unsigned int yl::PropagateAlongField::default_max_iter = 1000;
+
 yl::PropagateAlongField::
 PropagateAlongField(const shared_ptr<VectorField3d>& vector_field)
   : m_vector_field(vector_field),
