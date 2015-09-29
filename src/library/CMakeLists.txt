@@ -67,13 +67,14 @@ BRAINVISA_INSTALL(TARGETS ${PROJECT_NAME}
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
+  set( DOXYFILE_PREDEFINED "${AIMS_DEFINITIONS}")
   # Enable cross-linking to AIMS documentation
   set(aims-free_version "${aims-free_VERSION_MAJOR}.${aims-free_VERSION_MINOR}")
-  set(DOXYFILE_TAGFILES "${CMAKE_BINARY_DIR}/share/doc/aimsdata-${aims-free_version}/doxygen/aimsdata.tag=../../aimsdata-${aims-free_version}/doxygen  ${CMAKE_BINARY_DIR}/share/doc/graph-${aims-free_version}/doxygen/graph.tag=../../graph-${aims-free_version}/doxygen  ${CMAKE_BINARY_DIR}/share/doc/cartobase-${aims-free_version}/doxygen/cartobase.tag=../../cartobase-${aims-free_version}/doxygen  ${CMAKE_BINARY_DIR}/share/doc/cartodata-${aims-free_version}/doxygen/cartodata.tag=../../cartodata-${aims-free_version}/doxygen  ${CMAKE_BINARY_DIR}/share/doc/pyaims-${aims-free_version}/doxygen/pyaims.tag=../../pyaims-${aims-free_version}/doxygen")
+  set(DOXYFILE_TAGFILES "${CMAKE_BINARY_DIR}/share/doc/aimsdata-${aims-free_version}/doxygen/aimsdata.tag=../../aimsdata-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/aimsalgo-${aims-free_version}/doxygen/aimsalgo.tag=../../aimsalgo-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/cartobase-${aims-free_version}/doxygen/cartobase.tag=../../cartobase-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/cartodata-${aims-free_version}/doxygen/cartodata.tag=../../cartodata-${aims-free_version}/doxygen")
 
   BRAINVISA_GENERATE_DOXYGEN_DOC(_headers
                                  INPUT_PREFIX "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
 
   #TODO fix warning for out-of-tree build
-  add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen graph-doxygen cartobase-doxygen cartodata-doxygen pyaims-doxygen)
+  add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen aimsalgo-doxygen cartobase-doxygen cartodata-doxygen)
 endif(DOXYGEN_FOUND)
