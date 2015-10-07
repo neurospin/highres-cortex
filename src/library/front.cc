@@ -65,7 +65,14 @@ add(const Point3d& point, const float priority)
   assert(m_domain(point[0], point[1], point[2]) != m_front_label);
 
   const QueueHandle handle = m_queue.push(std::make_pair(priority, point));
-  m_handle_map.insert(std::make_pair(point, handle));
+  try {
+    m_handle_map.insert(std::make_pair(point, handle));
+  } catch(...) {
+    // Maintain integrity of the data structure
+    m_queue.erase(handle);
+    throw;
+  }
+
   m_domain(point[0], point[1], point[2]) = m_front_label;
 }
 
@@ -110,13 +117,9 @@ yl::VariablePrioritySortedFront::
 add_or_update(const Point3d& point, const float priority)
 {
   if(m_domain(point[0], point[1], point[2]) == m_front_label) {
-    const QueueHandle handle = m_handle_map[point];
-    (*handle).first = priority;
-    m_queue.update(handle);
+    update_priority(point, priority);
   } else {
-    const QueueHandle handle = m_queue.push(std::make_pair(priority, point));
-    m_handle_map.insert(std::make_pair(point, handle));
-    m_domain(point[0], point[1], point[2]) = m_front_label;
+    add(point, priority);
   }
 }
 

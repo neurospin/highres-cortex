@@ -137,6 +137,10 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     Raises
     ------
 
+    OSError
+        This function throws ``OSError`` if ``VipHomotopic`` cannot be found
+        or executed.
+
     subprocess.CalledProcessError
         This exception can occur if ``VipHomotopic``, which is in charge of the
         homotopic morphological operations, terminates with an error.

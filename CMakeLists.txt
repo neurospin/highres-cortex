@@ -1,3 +1,4 @@
+# Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -13,8 +14,10 @@ find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT(CXX)
 
 
-BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
+BRAINVISA_FIND_PACKAGE(aims-free 4.5 REQUIRED)
 include("${AIMS-FREE_USE_FILE}")
+BRAINVISA_DEPENDENCY(DEV DEPENDS aims-free DEV ">= 4.5")
+BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= 4.5")
 
 
 # Do not use BoostConfig.cmake from boost-cmake, because its behaviour may be
@@ -24,7 +27,7 @@ set(Boost_NO_BOOST_CMAKE ON)
 # contained in the FindBoost.cmake module provided with CMake. Hence, new
 # versions should be added here as they are released...
 set(Boost_ADDITIONAL_VERSIONS
-  "1.58.0" "1.58" "1.57.0" "1.57"
+  "1.59.0" "1.59" "1.58.0" "1.58" "1.57.0" "1.57"
   "1.56.0" "1.56" "1.55.0" "1.55" "1.54.0" "1.54" "1.53.0" "1.53" "1.52.0"
   "1.52" "1.51.0" "1.51" "1.50.0" "1.50" "1.49.0" "1.49")
 find_package(Boost 1.49 REQUIRED)
@@ -37,16 +40,27 @@ if(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1.49)
       "Boost 1.49 or newer (under BOOST_ROOT/include).")
 endif()
 BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
+# No run-time dependency as we use header-only Boost libraries
 
 
 find_package(GSL REQUIRED)
+BRAINVISA_DEPENDENCY(DEV DEPENDS libgsl DEV)
+BRAINVISA_DEPENDENCY(RUN DEPENDS libgsl RUN)
 
 # OpenMP is optional
 find_package(OpenMP)
 
-find_package(python REQUIRED)
+find_package(Doxygen)
 
-# TODO Introduce optional dependence on Vip (for toplogy correction)
+find_package(python REQUIRED)
+BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.6; << 3.0")
+BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.6; << 3.0")
+# No need for find_package(NumPy) as that is for C headers
+BRAINVISA_DEPENDENCY(RUN RECOMMENDS python-numpy RUN)
+
+# For fix_cortex_topology
+BRAINVISA_DEPENDENCY(RUN SUGGESTS morphologist-private RUN ">= 4.5")
+
 
 BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/python"
                                  ${PROJECT_NAME})
