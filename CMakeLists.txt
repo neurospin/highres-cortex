@@ -50,6 +50,8 @@ BRAINVISA_DEPENDENCY(RUN DEPENDS libgsl RUN)
 # OpenMP is optional
 find_package(OpenMP)
 
+find_package(Doxygen)
+
 find_package(python REQUIRED)
 BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.6; << 3.0")
 BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.6; << 3.0")

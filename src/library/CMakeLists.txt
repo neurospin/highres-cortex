@@ -65,16 +65,25 @@ BRAINVISA_INSTALL(TARGETS ${PROJECT_NAME}
                   DESTINATION lib
                   COMPONENT ${PROJECT_NAME})
 
-find_package(Doxygen)
 if(DOXYGEN_FOUND)
   set( DOXYFILE_PREDEFINED "${AIMS_DEFINITIONS}")
-  # Enable cross-linking to AIMS documentation
-  set(aims-free_version "${aims-free_VERSION_MAJOR}.${aims-free_VERSION_MINOR}")
-  set(DOXYFILE_TAGFILES "${CMAKE_BINARY_DIR}/share/doc/aimsdata-${aims-free_version}/doxygen/aimsdata.tag=../../aimsdata-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/aimsalgo-${aims-free_version}/doxygen/aimsalgo.tag=../../aimsalgo-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/cartobase-${aims-free_version}/doxygen/cartobase.tag=../../cartobase-${aims-free_version}/doxygen ${CMAKE_BINARY_DIR}/share/doc/cartodata-${aims-free_version}/doxygen/cartodata.tag=../../cartodata-${aims-free_version}/doxygen")
+  # Enable cross-linking to AIMS documentation (only works for in-tree build)
+  set(AIMS-FREE_DOC_DIR "${AIMS-FREE_BINARY_DIR}/share/doc")
+  set(AIMS-FREE_VERSION_MAJMIN
+    "${aims-free_VERSION_MAJOR}.${aims-free_VERSION_MINOR}")
+  set(SOMA-IO_DOC_DIR "${SOMA-IO_BINARY_DIR}/share/doc")
+  set(SOMA-IO_VERSION_MAJMIN "${soma-io_VERSION_MAJOR}.${soma-io_VERSION_MINOR}")
+
+  # TODO: change this when new website gets in production
+  set(BV_DOC_URL "http://brainvisa.fr/" CACHE STRING
+    "Doxygen documentation links to the BrainVISA documentation at this URL")
+
+  set(DOXYFILE_TAGFILES "${AIMS-FREE_DOC_DIR}/aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsdata.tag=${BV_DOC_URL}aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsalgo.tag=${BV_DOC_URL}aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/cartodata.tag=${BV_DOC_URL}cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${SOMA-IO_DOC_DIR}/cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen/cartobase.tag=${BV_DOC_URL}cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen")
 
   BRAINVISA_GENERATE_DOXYGEN_DOC(_headers
                                  INPUT_PREFIX "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
 
-  #TODO fix warning for out-of-tree build
+  # Fix warning for out-of-tree build
+  cmake_policy(SET CMP0046 OLD)
   add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen aimsalgo-doxygen cartobase-doxygen cartodata-doxygen)
 endif(DOXYGEN_FOUND)
