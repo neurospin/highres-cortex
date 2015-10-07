@@ -9,12 +9,15 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+set(OpenMP_commands
+  ylLaplacian
+)
 set(_commands
+  ${OpenMP_commands}
   ylAdvectEuclidean
   ylAdvectTubes
   ylPropagateAlongField
   ylLabelEachVoxel
-  ylLaplacian
   ylMergeCortexColumnRegions
   ylMakeTraversePseudoAreaMap
   ylUpwindDistance
@@ -30,9 +33,6 @@ foreach(_command ${_commands})
                     COMPONENT ${PROJECT_NAME})
 endforeach()
 
-set(OpenMP_commands
-  ylLaplacian
-)
 if(OPENMP_FOUND)
   set_source_files_properties(${OpenMP_commands} PROPERTIES
     COMPILE_FLAGS ${OpenMP_CXX_FLAGS})

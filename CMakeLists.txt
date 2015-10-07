@@ -13,6 +13,7 @@ cmake_minimum_required(VERSION 2.6)
 find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT(CXX)
 
+option(BUILD_SHARED_LIBS "Build highres-cortex as a shared library" ON)
 
 BRAINVISA_FIND_PACKAGE(aims-free 4.5 REQUIRED)
 include("${AIMS-FREE_USE_FILE}")
