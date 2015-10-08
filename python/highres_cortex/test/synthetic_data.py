@@ -33,6 +33,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+import os.path
 import math
 
 from soma import aims
@@ -65,8 +66,7 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
             in zip(outer_radius, margin, voxel_size)]
 
     classif_volume = aims.Volume(size[0], size[1], size[2], dtype="S16")
-    classif_volume.header()["voxel_size"] = [
-        voxel_size[0], voxel_size[1], voxel_size[2], 1]
+    classif_volume.header()["voxel_size"] = list(voxel_size)
     emplace_cortex_sphere_classif(classif_volume,
                                   inner_radius, outer_radius, margin)
     return classif_volume
@@ -106,3 +106,69 @@ def emplace_cortex_sphere_classif(classif_volume,
                    for radius, grid in zip(outer_radius, grids)) < 1] = 100
     np_classif[sum(grid ** 2 / radius ** 2
                    for radius, grid in zip(inner_radius, grids)) < 1] = 200
+
+def _make_similar_volume(data_array, ref):
+    volume = aims.Volume(data_array)
+    volume.header().update(ref.header())
+    return volume
+
+def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
+    inner_radius = float(inner_radius)
+    outer_radius = float(outer_radius)
+    assert outer_radius > inner_radius > 0
+    voxel_size = _convert_to_float_triple(voxel_size)
+
+    thickness = outer_radius - inner_radius
+
+    classif_volume = make_cortex_sphere_classif(inner_radius, outer_radius,
+                                                voxel_size)
+    grids = make_centred_coord_grids(classif_volume)
+    distance_to_centre = numpy.sqrt(sum(grid ** 2 for grid in grids))
+
+    distance_to_white = distance_to_centre - inner_radius
+    distance_to_CSF = outer_radius - distance_to_centre
+
+    equivolumic_metric = numpy.clip(
+        (outer_radius ** 3 - distance_to_centre ** 3) /
+        (outer_radius ** 3 - inner_radius ** 3),
+        0, 1)
+
+    return (classif_volume,
+            _make_similar_volume(distance_to_white, ref=classif_volume),
+            _make_similar_volume(distance_to_CSF, ref=classif_volume),
+            _make_similar_volume(equivolumic_metric, ref=classif_volume))
+
+def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
+                                      dir="."):
+    inner_radius = float(inner_radius)
+    outer_radius = float(outer_radius)
+    assert outer_radius > inner_radius > 0
+    voxel_size = _convert_to_float_triple(voxel_size)
+
+    (classif,
+     distance_to_white, distance_to_CSF,
+     equivolumic_metric) = (make_sphere_and_reference_result(
+                                inner_radius, outer_radius, voxel_size))
+
+    aims.write(classif,
+                os.path.join(dir, "classif.nii.gz"))
+    aims.write(distance_to_white,
+               os.path.join(dir, "reference_distwhite.nii.gz"))
+    aims.write(distance_to_CSF,
+               os.path.join(dir, "reference_distCSF.nii.gz"))
+    aims.write(equivolumic_metric,
+               os.path.join(dir, "reference_equivolumic.nii.gz"))
+
+if __name__ == "__main__":
+    import os
+    import shutil
+    os.mkdir("sphere_3_6")
+    write_sphere_and_reference_result(3, 6, 0.3, dir="sphere_3_6")
+    os.mkdir("sphere_2_5")
+    write_sphere_and_reference_result(2, 5, 0.3, dir="sphere_2_5")
+    os.mkdir("sphere_1_4")
+    write_sphere_and_reference_result(1, 4, 0.3, dir="sphere_1_4")
+    os.mkdir("sphere_5_8")
+    write_sphere_and_reference_result(5, 8, 0.3, dir="sphere_5_8")
+    os.mkdir("sphere_10_13")
+    write_sphere_and_reference_result(10, 13, 0.3, dir="sphere_10_13")

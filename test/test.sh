@@ -1,9 +1,6 @@
 #! /bin/sh -e
 
-python make_test_classif.py
-
-
-SCRIPTS_DIR=../scripts
+: ${SCRIPTS_DIR:=$(dirname "$0")/../scripts}
 
 cp -R "$SCRIPTS_DIR"/* .
 
