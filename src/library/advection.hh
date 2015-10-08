@@ -56,7 +56,8 @@ public:
       Visitor. Can be derived from Visitor, or must have all the same methods.
       \arg start_point the start of the advection path
 
-      \retval true if the advection is stopped by the visitor
+      \retval true if the advection is stopped by the visitor without
+      encountering any error
       \retval false if the advection stops for another reason
    */
   template <class TVisitor>
@@ -77,6 +78,8 @@ public:
     virtual void visit(const Point3df& point) = 0;
     /** Predicate that decides if the advection stops */
     virtual bool move_on(const Point3df& point) const = 0;
+    /** Indicates whether the Visitor encountered an error */
+    virtual bool aborted() const = 0;
     /** Called after the advection is stopped by move_on() */
     virtual void finished() {};
     /** Called when the advection cannot finish successfully */

@@ -91,4 +91,10 @@ div_array = np.asarray(div_volume)
 
 div_array[1:-1, 1:-1, 1:-1] = div
 
+# This is needed since AIMS does not silently replace NaN values in input files
+# by zeros anymore. Without it, ylAdvectTubes ends up interpolating NaN values,
+# which ends badly.
+# TODO: remove this horrible hack!!!
+div_array[np.isnan(div_array)] = 0
+
 aims.write(div_volume, "heat_div_gradn.nii.gz")
