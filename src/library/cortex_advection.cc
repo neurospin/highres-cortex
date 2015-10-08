@@ -95,8 +95,9 @@ public:
     else
       m_surface *= 1 + step * divergence_value;
 
-    if(m_surface < 0) {
-      clog << "  Warning: TubeAdvection encountered negative surface, aborting" << endl;
+    // The test is written inverted so that NaN gives false
+    if(!(m_surface > 0)) {
+      clog << "  Warning: TubeAdvection encountered non-positive surface, aborting" << endl;
       m_abort = true;
       return;
     }
@@ -129,6 +130,11 @@ public:
       return no_value;
     else
       return m_volume;
+  };
+
+  bool aborted() const
+  {
+    return m_abort;
   };
 
 private:
@@ -181,6 +187,10 @@ public:
       return no_value;
     else
       return m_length;
+  };
+
+  bool aborted() const {
+    return m_abort;
   };
 
 private:

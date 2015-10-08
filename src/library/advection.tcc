@@ -109,5 +109,5 @@ visitor_advection(TVisitor& visitor,
   if(m_verbose >= 2) {
     clog << "  advection finished after " << iter << " iterations" << endl;
   }
-  return true;
+  return !visitor.aborted();
 }
