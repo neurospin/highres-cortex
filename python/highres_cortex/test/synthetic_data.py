@@ -128,6 +128,16 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
     distance_to_white = distance_to_centre - inner_radius
     distance_to_CSF = outer_radius - distance_to_centre
 
+    euclidean_metric = numpy.clip((outer_radius - distance_to_centre)
+                                  / (outer_radius - inner_radius),
+                                  0, 1)
+
+    with numpy.errstate(divide="ignore"):
+        laplacian_value = numpy.clip(
+            inner_radius / (outer_radius - inner_radius) *
+            (outer_radius / distance_to_centre - 1),
+            0, 1)
+
     equivolumic_metric = numpy.clip(
         (outer_radius ** 3 - distance_to_centre ** 3) /
         (outer_radius ** 3 - inner_radius ** 3),
@@ -136,6 +146,8 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
     return (classif_volume,
             _make_similar_volume(distance_to_white, ref=classif_volume),
             _make_similar_volume(distance_to_CSF, ref=classif_volume),
+            _make_similar_volume(euclidean_metric, ref=classif_volume),
+            _make_similar_volume(laplacian_value, ref=classif_volume),
             _make_similar_volume(equivolumic_metric, ref=classif_volume))
 
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
@@ -147,6 +159,8 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 
     (classif,
      distance_to_white, distance_to_CSF,
+     euclidean_metric,
+     laplacian_value,
      equivolumic_metric) = (make_sphere_and_reference_result(
                                 inner_radius, outer_radius, voxel_size))
 
@@ -156,6 +170,10 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                os.path.join(dir, "reference_distwhite.nii.gz"))
     aims.write(distance_to_CSF,
                os.path.join(dir, "reference_distCSF.nii.gz"))
+    aims.write(euclidean_metric,
+               os.path.join(dir, "reference_euclidean.nii.gz"))
+    aims.write(laplacian_value,
+               os.path.join(dir, "reference_laplacian.nii.gz"))
     aims.write(equivolumic_metric,
                os.path.join(dir, "reference_equivolumic.nii.gz"))
 
