@@ -152,6 +152,8 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
 
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                                       dir="."):
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
     inner_radius = float(inner_radius)
     outer_radius = float(outer_radius)
     assert outer_radius > inner_radius > 0
@@ -164,12 +166,18 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
      equivolumic_metric) = (make_sphere_and_reference_result(
                                 inner_radius, outer_radius, voxel_size))
 
+    np_thickness = (outer_radius - inner_radius) * (
+        numpy.ones_like(distance_to_white))
+    thickness = _make_similar_volume(np_thickness, ref=distance_to_white)
+
     aims.write(classif,
                 os.path.join(dir, "classif.nii.gz"))
     aims.write(distance_to_white,
                os.path.join(dir, "reference_distwhite.nii.gz"))
     aims.write(distance_to_CSF,
                os.path.join(dir, "reference_distCSF.nii.gz"))
+    aims.write(thickness,
+               os.path.join(dir, "reference_thickness.nii.gz"))
     aims.write(euclidean_metric,
                os.path.join(dir, "reference_euclidean.nii.gz"))
     aims.write(laplacian_value,
@@ -180,13 +188,8 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 if __name__ == "__main__":
     import os
     import shutil
-    os.mkdir("sphere_3_6")
     write_sphere_and_reference_result(3, 6, 0.3, dir="sphere_3_6")
-    os.mkdir("sphere_2_5")
     write_sphere_and_reference_result(2, 5, 0.3, dir="sphere_2_5")
-    os.mkdir("sphere_1_4")
     write_sphere_and_reference_result(1, 4, 0.3, dir="sphere_1_4")
-    os.mkdir("sphere_5_8")
     write_sphere_and_reference_result(5, 8, 0.3, dir="sphere_5_8")
-    os.mkdir("sphere_10_13")
     write_sphere_and_reference_result(10, 13, 0.3, dir="sphere_10_13")
