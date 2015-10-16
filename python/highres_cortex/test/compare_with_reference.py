@@ -33,74 +33,186 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+import math
 import os.path
+import sys
 
 import numpy
 from soma import aims
 
 from highres_cortex.cortex_topo import CSF_LABEL, CORTEX_LABEL, WHITE_LABEL
 
-def difference_in_cortex(image1, image2, classif):
-    return numpy.abs(image2 - image1)[classif == CORTEX_LABEL]
-
-def max_cortex_difference_files(result_file, reference_file, classif):
+def difference_from_files(result_file, reference_file, classif_array):
     result_vol = aims.read(result_file)
     result = numpy.asarray(result_vol)
 
     reference_vol = aims.read(reference_file)
     reference = numpy.asarray(reference_vol)
 
-    difference = difference_in_cortex(result, reference, classif)
+    difference = numpy.ma.masked_array(result - reference,
+                                       mask=(classif_array != CORTEX_LABEL))
 
-    return numpy.max(difference)
+    return difference
+
+def symmetrize_value_range(value_range, center):
+    breadth = max(value_range[1] - center, center - value_range[0])
+    return (center - breadth, center + breadth)
+
+def scatter_plot_files(result_file, reference_file, classif,
+                       value_range=None, range_centre=None, ax=None):
+    result_vol = aims.read(result_file)
+    result_values = numpy.asarray(result_vol)[classif == CORTEX_LABEL]
+
+    reference_vol = aims.read(reference_file)
+    reference_values = numpy.asarray(reference_vol)[classif == CORTEX_LABEL]
+
+    if ax is None:
+        import matplotlib.pyplot
+        ax = matplotlib.pyplot.figure().add_subplot(111)
+    ax.scatter(reference_values, result_values)
+    if value_range is None:
+        value_range = (min(reference_values.min(), result_values.min()),
+                       max(reference_values.max(), result_values.max()))
+    if range_centre is not None:
+        value_range = symmetrize_value_range(value_range, range_centre)
+    ax.plot(value_range, value_range)
+    ax.set_xlim(value_range)
+    ax.set_ylim(value_range)
 
 
-def compare_in_directory(dir):
-    classif_vol = aims.read(os.path.join(dir, "classif.nii.gz"))
-    classif = numpy.asarray(classif_vol)
+class ResultComparator:
+    reference_file = {
+        os.path.join("heat", "heat.nii.gz"):
+            "reference_laplacian.nii.gz",
+        os.path.join("laplace-euclidean", "total-length.nii.gz"):
+            "reference_thickness.nii.gz",
+        os.path.join("laplace-euclidean", "pial-fraction.nii.gz"):
+            "reference_euclidean.nii.gz",
+        os.path.join("isovolume", "pial-volume-fraction.nii.gz"):
+            "reference_equivolumic.nii.gz",
+        os.path.join("upwind-euclidean", "total-length.nii.gz"):
+            "reference_thickness.nii.gz",
+        os.path.join("upwind-euclidean", "pial-fraction.nii.gz"):
+            "reference_euclidean.nii.gz",
+        os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"):
+            "reference_equivolumic.nii.gz",
+    }
 
-    largest_voxel_size = max(classif_vol.getVoxelSize()[:3])
-    real_thickness = aims.read(os.path.join(dir, "reference_thickness.nii.gz")).value(0, 0, 0)
-    print("For reference: 1 voxel = {0:.2f}mm = {1:.1f}% of cortical thickness"
-          .format(largest_voxel_size,
-                  100 * largest_voxel_size / real_thickness))
+    dimension = {
+        os.path.join("heat", "heat.nii.gz"): "%",
+        os.path.join("laplace-euclidean", "total-length.nii.gz"): "mm",
+        os.path.join("laplace-euclidean", "pial-fraction.nii.gz"): "%",
+        os.path.join("isovolume", "pial-volume-fraction.nii.gz"): "%",
+        os.path.join("upwind-euclidean", "total-length.nii.gz"): "mm",
+        os.path.join("upwind-euclidean", "pial-fraction.nii.gz"): "%",
+        os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"): "%",
+    }
 
-    print("Euclidean max difference (advection): {0:.1f}%"
-          .format(100 * max_cortex_difference_files(
-                os.path.join(dir, "laplace-euclidean", "pial-fraction.nii.gz"),
-                os.path.join(dir, "reference_euclidean.nii.gz"),
-                classif)))
-    print("Euclidean max difference (upwinding): {0:.1f}%"
-          .format(100 * max_cortex_difference_files(
-                os.path.join(dir, "upwind-euclidean", "pial-fraction.nii.gz"),
-                os.path.join(dir, "reference_euclidean.nii.gz"),
-                classif)))
+    def __init__(self, dir):
+        self._dir = dir
+        path = self._make_subpath
+        self._classif_vol = aims.read(path("classif.nii.gz"))
+        self._classif = numpy.asarray(self._classif_vol)
+        self._voxel_size = tuple(self._classif_vol.getVoxelSize()[:3])
+        thickness_vol = aims.read(path("reference_thickness.nii.gz"))
+        self._thickness = thickness_vol.value(0, 0, 0)
 
-    abs_thickness_diff = max_cortex_difference_files(
-                os.path.join(dir, "laplace-euclidean", "total-length.nii.gz"),
-                os.path.join(dir, "reference_thickness.nii.gz"),
-                classif)
-    print("Thickness max difference (advection): {0:.2f}mm ({1:.1f}%)"
-          .format(abs_thickness_diff,
-                  100 * abs_thickness_diff / real_thickness))
-    abs_thickness_diff = max_cortex_difference_files(
-                os.path.join(dir, "upwind-euclidean", "total-length.nii.gz"),
-                os.path.join(dir, "reference_thickness.nii.gz"),
-                classif)
-    print("Thickness max difference (upwinding): {0:.2f}mm ({1:.1f}%)"
-          .format(abs_thickness_diff,
-                  100 * abs_thickness_diff / real_thickness))
+    def _make_subpath(self, *components):
+        return os.path.join(self._dir, *components)
 
-    print("Laplacian value max difference: {0:.1f}%"
-          .format(100 * max_cortex_difference_files(
-                os.path.join(dir, "heat", "heat.nii.gz"),
-                os.path.join(dir, "reference_laplacian.nii.gz"),
-                classif)))
-    print("Equivolumic max difference (advection): {0:.1f}%"
-          .format(100 * max_cortex_difference_files(
-                os.path.join(dir, "isovolume", "pial-volume-fraction.nii.gz"),
-                os.path.join(dir, "reference_equivolumic.nii.gz"),
-                classif)))
+    def scatter_plot_file(self, result_file, ax=None, *args, **kwargs):
+        path = self._make_subpath
+
+        if ax is None:
+            import matplotlib.pyplot
+            ax = matplotlib.pyplot.figure().add_subplot(111)
+
+        reference_file = self.reference_file[result_file]
+        scatter_plot_files(path(result_file), path(reference_file),
+                           self._classif, ax=ax, *args, **kwargs)
+        ax.set_title(result_file)
+
+    def plot_compare_all(self, fig=None):
+        path = self._make_subpath
+
+        if fig is None:
+            import matplotlib.pyplot
+            fig = matplotlib.pyplot.figure()
+
+        ax = fig.add_subplot(2, 4, 1)
+        self.scatter_plot_file(os.path.join("heat", "heat.nii.gz"),
+                               value_range=(0, 1), ax=ax)
+
+        ax = fig.add_subplot(2, 4, 2)
+        self.scatter_plot_file(os.path.join("laplace-euclidean", "total-length.nii.gz"),
+                               ax=ax, range_centre=self._thickness)
+
+        ax = fig.add_subplot(2, 4, 6)
+        self.scatter_plot_file(os.path.join("upwind-euclidean", "total-length.nii.gz"),
+                               ax=ax, range_centre=self._thickness)
+
+        ax = fig.add_subplot(2, 4, 3)
+        self.scatter_plot_file(os.path.join("laplace-euclidean", "pial-fraction.nii.gz"),
+                               value_range=(0, 1), ax=ax)
+
+        ax = fig.add_subplot(2, 4, 7)
+        self.scatter_plot_file(os.path.join("upwind-euclidean", "pial-fraction.nii.gz"),
+                               value_range=(0, 1), ax=ax)
+
+        ax = fig.add_subplot(2, 4, 4)
+        self.scatter_plot_file(os.path.join("isovolume", "pial-volume-fraction.nii.gz"),
+                               value_range=(0, 1), ax=ax)
+
+        ax = fig.add_subplot(2, 4, 8)
+        try:
+            self.scatter_plot_file(os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"),
+                                value_range=(0, 1), ax=ax)
+        except IOError:
+            pass
+
+    def text_compare_files(self, result_file, reference_file=None):
+        path = self._make_subpath
+
+        if reference_file is None:
+            reference_file = self.reference_file[result_file]
+        diff = difference_from_files(
+            path(result_file), path(reference_file),
+            self._classif)
+
+        bias = diff.mean()
+        rms_error = math.sqrt((diff ** 2).mean())
+
+        try:
+            dimension = self.dimension[result_file]
+        except KeyError:
+            dimension = ""
+        if dimension == "mm":
+            return ("RMS error = {0:.3f} mm, bias = {1:.3f} mm"
+                    .format(rms_error, bias))
+        elif dimension == "%":
+            return ("RMS error = {0:.1f}%, bias = {1:.1f}%"
+                    .format(100 * rms_error, 100 * bias))
+        else:
+            return ("RMS error = {0:.3g}, bias = {1:.3g}"
+                    .format(rms_error, bias))
+
+    def text_compare_all(self):
+        print("voxel size = {0:.2f}mm = {1:.1f}% of cortical thickness"
+              .format(max(self._voxel_size),
+                      100 * max(self._voxel_size) / self._thickness))
+
+        for result_file in self.reference_file.iterkeys():
+            sys.stdout.write("{0}: ".format(result_file))
+            try:
+                print(self.text_compare_files(result_file))
+            except IOError:
+                print("-- cannot read file")
+                continue
+
 
 if __name__ == "__main__":
-    compare_in_directory(".")
+    comparator = ResultComparator(".")
+    comparator.text_compare_all()
+    comparator.plot_compare_all()
+    import matplotlib.pyplot
+    matplotlib.pyplot.show()
