@@ -84,6 +84,8 @@ if(DOXYGEN_FOUND)
                                  INPUT_PREFIX "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
 
   # Fix warning for out-of-tree build
-  cmake_policy(SET CMP0046 OLD)
+  if( CMAKE_VERSION VERSION_GREATER "3.0" )
+    cmake_policy(SET CMP0046 OLD)
+  endif()
   add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen aimsalgo-doxygen cartobase-doxygen cartodata-doxygen)
 endif(DOXYGEN_FOUND)
