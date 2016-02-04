@@ -78,12 +78,19 @@ def scatter_plot_files(result_file, reference_file, classif,
     ax.plot(value_range, value_range)
     ax.set_xlim(value_range)
     ax.set_ylim(value_range)
+    ax.set_aspect("equal")
 
 
 class ResultComparator:
     reference_file = {
         os.path.join("heat", "heat.nii.gz"):
             "reference_laplacian.nii.gz",
+        os.path.join("dist", "distCSF.nii.gz"):
+            "reference_distCSF.nii.gz",
+        os.path.join("dist", "distwhite.nii.gz"):
+            "reference_distwhite.nii.gz",
+        os.path.join("dist", "dist_sum.nii.gz"):
+            "reference_thickness.nii.gz",
         os.path.join("laplace-euclidean", "total-length.nii.gz"):
             "reference_thickness.nii.gz",
         os.path.join("laplace-euclidean", "pial-fraction.nii.gz"):
@@ -96,16 +103,28 @@ class ResultComparator:
             "reference_euclidean.nii.gz",
         os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"):
             "reference_equivolumic.nii.gz",
+        os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"):
+            "reference_thickness.nii.gz",
+        os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"):
+            "reference_euclidean.nii.gz",
+        os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"):
+            "reference_equivolumic.nii.gz",
     }
 
     dimension = {
         os.path.join("heat", "heat.nii.gz"): "%",
+        os.path.join("dist", "distwhite.nii.gz"): "mm",
+        os.path.join("dist", "distCSF.nii.gz"): "mm",
+        os.path.join("dist", "dist_sum.nii.gz"): "mm",
         os.path.join("laplace-euclidean", "total-length.nii.gz"): "mm",
         os.path.join("laplace-euclidean", "pial-fraction.nii.gz"): "%",
         os.path.join("isovolume", "pial-volume-fraction.nii.gz"): "%",
         os.path.join("upwind-euclidean", "total-length.nii.gz"): "mm",
         os.path.join("upwind-euclidean", "pial-fraction.nii.gz"): "%",
         os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"): "%",
+        os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"): "mm",
+        os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"): "%",
+        os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"): "%",
     }
 
     def __init__(self, dir):
@@ -139,36 +158,72 @@ class ResultComparator:
             import matplotlib.pyplot
             fig = matplotlib.pyplot.figure()
 
-        ax = fig.add_subplot(2, 4, 1)
-        self.scatter_plot_file(os.path.join("heat", "heat.nii.gz"),
-                               value_range=(0, 1), ax=ax)
+        if os.path.isdir(path("CBS")):
+            include_CBS = True
+            num_lines = 3
+        else:
+            include_CBS = False
+            num_lines = 2
 
-        ax = fig.add_subplot(2, 4, 2)
+        #ax = fig.add_subplot(num_lines, 4, 1)
+        #self.scatter_plot_file(os.path.join("heat", "heat.nii.gz"),
+        #                       value_range=(0, 1), ax=ax)
+
+        ax = fig.add_subplot(num_lines, 4, 1)
+        self.scatter_plot_file(os.path.join("dist", "distCSF.nii.gz"),
+                               value_range=(0, 1.1*self._thickness), ax=ax)
+
+        ax = fig.add_subplot(num_lines, 4, 5)
+        self.scatter_plot_file(os.path.join("dist", "dist_sum.nii.gz"),
+                               value_range=(0, 2 * self._thickness), ax=ax)
+
+        ax = fig.add_subplot(num_lines, 4, 2)
         self.scatter_plot_file(os.path.join("laplace-euclidean", "total-length.nii.gz"),
-                               ax=ax, range_centre=self._thickness)
+                               value_range=(0, 2 * self._thickness), ax=ax)
 
-        ax = fig.add_subplot(2, 4, 6)
+        ax = fig.add_subplot(num_lines, 4, 6)
         self.scatter_plot_file(os.path.join("upwind-euclidean", "total-length.nii.gz"),
-                               ax=ax, range_centre=self._thickness)
+                               value_range=(0, 2 * self._thickness), ax=ax)
 
-        ax = fig.add_subplot(2, 4, 3)
+        ax = fig.add_subplot(num_lines, 4, 3)
         self.scatter_plot_file(os.path.join("laplace-euclidean", "pial-fraction.nii.gz"),
                                value_range=(0, 1), ax=ax)
 
-        ax = fig.add_subplot(2, 4, 7)
+        ax = fig.add_subplot(num_lines, 4, 7)
         self.scatter_plot_file(os.path.join("upwind-euclidean", "pial-fraction.nii.gz"),
                                value_range=(0, 1), ax=ax)
 
-        ax = fig.add_subplot(2, 4, 4)
+        ax = fig.add_subplot(num_lines, 4, 4)
         self.scatter_plot_file(os.path.join("isovolume", "pial-volume-fraction.nii.gz"),
                                value_range=(0, 1), ax=ax)
 
-        ax = fig.add_subplot(2, 4, 8)
+        ax = fig.add_subplot(num_lines, 4, 8)
         try:
             self.scatter_plot_file(os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"),
                                 value_range=(0, 1), ax=ax)
         except IOError:
             pass
+
+        if include_CBS:
+            try:
+                ax = fig.add_subplot(num_lines, 4, 10)
+                self.scatter_plot_file(os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"),
+                                       value_range=(0, 2 * self._thickness), ax=ax)
+            except IOError:
+                pass
+            try:
+                ax = fig.add_subplot(num_lines, 4, 11)
+                self.scatter_plot_file(os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"),
+                                       value_range=(0, 1), ax=ax)
+            except IOError:
+                pass
+            try:
+                ax = fig.add_subplot(num_lines, 4, 12)
+                self.scatter_plot_file(os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"),
+                                       value_range=(0, 1), ax=ax)
+            except IOError:
+                pass
+
 
     def text_compare_files(self, result_file, reference_file=None):
         path = self._make_subpath
@@ -201,7 +256,7 @@ class ResultComparator:
               .format(max(self._voxel_size),
                       100 * max(self._voxel_size) / self._thickness))
 
-        for result_file in self.reference_file.iterkeys():
+        for result_file in sorted(self.reference_file.iterkeys()):
             sys.stdout.write("{0}: ".format(result_file))
             try:
                 print(self.text_compare_files(result_file))

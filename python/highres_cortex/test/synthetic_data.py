@@ -65,8 +65,9 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
             for ax_radius, ax_margin, ax_voxel_size
             in zip(outer_radius, margin, voxel_size)]
 
-    classif_volume = aims.Volume(size[0], size[1], size[2], dtype="S16")
-    classif_volume.header()["voxel_size"] = list(voxel_size)
+    classif_aimsdata = aims.AimsData(size[0], size[1], size[2], dtype="S16")
+    classif_aimsdata.setSizeXYZT(*voxel_size)
+    classif_volume = classif_aimsdata.volume()
     emplace_cortex_sphere_classif(classif_volume,
                                   inner_radius, outer_radius, margin)
     return classif_volume
@@ -112,7 +113,8 @@ def _make_similar_volume(data_array, ref):
     volume.header().update(ref.header())
     return volume
 
-def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
+def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
+                                     margin=None):
     inner_radius = float(inner_radius)
     outer_radius = float(outer_radius)
     assert outer_radius > inner_radius > 0
@@ -121,7 +123,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
     thickness = outer_radius - inner_radius
 
     classif_volume = make_cortex_sphere_classif(inner_radius, outer_radius,
-                                                voxel_size)
+                                                voxel_size, margin=margin)
     grids = make_centred_coord_grids(classif_volume)
     distance_to_centre = numpy.sqrt(sum(grid ** 2 for grid in grids))
 
@@ -151,7 +153,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size):
             _make_similar_volume(equivolumic_metric, ref=classif_volume))
 
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
-                                      dir="."):
+                                      dir=".", margin=None):
     if not os.path.isdir(dir):
         os.makedirs(dir)
     inner_radius = float(inner_radius)
@@ -163,8 +165,9 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
      distance_to_white, distance_to_CSF,
      euclidean_metric,
      laplacian_value,
-     equivolumic_metric) = (make_sphere_and_reference_result(
-                                inner_radius, outer_radius, voxel_size))
+     equivolumic_metric) = (
+         make_sphere_and_reference_result(
+            inner_radius, outer_radius, voxel_size, margin=margin))
 
     np_thickness = (outer_radius - inner_radius) * (
         numpy.ones_like(distance_to_white))
@@ -185,11 +188,23 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     aims.write(equivolumic_metric,
                os.path.join(dir, "reference_equivolumic.nii.gz"))
 
+def write_sphere_dir(inner_radius, thickness, resolution, margin=None):
+    dir_name = "sphere_{0}_{1}_{2}".format(inner_radius, thickness, resolution)
+    write_sphere_and_reference_result(inner_radius,
+                                      inner_radius + thickness,
+                                      resolution,
+                                      dir=dir_name,
+                                      margin=margin)
+
 if __name__ == "__main__":
     import os
     import shutil
-    write_sphere_and_reference_result(3, 6, 0.3, dir="sphere_3_6")
-    write_sphere_and_reference_result(2, 5, 0.3, dir="sphere_2_5")
-    write_sphere_and_reference_result(1, 4, 0.3, dir="sphere_1_4")
-    write_sphere_and_reference_result(5, 8, 0.3, dir="sphere_5_8")
-    write_sphere_and_reference_result(10, 13, 0.3, dir="sphere_10_13")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inner_radius", type=float)
+    parser.add_argument("thickness", type=float)
+    parser.add_argument("resolution", type=float)
+    parser.add_argument("margin", type=float, default=None)
+    args = parser.parse_args()
+    write_sphere_dir(args.inner_radius, args.thickness, args.resolution,
+                     margin=args.margin)

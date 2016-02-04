@@ -2,7 +2,7 @@
 
 : ${SCRIPTS_DIR:=$(dirname "$0")/../scripts}
 
-cp -R "$SCRIPTS_DIR"/* .
+cp -Rsf "$SCRIPTS_DIR"/* .
 
 (cd dist && ./distmaps.sh)
 (cd heat && ./heat.sh)
