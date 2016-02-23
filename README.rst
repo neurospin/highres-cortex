@@ -20,7 +20,7 @@ The source is organized in three components, from high-level to low-level:
 Compiling
 ---------
 
-This package is compiled using the BrainVISA_ compilation system, which is an extension to CMake_. Follow the instructions at http://brainvisa.info/repository.html#use_brainvisa_sources to clone the source tree. You need to include two lines in ``bv_maker.cfg`` in order to clone and compile ``highres-cortex``. Here is a minimal ``bv_maker.cfg``::
+This package is compiled using the BrainVISA_ compilation system, which is an extension to CMake_. Follow the instructions at http://brainvisa.fr/web/infrastructure.html#sources to clone the source tree. You need to include two lines in ``bv_maker.cfg`` in order to clone and compile ``highres-cortex``. Here is a minimal ``bv_maker.cfg``::
 
     [ source $HOME/brainvisa/source/trunk ]
       + anatomist trunk
@@ -55,7 +55,7 @@ The source code of this work is placed under the CeCILL licence (see `<LICENCE.C
 
    Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
 
-.. _BrainVISA: http://brainvisa.info/
+.. _BrainVISA: http://brainvisa.fr/
 .. _GSL: http://www.gnu.org/software/gsl/
 .. _Boost: http://www.boost.org/
 .. _CMake: http://www.cmake.org/
