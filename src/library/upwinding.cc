@@ -93,7 +93,8 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
   assert(yl::xyz_min_border(upwind_field) >= 1);
-  assert(yl::check_border_values(upwind_field, std::isnan<float>));
+  assert(yl::check_border_values(upwind_field,
+                                 static_cast<bool (*)(float)>(std::isnan)));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(
     aims::strel::ConnectivityFactory::create("6"));
