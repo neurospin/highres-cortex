@@ -83,9 +83,8 @@ if(DOXYGEN_FOUND)
   BRAINVISA_GENERATE_DOXYGEN_DOC(_headers
                                  INPUT_PREFIX "${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}")
 
-  # Fix warning for out-of-tree build
-  if( CMAKE_VERSION VERSION_GREATER "3.0" )
-    cmake_policy(SET CMP0046 OLD)
-  endif()
-  add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen aimsalgo-doxygen cartobase-doxygen cartodata-doxygen)
+  if(aims-free_IS_BEING_COMPILED)
+    add_dependencies(${PROJECT_NAME}-doxygen aimsdata-doxygen aimsalgo-doxygen cartobase-doxygen cartodata-doxygen)
+  endif(aims-free_IS_BEING_COMPILED)
+
 endif(DOXYGEN_FOUND)
