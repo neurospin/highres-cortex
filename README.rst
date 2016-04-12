@@ -20,26 +20,27 @@ The source is organized in three components, from high-level to low-level:
 Compiling
 ---------
 
-This package is compiled using the BrainVISA_ compilation system, which is an extension to CMake_. Follow the instructions at http://brainvisa.fr/web/infrastructure.html#sources to clone the source tree. You need to include two lines in ``bv_maker.cfg`` in order to clone and compile ``highres-cortex``. Here is a minimal ``bv_maker.cfg``::
+This package is compiled using the BrainVISA_ compilation system, which is an extension to CMake_. Follow the instructions at http://brainvisa.info/web/infrastructure.html#sources to clone the source tree. You need to include two lines in ``bv_maker.cfg`` in order to clone and compile ``highres-cortex``. Here is a minimal ``bv_maker.cfg``::
 
-    [ source $HOME/brainvisa/source/trunk ]
-      + anatomist trunk
+    [ source $HOME/brainvisa/source ]
+      + anatomist bug_fix
       git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
-    [ build $HOME/brainvisa/build/trunk ]
-      anatomist trunk $HOME/brainvisa/source/trunk
-      + $HOME/brainvisa/source/trunk/highres-cortex
+    [ build $HOME/brainvisa/build/bug_fix ]
+      build_type = Release
+      anatomist bug_fix $HOME/brainvisa/source
+      + $HOME/brainvisa/source/highres-cortex
 
 
 Dependencies
 ------------
 
-- AIMS version 4.5 or later (in development at the time of this writing, use the ``trunk`` version from SVN). This image processing library is distributed as part of BrainVISA_.
-- The ``VipHomotopic`` tool from the Morphologist image segmentation pipeline, distributed as part of BrainVISA_.
+- AIMS version 4.5 or later, this image processing library is distributed as part of BrainVISA_.
 - GSL_ (GNU Scientific Library).
 - Boost_ version 1.49 or later.
 - CMake_ version 2.6 or later, with its extension ``brainvisa-cmake`` (distributed with BrainVISA_).
 - Python_ version 2.6 or later.
+- Optional: the ``VipHomotopic`` command-line tool from the Morphologist image segmentation pipeline, distributed as part of BrainVISA_.
 
 
 Licence
@@ -48,14 +49,16 @@ Licence
 The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). Compiled code that links to the GPL-licensed GSL_ forms a derivative work thereof, and thus must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
 
 
-.. Copyright CEA (2014).
+.. Copyright CEA (2014, 2015).
    Copyright Université Paris XI (2014).
+   Copyright Télécom ParisTech (2015, 2016).
+   Copyright Forschungszentrum Jülich GmbH (2016).
 
    Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
    Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
 
-.. _BrainVISA: http://brainvisa.fr/
+.. _BrainVISA: http://brainvisa.info/
 .. _GSL: http://www.gnu.org/software/gsl/
 .. _Boost: http://www.boost.org/
 .. _CMake: http://www.cmake.org/
