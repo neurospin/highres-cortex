@@ -15,7 +15,13 @@ BRAINVISA_PROJECT(CXX)
 
 option(BUILD_SHARED_LIBS "Build highres-cortex as a shared library" ON)
 
-BRAINVISA_FIND_PACKAGE(aims-free 4.5 REQUIRED)
+# The AIMS version-file checks for strict equality of major and minor version
+# numbers, so requesting version 4.5 explicitly in the find_package command
+# will reject versions 4.6 and later, which we do not want.
+BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
+if(${aims-free_VERSION} VERSION_LESS 4.5)
+message(SEND_ERROR "Required dependency aims-free should be at least version 4.5")
+endif()
 include("${AIMS-FREE_USE_FILE}")
 BRAINVISA_DEPENDENCY(DEV DEPENDS aims-free DEV ">= 4.5")
 BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= 4.5")
@@ -35,7 +41,7 @@ set(Boost_ADDITIONAL_VERSIONS
 find_package(Boost 1.49 REQUIRED)
 # The version of Boost is not checked by find_package if it is in the cache.
 if(${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION} VERSION_LESS 1.49)
-    message(FATAL_ERROR
+    message(SEND_ERROR
       "Unsuitable Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}."
       "${Boost_SUBMINOR_VERSION} is already in the CMake cache. "
       "Please set the BOOST_ROOT variable to a directory containing "
