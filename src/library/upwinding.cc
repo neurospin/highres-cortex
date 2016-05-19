@@ -216,7 +216,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     const float new_distance = (speed + (fx * vx + fy * vy + fz * vz))
       / (fx + fy + fz);
 
-    if(!isnan(new_distance)) {
+    if(!std::isnan(new_distance)) {
       solution(x, y, z) = new_distance;
 
       // add neighbours
