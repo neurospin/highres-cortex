@@ -1,5 +1,6 @@
 #!/bin/sh -e
 #
+# Copyright Forschungszentrum Jülich GmbH (2016).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -38,5 +39,18 @@
 
 ylLaplacian --classif ../classif.nii.gz --output heat.nii.gz
 
-# Normalized gradient's divergence
-python div_gradn.py
+# Normalized gradient's divergence (equivalent to the sum of the two principal
+# curvatures of isosurfaces)
+ylIsoCurvature --verbose --mode sum \
+    -i heat.nii.gz \
+    -o sumcurvs.nii.gz
+
+# Exclude strong values at the border of the cortex, which are due to the
+# discontinuity of the second-order derivative.
+AimsThreshold -b --fg 1 -m eq -t 100 \
+    -i ../classif.nii.gz \
+    -o ./cortex.nii.gz
+AimsMerge -m oo -l 0 -v 0 \
+    -i sumcurvs.nii.gz \
+    -M cortex.nii.gz \
+    -o heat_div_gradn.nii.gz
