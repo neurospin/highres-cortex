@@ -71,3 +71,8 @@ cartoLinearComb.py -f 'I1/I2' \
     -i pial-tube-volumes.nii.gz \
     -i total-tube-volumes.nii.gz \
     -o pial-volume-fraction.nii.gz
+
+AimsMerge -m oo -l 200 -v 1 \
+    -i pial-volume-fraction.nii.gz \
+    -M ../classif.nii.gz \
+    -o equivolumic_depth.nii.gz
