@@ -71,8 +71,10 @@ upwind_direction(float field_left,
   }
 }
 
-/* depending on the comopiler (gcc) version and standard (c++9x/ c++11), 
-   isnan may be a template or a regular function
+/* depending on the compiler (gcc) version and standard (c++9x/ c++11), 
+   isnan may be a template or a regular function. I have found no other way
+   than using a wrapping structure.
+   (see also: http://stackoverflow.com/questions/17574242/how-to-use-isnan-as-a-predicate-function-to-stdfind-if-c11)
 */
 struct float_isnan
 {
@@ -104,6 +106,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
   assert(yl::xyz_min_border(upwind_field) >= 1);
+  // see above float_isnan struct for why not using std::isnan directly
   assert(yl::check_border_values(upwind_field, float_isnan()));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(
