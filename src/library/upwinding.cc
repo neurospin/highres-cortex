@@ -71,6 +71,17 @@ upwind_direction(float field_left,
   }
 }
 
+/* depending on the comopiler (gcc) version and standard (c++9x/ c++11), 
+   isnan may be a template or a regular function
+*/
+struct float_isnan
+{
+  inline bool operator ()( float x ) const
+  {
+    return std::isnan( x );
+  }
+};
+
 } // end of anonymous namespace
 
 carto::VolumeRef<float>
@@ -93,7 +104,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
   assert(yl::xyz_min_border(upwind_field) >= 1);
-  assert(yl::check_border_values(upwind_field, std::isnan<float>));
+  assert(yl::check_border_values(upwind_field, float_isnan()));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(
     aims::strel::ConnectivityFactory::create("6"));
