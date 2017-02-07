@@ -106,7 +106,7 @@ cat <<EOF > "$HOME/.brainvisa/bv_maker.cfg"
 EOF
 
 
-BV_MAKER="$base_dir/brainvisa-cmake/bin/bv_maker"
+BV_MAKER=$base_dir/brainvisa-cmake/bin/bv_maker
 
 msg
 msg "******************************************************"
@@ -120,6 +120,9 @@ msg
 "$BV_MAKER" --username brainvisa sources || die "fetching the sources failed"
 "$BV_MAKER" configure || die "configuring with CMake failed"
 "$BV_MAKER" build || die "build failed"
+
+# This is not needed anymore, use $base_dir/build/bin/bv_maker instead
+rm -rf "$base_dir"/brainvisa-cmake
 
 msg
 msg "You can now use highres-cortex."
