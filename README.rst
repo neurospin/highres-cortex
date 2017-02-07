@@ -51,7 +51,7 @@ Compilation
 
 You can compile this package as part of the BrainVISA_ source tree, which is based on CMake_ and uses a custom-made driver called ``bv_maker``.
 
-1. Install the dependencies. Under Ubuntu 14.04, you can run ``sudo apt-get install subversion git cmake make gcc g++ libsigc++-2.0-dev libexpat-dev libxml2-dev zlib1g-dev python-sip-dev libhdf5-dev libreadline-dev libboost-dev libblitz0-dev pkg-config libgsl0-dev libtiff-dev libminc-dev python-setuptools python-numpy libqt4-dev python2.7-dev``.
+1. Install the dependencies. Under Ubuntu 14.04, you can run ``sudo apt-get install subversion git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite``.
 
 2. Bootstrap the ``bv_maker`` tool::
 
@@ -66,6 +66,7 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
 
      [ source $HOME/brainvisa/source ]
        + brainvisa-cmake bug_fix
+       + brainvisa-share bug_fix
        + soma-base bug_fix
        + soma-io bug_fix
        + aims-free bug_fix
@@ -74,6 +75,7 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
      [ build $HOME/brainvisa/build ]
        build_type = Release
        brainvisa-cmake bug_fix $HOME/brainvisa/source
+       brainvisa-share bug_fix $HOME/brainvisa/source
        soma-base bug_fix $HOME/brainvisa/source
        soma-io bug_fix $HOME/brainvisa/source
        aims-free bug_fix $HOME/brainvisa/source
