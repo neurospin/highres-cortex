@@ -194,7 +194,7 @@ class RegionInQueue : public CachingRegion<Tlabel, CacheType>
 {
 public:
   typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel, CacheType>,
-                                  boost::heap::arity<2>,
+                                  boost::heap::arity<8>,
                                   boost::heap::mutable_<true> > RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
 
@@ -275,7 +275,7 @@ merge_worst_regions_iteratively()
   typedef typename RegionQualityCriterion::Cache CacheType;
   typedef RegionInQueue<Tlabel, CacheType> RegionType;
   typedef boost::heap::d_ary_heap<RegionType,
-                                  boost::heap::arity<2>,
+                                  boost::heap::arity<8>,
                                   boost::heap::mutable_<true> > RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
 

@@ -185,7 +185,10 @@ SOR(const Real absolute_precision,
   do {
     max_residual = 0;
     for(int even_odd = 0; even_odd <= 1; ++even_odd) {
+      #if _OPENMP >= 201107
+      // OpenMP 3.1 or later (201107) is needed for the reduction(max) clause
       #pragma omp parallel for schedule(dynamic) reduction(max:max_residual)
+      #endif
       for(int z = 0 ; z < size_z ; ++z)
         for(int y = 0 ; y < size_y ; ++y)
           for(int x = (y + z + even_odd) % 2 ; x < size_x ; x += 2) {

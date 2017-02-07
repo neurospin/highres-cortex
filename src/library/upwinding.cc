@@ -71,7 +71,7 @@ upwind_direction(float field_left,
   }
 }
 
-/* depending on the compiler (gcc) version and standard (c++9x/ c++11), 
+/* depending on the compiler (gcc) version and standard (c++9x/ c++11),
    isnan may be a template or a regular function. I have found no other way
    than using a wrapping structure.
    (see also: http://stackoverflow.com/questions/17574242/how-to-use-isnan-as-a-predicate-function-to-stdfind-if-c11)
