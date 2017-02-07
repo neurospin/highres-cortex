@@ -1,0 +1,9 @@
+image: cati/brainvisa-opensource:ubuntu-16.04-bug_fix
+
+before_script:
+  - apt-get install --no-install-recommends libgsl0-dev
+
+test:
+  script:
+    - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
+    - make
