@@ -1,13 +1,20 @@
 #! /bin/sh
 
 
-echo "This script will download and build highres-cortex and its dependencies."
-
-
+# Helper functions
 die() {
     echo "Fatal error: $1" >&2
     exit 1
 }
+
+msg() {
+    tput smso  # bold
+    echo "$@"
+    tput rmso  # bold off
+}
+
+
+msg "This script will download and build highres-cortex and its dependencies."
 
 
 #####################################
@@ -15,23 +22,24 @@ die() {
 #####################################
 if lsb_release -c | grep trusty 2>&1 >/dev/null; then
     # (Ubuntu 14.04 "trusty")
-    packages="subversion git cmake make gcc g++ pkg-config libsigc++-2.0-dev libxml2-dev python-sip-dev libboost-dev libgsl0-dev python-numpy python2.7-dev"
+    # libqt4-sql-sqlite is not needed, but warnings show up when it is not present
+    packages="subversion ca-certificates git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite"
     run_aptget=false
 
-    for package in $PACKAGES; do
-        if dpkg -s $package 2>&1 >/dev/null; then
+    for package in $packages; do
+        if ! dpkg -s $package 2>&1 >/dev/null; then
             run_aptget=true
             break
         fi
     done
 
-    if $run_aptget; then
+    if [ "$run_aptget" = true ]; then
         sudo apt-get --no-install-recommends install $packages || die "cannot carry on due to missing dependencies"
     fi
 else
     # Unknown distribution/version
-    echo "Your distribution is unknown. Please check README.rst"
-    echo "and install the required dependencies."
+    msg "Your distribution is unknown. Please check README.rst"
+    msg "and install the required dependencies yourself."
 fi
 
 
@@ -53,16 +61,16 @@ fi
 mkdir -p -- "$base_dir" || die "cannot create directory '$base_dir'"
 cd -- "$base_dir" || die "cannot enter directory '$base_dir'"
 
-echo "Will now bootstrap highres-cortex under $base_dir"
+msg "Will now bootstrap highres-cortex under $base_dir"
 
 
 ###########################
 # Bootstrap brainvisa-cmake
 ###########################
 
-BRAINVISA_CMAKE_SVN=https://bioproj.extra.cea.fr/neurosvn/brainvisa/development/brainvisa-cmake/branches/bug_fix
+brainvisa_cmake_svn=https://bioproj.extra.cea.fr/neurosvn/brainvisa/development/brainvisa-cmake/branches/bug_fix
 
-svn export --non-interactive --username brainvisa --password Soma2009 "$BRAINVISA_CMAKE_SVN" $base_dir/brainvisa-cmake || die "cannot download brainvisa-cmake"
+svn export --non-interactive --username brainvisa --password Soma2009 "$brainvisa_cmake_svn" $base_dir/brainvisa-cmake || die "cannot download brainvisa-cmake"
 
 (
     set -e
@@ -80,6 +88,7 @@ mkdir -p "$HOME/.brainvisa"
 cat <<EOF > "$HOME/.brainvisa/bv_maker.cfg"
 [ source $base_dir/source ]
   + brainvisa-cmake bug_fix
+  + brainvisa-share bug_fix
   + soma-base bug_fix
   + soma-io bug_fix
   + aims-free bug_fix
@@ -89,6 +98,7 @@ cat <<EOF > "$HOME/.brainvisa/bv_maker.cfg"
   build_type = Release
   make_options = -j$(nproc 2>/dev/null || echo 1)
   brainvisa-cmake bug_fix $base_dir/source
+  brainvisa-share bug_fix $base_dir/source
   soma-base bug_fix $base_dir/source
   soma-io bug_fix $base_dir/source
   aims-free bug_fix $base_dir/source
@@ -98,15 +108,24 @@ EOF
 
 BV_MAKER="$base_dir/brainvisa-cmake/bin/bv_maker"
 
-$BV_MAKER sources || die "fetching the sources failed"
-$BV_MAKER configure || die "configuring with CMake failed"
-$BV_MAKER build || die "build failed"
+msg
+msg "******************************************************"
+msg "* The next step (fetching sources of highres-cortex  *"
+msg "* dependencies) may ask you for identification. Use: *"
+msg "*    Username: brainvisa                             *"
+msg "*    Password: Soma2009                              *"
+msg "******************************************************"
+msg
 
-echo
-echo "You can now use highres-cortex."
-echo "Remember to set up the environment first with:"
-echo "  . $base_dir/build/bin/bv_env.sh $base_dir/build"
-echo
-echo "You can update highres-cortex by running:"
-echo "  $base_dir/build/bin/bv_maker"
-echo
+"$BV_MAKER" --username brainvisa sources || die "fetching the sources failed"
+"$BV_MAKER" configure || die "configuring with CMake failed"
+"$BV_MAKER" build || die "build failed"
+
+msg
+msg "You can now use highres-cortex."
+msg "Remember to set up the environment first with:"
+msg "  . $base_dir/build/bin/bv_env.sh $base_dir/build"
+msg
+msg "You can update highres-cortex by running:"
+msg "  $base_dir/build/bin/bv_maker"
+msg
