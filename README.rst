@@ -46,8 +46,26 @@ Binary packages
 We are planning on packaging highres-cortex, and making it available as part of the graphical installer of BrainVISA. For now you have to compile it as described below.
 
 
-Compilation
------------
+Automated compilation
+---------------------
+
+The script ``bootstrap_compile.sh`` can be used to download, configure, and build highres-cortex::
+
+    wget https://github.com/ylep/highres-cortex/raw/master/bootstrap_compile.sh
+    chmod +x bootstrap_compile.sh
+    ./bootstrap_compile.sh
+
+The script is **interactive**, and will require some input from you.
+
+- If you are on Ubuntu 14.04, this script will ensure that all the required dependencies are present on your machine, and propose their installation otherwise. For any other distribution, or any other version of Ubuntu, you have to install the dependencies manually.
+
+- You will also be asked for a base directory to contain the downloaded sources, and the build process. You will need about **1.5 GB** of free space in this directory.
+
+The step-by-step approach in the next section performs essentially the same steps as the bootstrapping script, use that if you want to customize the build process.
+
+
+Step-by-step compilation
+------------------------
 
 You can compile this package as part of the BrainVISA_ source tree, which is based on CMake_ and uses a custom-made driver called ``bv_maker``.
 
