@@ -19,10 +19,17 @@ msg "This script will download and build highres-cortex and its dependencies."
 #####################################
 # Check if dependencies are installed
 #####################################
-if lsb_release -c 2>/dev/null | grep trusty >/dev/null; then
+packages=
+if lsb_release -c 2>/dev/null | grep xenial >/dev/null; then
+    # (Ubuntu 16.04 "xenial")
+    packages="subversion ca-certificates git cmake make gcc g++ gfortran gcc-4.9 g++-4.9 gfortran-4.9 pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite"
+elif lsb_release -c 2>/dev/null | grep trusty >/dev/null; then
     # (Ubuntu 14.04 "trusty")
     # libqt4-sql-sqlite is not needed, but warnings show up when it is not present
     packages="subversion ca-certificates git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite"
+fi
+
+if [ -n "$packages" ]; then
     run_aptget=false
 
     for package in $packages; do

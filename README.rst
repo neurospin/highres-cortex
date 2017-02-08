@@ -57,7 +57,7 @@ The script ``bootstrap_compile.sh`` can be used to download, configure, and buil
 
 The script is **interactive**, and will require some input from you.
 
-- If you are on Ubuntu 14.04, this script will ensure that all the required dependencies are present on your machine, and propose their installation otherwise. For any other distribution, or any other version of Ubuntu, you have to install the dependencies manually.
+- If you are on Ubuntu 14.04 or 16.04 LTS, this script will ensure that all the required dependencies are present on your machine, and propose their installation otherwise. For any other distribution, or any other version of Ubuntu, you have to install the dependencies manually.
 
 - You will also be asked for a base directory to contain the downloaded sources, and the build process. You will need about **1.5 GB** of free space in this directory.
 
@@ -69,7 +69,7 @@ Step-by-step compilation
 
 You can compile this package as part of the BrainVISA_ source tree, which is based on CMake_ and uses a custom-made driver called ``bv_maker``.
 
-1. Install the dependencies. Under Ubuntu 14.04, you can run ``sudo apt-get install subversion git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite``.
+1. Install the dependencies. Under Ubuntu, the required packages are: ``subversion git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite``.
 
 2. Bootstrap the ``bv_maker`` tool::
 
