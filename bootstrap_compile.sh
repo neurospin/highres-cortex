@@ -33,7 +33,7 @@ if [ -n "$packages" ]; then
     run_aptget=false
 
     for package in $packages; do
-        if ! dpkg -s $package 2>&1 >/dev/null; then
+        if ! dpkg -s $package >/dev/null 2>&1; then
             run_aptget=true
             break
         fi
