@@ -9,10 +9,9 @@ die() {
     msg "Fatal error: $1"
     exit 1
 }
+bold=$(tput smso) offbold=$(tput rmso) 2>/dev/null
 msg() {
-    tput smso 2>/dev/null  # bold
-    echo "$@" >&2
-    tput rmso 2>/dev/null # bold off
+    echo "${bold}$*${offbold}" >&2
 }
 sudo_root() {
     # Run the command with sudo if available
@@ -192,3 +191,5 @@ Remember to set up the environment first with:
 You can update highres-cortex by running:
   $base_dir/build/bin/bv_maker
 "
+
+exit 0
