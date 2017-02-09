@@ -1,15 +1,26 @@
 #! /bin/sh
 
+# This script will run interactively if run from a terminal. Otherwise, it
+# should run non-interactively and use the default settings (e.g. install to
+# $HOME/brainvisa, do not customize bv_maker.cfg).
+
 # Helper functions
 die() {
     msg "Fatal error: $1"
     exit 1
 }
-
 msg() {
-    tput smso  # bold
+    tput smso 2>/dev/null  # bold
     echo "$@" >&2
-    tput rmso  # bold off
+    tput rmso 2>/dev/null # bold off
+}
+sudo_root() {
+    # Run the command with sudo if available
+    if type sudo >/dev/null 2>&1; then
+        sudo -- "$@"
+    else
+        "$@"
+    fi
 }
 
 
@@ -19,35 +30,49 @@ msg "This script will download and build highres-cortex and its dependencies."
 #####################################
 # Check if dependencies are installed
 #####################################
-packages=
-if lsb_release -c 2>/dev/null | grep xenial >/dev/null; then
-    # (Ubuntu 16.04 "xenial")
-    packages="subversion ca-certificates git cmake make gcc g++ gfortran gcc-4.9 g++-4.9 gfortran-4.9 pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite"
-elif lsb_release -c 2>/dev/null | grep trusty >/dev/null; then
-    # (Ubuntu 14.04 "trusty")
-    # libqt4-sql-sqlite is not needed, but warnings show up when it is not present
-    packages="subversion ca-certificates git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite"
-fi
 
-if [ -n "$packages" ]; then
-    run_aptget=false
+# Get variables identifying distribution
+ID= ID_LIKE= PRETTY_NAME= VERSION_ID=
+. /etc/os-release >/dev/null 2>&1 || . /usr/lib/os-release >/dev/null 2>&1
 
-    for package in $packages; do
-        if ! dpkg -s $package >/dev/null 2>&1; then
-            run_aptget=true
-            break
-        fi
-    done
-
-    if [ "$run_aptget" = true ]; then
-        sudo apt-get --no-install-recommends install $packages || die "cannot carry on due to missing dependencies"
+packages_installed=false
+if [ "$ID" = ubuntu ] || [ "$ID_LIKE" = ubuntu ]; then
+    packages=
+    if [ "$VERSION_ID" = 16.04 ]; then
+        packages="subversion ca-certificates git cmake make gcc g++ gfortran \
+                  gcc-4.9 g++-4.9 gfortran-4.9 pkg-config libblitz0-dev \
+                  libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev \
+                  zlib1g-dev libgsl-dev python2.7-dev python-sip-dev \
+                  python-numpy python-six libqt4-sql-sqlite"
+    elif [ "$VERSION_ID" = 14.04 ]; then
+        # libqt4-sql-sqlite is not needed, but warnings show up when it is not
+        # present
+        packages="subversion ca-certificates git cmake make gcc g++ gfortran \
+                  pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev \
+                  libqt4-dev libboost-dev zlib1g-dev libgsl0-dev \
+                  python2.7-dev python-sip-dev python-numpy python-six \
+                  libqt4-sql-sqlite"
     fi
-else
-    # Unknown distribution/version
-    msg "Your distribution is unknown. Please check README.rst"
-    msg "and install the required dependencies yourself."
-fi
 
+    if [ -n "$packages" ]; then
+        if ! dpkg-query -s $packages >/dev/null 2>&1; then
+            msg "Will now install missing dependencies using apt-get"
+            opt=
+            if ! [ -t 0 ]; then
+                # if running non-interactively (not attached to a terminal)
+                opt="-y -q"
+            fi
+            sudo_root apt-get $opt --no-install-recommends install $packages \
+                || die "missing dependencies could not be installed"
+            packages_installed=true
+        fi
+    fi
+fi
+if ! [ $packages_installed = true ]; then
+    # Unknown distribution/version
+    msg "Your distribution ($PRETTY_NAME) is unknown."
+    msg "You will have to install the dependencies yourself (see README.rst)"
+fi
 
 
 ########################################
@@ -81,7 +106,7 @@ if [ -x "$base_dir/brainvisa-cmake/bin/bv_maker" ]; then
 An existing checkout of brainvisa-cmake was detected at
 $base_dir/brainvisa-cmake/bin/bv_maker
 
-This script will carry on using it. If this causes problems, you can
+This script will use it to continue. If this causes problems, you can
 delete the $base_dir/brainvisa-cmake directory
 and run this script again to make a clean checkout."
 else
