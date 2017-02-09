@@ -1,0 +1,16 @@
+before_script:
+  - sudo apt-get -qq install --no-install-recommends libgsl0-dev
+
+test:ubuntu16.04-trunk:
+  image: cati/brainvisa-opensource:ubuntu-16.04-trunk
+  script:
+    - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
+    - make
+#    - make test
+
+test:ubuntu16.04-bug_fix:
+  image: cati/brainvisa-opensource:ubuntu-16.04-bug_fix
+  script:
+    - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
+    - make
+#    - make test
