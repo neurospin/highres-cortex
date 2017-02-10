@@ -140,6 +140,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
             inner_radius / (outer_radius - inner_radius) *
             (outer_radius / distance_to_centre - 1),
             0, 1)
+    curvature = - 2 / distance_to_centre
 
     equivolumic_metric = numpy.clip(
         (outer_radius ** 3 - distance_to_centre ** 3) /
@@ -151,6 +152,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
             _make_similar_volume(distance_to_CSF, ref=classif_volume),
             _make_similar_volume(euclidean_metric, ref=classif_volume),
             _make_similar_volume(laplacian_value, ref=classif_volume),
+            _make_similar_volume(curvature, ref=classif_volume),
             _make_similar_volume(equivolumic_metric, ref=classif_volume))
 
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
@@ -166,6 +168,7 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
      distance_to_white, distance_to_CSF,
      euclidean_metric,
      laplacian_value,
+     curvature,
      equivolumic_metric) = (
          make_sphere_and_reference_result(
             inner_radius, outer_radius, voxel_size, margin=margin))
@@ -186,6 +189,8 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                os.path.join(dir, "reference_euclidean.nii.gz"))
     aims.write(laplacian_value,
                os.path.join(dir, "reference_laplacian.nii.gz"))
+    aims.write(curvature,
+               os.path.join(dir, "reference_curvature.nii.gz"))
     aims.write(equivolumic_metric,
                os.path.join(dir, "reference_equivolumic.nii.gz"))
 
