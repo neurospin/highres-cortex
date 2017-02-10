@@ -86,6 +86,8 @@ class ResultComparator:
     reference_file = {
         os.path.join("heat", "heat.nii.gz"):
             "reference_laplacian.nii.gz",
+        os.path.join("heat", "heat_div_gradn.nii.gz"):
+            "reference_curvature.nii.gz",
         os.path.join("dist", "distCSF.nii.gz"):
             "reference_distCSF.nii.gz",
         os.path.join("dist", "distwhite.nii.gz"):
@@ -114,6 +116,7 @@ class ResultComparator:
 
     dimension = {
         os.path.join("heat", "heat.nii.gz"): "%",
+        os.path.join("heat", "heat_div_gradn.nii.gz"): "mm^{-1}",
         os.path.join("dist", "distwhite.nii.gz"): "mm",
         os.path.join("dist", "distCSF.nii.gz"): "mm",
         os.path.join("dist", "dist_sum.nii.gz"): "mm",
@@ -246,12 +249,12 @@ class ResultComparator:
             dimension = self.dimension[result_file]
         except KeyError:
             dimension = ""
-        if dimension == "mm":
-            return ("RMS error = {0:.3f} mm, bias = {1:.3f} mm"
-                    .format(rms_error, bias))
-        elif dimension == "%":
+        if dimension == "%":
             return ("RMS error = {0:.1f}%, bias = {1:.1f}%"
                     .format(100 * rms_error, 100 * bias))
+        elif dimension:
+            return ("RMS error = {0:.3f} {unit}, bias = {1:.3f} {unit}"
+                    .format(rms_error, bias, unit=dimension))
         else:
             return ("RMS error = {0:.3g}, bias = {1:.3g}"
                     .format(rms_error, bias))
@@ -284,7 +287,7 @@ class ResultComparator:
         return success
 
     def text_compare_all(self):
-        print("voxel size = {0:.2f}mm = {1:.1f}% of cortical thickness"
+        print("voxel size = {0:.2f} mm = {1:.1f}% of cortical thickness"
               .format(max(self._voxel_size),
                       100 * max(self._voxel_size) / self._thickness))
 
