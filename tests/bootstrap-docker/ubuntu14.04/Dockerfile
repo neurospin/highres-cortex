@@ -4,7 +4,7 @@ RUN apt-get -qq update
 COPY bootstrap_compile.sh /
 RUN /bootstrap_compile.sh
 RUN echo '. /root/brainvisa/build/bin/bv_env.sh /root/brainvisa/build' \
-        >> /root/brainvisa/.bashrc
+        >> /root/.bashrc
 
 # delete all the apt list files since they're big and get stale quickly
 RUN rm -rf /var/lib/apt/lists/*
