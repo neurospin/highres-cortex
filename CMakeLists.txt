@@ -1,3 +1,4 @@
+# Copyright Forschungszentrum Jülich GmbH (2016).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -15,7 +16,13 @@ BRAINVISA_PROJECT(CXX)
 
 option(BUILD_SHARED_LIBS "Build highres-cortex as a shared library" ON)
 
-BRAINVISA_FIND_PACKAGE(aims-free 4.5 REQUIRED)
+# The AIMS version-file checks for strict equality of major and minor version
+# numbers, so requesting version 4.5 explicitly in the find_package command
+# will reject versions 4.6 and later, which we do not want.
+BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
+if(${aims-free_VERSION} VERSION_LESS 4.5)
+message(FATAL_ERROR "Required dependency aims-free should be at least version 4.5")
+endif()
 include("${AIMS-FREE_USE_FILE}")
 BRAINVISA_DEPENDENCY(DEV DEPENDS aims-free DEV ">= 4.5")
 BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= 4.5")
@@ -28,7 +35,8 @@ set(Boost_NO_BOOST_CMAKE ON)
 # contained in the FindBoost.cmake module provided with CMake. Hence, new
 # versions should be added here as they are released...
 set(Boost_ADDITIONAL_VERSIONS
-  "1.59.0" "1.59" "1.58.0" "1.58" "1.57.0" "1.57"
+  "1.63.0" "1.63" "1.62.0" "1.62" "1.61.0" "1.61"
+  "1.60.0" "1.60" "1.59.0" "1.59" "1.58.0" "1.58" "1.57.0" "1.57"
   "1.56.0" "1.56" "1.55.0" "1.55" "1.54.0" "1.54" "1.53.0" "1.53" "1.52.0"
   "1.52" "1.51.0" "1.51" "1.50.0" "1.50" "1.49.0" "1.49")
 find_package(Boost 1.49 REQUIRED)

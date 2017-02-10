@@ -71,6 +71,19 @@ upwind_direction(float field_left,
   }
 }
 
+/* depending on the compiler (gcc) version and standard (c++9x/ c++11),
+   isnan may be a template or a regular function. I have found no other way
+   than using a wrapping structure.
+   (see also: http://stackoverflow.com/questions/17574242/how-to-use-isnan-as-a-predicate-function-to-stdfind-if-c11)
+*/
+struct float_isnan
+{
+  inline bool operator ()( float x ) const
+  {
+    return std::isnan( x );
+  }
+};
+
 } // end of anonymous namespace
 
 carto::VolumeRef<float>
@@ -93,7 +106,8 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
   assert(yl::xyz_min_border(upwind_field) >= 1);
-  assert(yl::check_border_values(upwind_field, std::isnan<float>));
+  // see above float_isnan struct for why not using std::isnan directly
+  assert(yl::check_border_values(upwind_field, float_isnan()));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(
     aims::strel::ConnectivityFactory::create("6"));
@@ -215,7 +229,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     const float new_distance = (speed + (fx * vx + fy * vy + fz * vz))
       / (fx + fy + fz);
 
-    if(!isnan(new_distance)) {
+    if(!std::isnan(new_distance)) {
       solution(x, y, z) = new_distance;
 
       // add neighbours
