@@ -13,4 +13,5 @@ set(TEST_ENV "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
 add_test(
   NAME highres_cortex_all_scripts
   COMMAND /bin/sh -e "${TEST_ENV}" ./test_all_scripts.sh
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
