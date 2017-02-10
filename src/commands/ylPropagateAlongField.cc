@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2017).
 Copyright CEA (2014).
 Copyright Université Paris XI (2014).
 
@@ -247,7 +248,7 @@ bool doit(aims::Process& proc_base,
     regions = propagator.propagate_regions(seeds, target_label);
   }
 
-  if(regions != 0) {
+  if(!regions.isNull()) {
     if(verbose) clog << program_name << ": writing output regions "
                      << proc.output_regions_filename << " as Volume of "
                      << finder.dataType() << "..." << endl;
@@ -255,7 +256,7 @@ bool doit(aims::Process& proc_base,
     success = writer.write(regions) && success;
   }
 
-  if(points != 0) {
+  if(!points.isNull()) {
     if(verbose) clog << program_name
                      << ": writing destination points " << endl;
     success = proc.output_points_writer.write(points) && success;

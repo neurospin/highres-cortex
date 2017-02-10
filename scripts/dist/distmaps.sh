@@ -44,3 +44,8 @@ AimsMerge -m sv \
     -i ../classif.nii.gz \
     -M classif_with_background.nii \
     -o ../classif_with_outer_boundaries.nii.gz
+
+cartoLinearComb.py -f 'I1+I2' \
+    -i distCSF.nii.gz \
+    -i distwhite.nii.gz \
+    -o dist_sum.nii.gz
