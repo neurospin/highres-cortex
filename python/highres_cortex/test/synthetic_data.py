@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright Forschungszentrum Jülich GmbH (2017).
 # Copyright Télécom ParisTech (2015).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -188,23 +189,21 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     aims.write(equivolumic_metric,
                os.path.join(dir, "reference_equivolumic.nii.gz"))
 
-def write_sphere_dir(inner_radius, thickness, resolution, margin=None):
-    dir_name = "sphere_{0}_{1}_{2}".format(inner_radius, thickness, resolution)
-    write_sphere_and_reference_result(inner_radius,
-                                      inner_radius + thickness,
-                                      resolution,
-                                      dir=dir_name,
-                                      margin=margin)
 
 if __name__ == "__main__":
     import os
     import shutil
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Write a synthetic sphere and reference results "
+                    "to the current directory.")
     parser.add_argument("inner_radius", type=float)
     parser.add_argument("thickness", type=float)
-    parser.add_argument("resolution", type=float)
-    parser.add_argument("margin", type=float, default=None)
+    parser.add_argument("voxel_size", type=float)
+    parser.add_argument("--margin", type=float, default=None)
     args = parser.parse_args()
-    write_sphere_dir(args.inner_radius, args.thickness, args.resolution,
-                     margin=args.margin)
+    write_sphere_and_reference_result(
+        args.inner_radius,
+        args.inner_radius + args.thickness,
+        args.voxel_size,
+        margin=args.margin)

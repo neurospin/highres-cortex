@@ -1,4 +1,4 @@
-# Copyright Forschungszentrum Jülich GmbH (2016).
+# Copyright Forschungszentrum Jülich GmbH (2016, 2017).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -79,3 +79,8 @@ BRAINVISA_COPY_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/bin"
                          ${PROJECT_NAME})
 
 add_subdirectory(src)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()

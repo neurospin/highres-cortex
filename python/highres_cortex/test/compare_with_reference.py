@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright Forschungszentrum Jülich GmbH (2017).
 # Copyright Télécom ParisTech (2015).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -225,18 +226,22 @@ class ResultComparator:
                 pass
 
 
-    def text_compare_files(self, result_file, reference_file=None):
+    def compare_files(self, result_file, reference_file=None):
         path = self._make_subpath
 
         if reference_file is None:
-            reference_file = self.reference_file[result_file]
+            reference_file = self.reference_file[os.path.normpath(result_file)]
         diff = difference_from_files(
             path(result_file), path(reference_file),
             self._classif)
 
-        bias = diff.mean()
         rms_error = math.sqrt((diff ** 2).mean())
+        bias = diff.mean()
 
+        return (rms_error, bias)
+
+    @classmethod
+    def comparison_to_text(self, rms_error, bias, result_file=None):
         try:
             dimension = self.dimension[result_file]
         except KeyError:
@@ -250,6 +255,33 @@ class ResultComparator:
         else:
             return ("RMS error = {0:.3g}, bias = {1:.3g}"
                     .format(rms_error, bias))
+
+    def text_compare_files(self, result_file, reference_file=None):
+        rms_error, bias = self.compare_files(result_file, reference_file)
+        return self.comparison_to_text(rms_error, bias, result_file)
+
+    def ensure_max_rms_error(self, result_file, max_rms_error,
+                             reference_file=None):
+        rms_error, bias = self.compare_files(result_file, reference_file)
+        text = "{0}: {1}".format(
+            result_file,
+            self.comparison_to_text(rms_error, bias, result_file))
+
+        if rms_error <= max_rms_error:
+            text += " (RMS error <= {0})".format(max_rms_error)
+        else:
+            text += " (RMS error > {0}) <== ERROR".format(max_rms_error)
+
+        print(text)
+        return rms_error <= max_rms_error
+
+    def ensure_max_rms_errors(self, list_of_tests):
+        success = True
+        for test_params in list_of_tests:
+            ret = self.ensure_max_rms_error(*test_params)
+            if not ret:
+                success = False
+        return success
 
     def text_compare_all(self):
         print("voxel size = {0:.2f}mm = {1:.1f}% of cortical thickness"
