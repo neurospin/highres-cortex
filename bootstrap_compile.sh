@@ -130,7 +130,6 @@ fi
 bv_maker_cfg_contents="\
 [ source $base_dir/source ]
   + brainvisa-cmake bug_fix
-  + brainvisa-share bug_fix
   + soma-base bug_fix
   + soma-io bug_fix
   + aims-free bug_fix
@@ -140,7 +139,6 @@ bv_maker_cfg_contents="\
   build_type = Release
   make_options = -j$(nproc 2>/dev/null || echo 1)
   brainvisa-cmake bug_fix $base_dir/source
-  brainvisa-share bug_fix $base_dir/source
   soma-base bug_fix $base_dir/source
   soma-io bug_fix $base_dir/source
   aims-free bug_fix $base_dir/source
