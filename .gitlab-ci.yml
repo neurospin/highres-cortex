@@ -1,4 +1,5 @@
 before_script:
+  - sudo apt-get -qq update
   - sudo apt-get -qq install --no-install-recommends libgsl0-dev
 
 test:ubuntu16.04-trunk:
