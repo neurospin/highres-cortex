@@ -56,6 +56,7 @@ visitor_advection(TVisitor& visitor,
   }
 
   unsigned int iter = 0;
+  Point3df start_point = point;
   visitor.first(point);
 
   while(visitor.move_on(point)) {
@@ -104,7 +105,7 @@ visitor_advection(TVisitor& visitor,
     }
   }
 
-  visitor.finished();
+  visitor.finished(start_point);
 
   if(m_verbose >= 2) {
     clog << "  advection finished after " << iter << " iterations" << endl;
