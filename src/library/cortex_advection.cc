@@ -62,6 +62,8 @@ class TubeAdvection : public yl::Advection::Visitor
 public:
   TubeAdvection(const yl::ScalarField& divergence_field,
                 const yl::ScalarField& domain,
+                VolumeRef<float> volume_result,
+                VolumeRef<float> surface_result,
                 const bool opposite_direction=false)
     : m_divergence_field(divergence_field),
       m_domain(domain),
@@ -69,7 +71,10 @@ public:
       m_previous_point(),
       m_surface(1.f),
       m_volume(0.f),
-      m_abort(false)
+      m_volume_result(volume_result),
+      m_surface_result(surface_result),
+      m_abort(false),
+      m_voxel_size(volume_result->getVoxelSize())
   {
   };
 
@@ -116,6 +121,15 @@ public:
     }
   };
 
+  void finished(const Point3df& start_point)
+  {
+    Point3df sp_int = Point3df(start_point[0] / m_voxel_size[0],
+                               start_point[1] / m_voxel_size[1],
+                               start_point[2] / m_voxel_size[2]);
+    m_volume_result(sp_int) = volume();
+    m_surface_result(sp_int) = surface();
+  }
+
   float surface() const
   {
     if(m_abort)
@@ -137,6 +151,16 @@ public:
     return m_abort;
   };
 
+  VolumeRef<float> volume_result() const
+  {
+    return m_volume_result;
+  }
+
+  VolumeRef<float> surface_result() const
+  {
+    return m_surface_result;
+  }
+
 private:
   const yl::ScalarField& m_divergence_field;
   const yl::ScalarField& m_domain;
@@ -144,7 +168,10 @@ private:
   Point3df m_previous_point;
   float m_surface;
   float m_volume;
+  VolumeRef<float> m_volume_result;
+  VolumeRef<float> m_surface_result;
   bool m_abort;
+  std::vector<float> m_voxel_size;
 };
 
 class EuclideanAdvection : public yl::Advection::Visitor
@@ -289,15 +316,95 @@ private:
   std::vector<float> m_voxel_size;
 };
 
-} // end of anonymous namespace
 
-std::pair<VolumeRef<float>, VolumeRef<float> >
-yl::advect_tubes(const yl::VectorField3d& advection_field,
-                 const yl::ScalarField& divergence_field,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const int verbosity)
+/** VisitorTraits manages instantiation of Visitor specializations, and of
+    input / output data in the advect() function.
+    By default it does basically nothing (no input/output data) and
+    instantiates the visitor type with the domain field as argument (which will
+    probably not be enough in many cases).
+    It should be specialized.
+*/
+template <typename TVisitor>
+class VisitorTraits
+{
+public:
+  typedef Void ResultType;
+  typedef Void InputType;
+  static ResultType init_result(const VolumeRef<int16_t>& domain) {}
+  static inline TVisitor build_visitor(const yl::ScalarField& domain_field,
+                                InputType inputs,
+                                ResultType result)
+  { return TVisitor(domain_field); }
+};
+
+template <>
+class VisitorTraits<EuclideanAdvection>
+{
+public:
+  typedef VolumeRef<float> ResultType;
+  typedef Void InputType;
+
+  static ResultType init_result(const VolumeRef<int16_t>& domain)
+  {
+    const int size_x = domain.getSizeX();
+    const int size_y = domain.getSizeY();
+    const int size_z = domain.getSizeZ();
+    VolumeRef<float> length_result(size_x, size_y, size_z);
+    length_result->copyHeaderFrom(domain.header());
+    length_result.fill(no_value);
+    return length_result;
+  }
+
+  static inline EuclideanAdvection build_visitor(
+    const yl::ScalarField& domain_field,
+    const InputType & inputs,
+    ResultType result)
+  {
+    return EuclideanAdvection(domain_field, result);
+  }
+};
+
+
+template <>
+class VisitorTraits<TubeAdvection>
+{
+public:
+  typedef std::pair<VolumeRef<float>, VolumeRef<float> > ResultType;
+  typedef std::pair<const yl::ScalarField &, bool> InputType;
+
+  static ResultType init_result(const VolumeRef<int16_t>& domain)
+  {
+    const int size_x = domain.getSizeX();
+    const int size_y = domain.getSizeY();
+    const int size_z = domain.getSizeZ();
+    carto::VolumeRef<float> surface_result(size_x, size_y, size_z);
+    surface_result->copyHeaderFrom(domain.header());
+    surface_result.fill(no_value);
+    carto::VolumeRef<float> volume_result(size_x, size_y, size_z);
+    volume_result->copyHeaderFrom(domain.header());
+    volume_result.fill(no_value);
+    return std::make_pair(volume_result, surface_result);
+  }
+
+  static inline TubeAdvection build_visitor(
+    const yl::ScalarField& domain_field,
+    const InputType & inputs,
+    ResultType result)
+  {
+    return TubeAdvection(inputs.first, domain_field, result.first,
+                         result.second, inputs.second);
+  }
+};
+
+
+template <class TVisitor, class Advection=yl::ConstantStepAdvection>
+typename VisitorTraits<TVisitor>::ResultType
+advect(const yl::VectorField3d& advection_field,
+       const VolumeRef<int16_t>& domain,
+       const float max_advection_distance,
+       const float step_size,
+       const int verbosity,
+       const typename VisitorTraits<TVisitor>::InputType & inputs)
 {
   assert(max_advection_distance > 0);
 
@@ -310,18 +417,14 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   const float voxel_size_y = voxel_size[1];
   const float voxel_size_z = voxel_size[2];
 
-  carto::VolumeRef<float> surface_result(size_x, size_y, size_z);
-  surface_result->copyHeaderFrom(domain.header());
-  surface_result.fill(no_value);
-  carto::VolumeRef<float> volume_result(size_x, size_y, size_z);
-  volume_result->copyHeaderFrom(domain.header());
-  volume_result.fill(no_value);
+  typename VisitorTraits<TVisitor>::ResultType result
+    = VisitorTraits<TVisitor>::init_result(domain);
 
   unsigned int n_success = 0, n_aborted = 0;
 
-  yl::ConstantStepAdvection advection(advection_field, step_size);
+  Advection advection(advection_field, step_size);
   advection.set_max_iter(std::ceil(max_advection_distance
-                                   / std::abs(step_size)));
+                                  / std::abs(step_size)));
   advection.set_verbose(verbosity - 1);
 
   // This could be more elegant: the domain is first converted as float, then
@@ -330,31 +433,31 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
   carto::VolumeRef<float> float_domain(*conv(domain));
   yl::LinearlyInterpolatedScalarField domain_field(float_domain);
 
-  const bool opposite_direction = step_size < 0;
-
   int slices_done = 0;
   #pragma omp parallel for schedule(dynamic)
-  for(int z = 0; z < size_z; ++z) {
+  for(int z = 0; z < size_z; ++z)
+  {
     for(int y = 0; y < size_y; ++y)
     for(int x = 0; x < size_x; ++x)
     {
       if(domain(x, y, z)) {
         const Point3df point(x * voxel_size_x,
-                             y * voxel_size_y,
-                             z * voxel_size_z);
+                            y * voxel_size_y,
+                            z * voxel_size_z);
 
-        TubeAdvection visitor(divergence_field, domain_field,
-                              opposite_direction);
+        TVisitor visitor
+          = VisitorTraits<TVisitor>::build_visitor(domain_field, inputs,
+                                                   result);
         yl::Advection::Visitor& plain_visitor = visitor;
-        const bool success = advection.visitor_advection(plain_visitor, point);
+        const bool success = advection.visitor_advection(plain_visitor,
+                                                          point);
 
         if(success) {
           // Each thread writes to different array elements, as a result no
           // synchronization should be needed. However, while this is safe on
           // most platforms, it does not seem to be guaranteed by the OpenMP
           // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
-          volume_result(x, y, z) = visitor.volume();
-          surface_result(x, y, z) = visitor.surface();
+//           length_result(x, y, z) = visitor.length();
           #pragma omp atomic
           ++n_success;
         } else {
@@ -370,150 +473,37 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
     if(verbosity) {
       #pragma omp critical(print_stderr)
       clog << "\r  " << slices_done << " / " << size_z << " slices processed. "
-           << n_success << " voxels successfully advected, "
-           << n_aborted << " aborted..." << flush;
+          << n_success << " voxels successfully advected, "
+          << n_aborted << " aborted..." << flush;
     }
   }
 
   if(verbosity)
-    clog << "\nyl::advect_tubes: "
-         << n_success << " voxels successfully advected, "
-         << n_aborted << " aborted." << endl;
+    clog << "\nyl::advect: "
+        << n_success << " voxels successfully advected, "
+        << n_aborted << " aborted." << endl;
 
-  return std::make_pair(volume_result, surface_result);
+  return result;
 }
 
+} // end of anonymous namespace
 
-namespace
+std::pair<VolumeRef<float>, VolumeRef<float> >
+yl::advect_tubes(const yl::VectorField3d& advection_field,
+                 const yl::ScalarField& divergence_field,
+                 const VolumeRef<int16_t>& domain,
+                 const float max_advection_distance,
+                 const float step_size,
+                 const int verbosity)
 {
-
-  template <typename TVisitor>
-  class VisitorTraits
-  {
-  public:
-    typedef Void ResultType;
-    typedef Void InputType;
-    static ResultType initResult(const VolumeRef<int16_t>& domain) {}
-    static TVisitor build_visitor(const yl::ScalarField& domain_field,
-                                  InputType inputs,
-                                  ResultType result)
-    { return TVisitor(domain_field, result); }
-  };
-
-  template <>
-  class VisitorTraits<EuclideanAdvection>
-  {
-  public:
-    typedef VolumeRef<float> ResultType;
-    typedef Void InputType;
-    static ResultType initResult(const VolumeRef<int16_t>& domain)
-    {
-      const int size_x = domain.getSizeX();
-      const int size_y = domain.getSizeY();
-      const int size_z = domain.getSizeZ();
-      VolumeRef<float> length_result(size_x, size_y, size_z);
-      length_result->copyHeaderFrom(domain.header());
-      length_result.fill(no_value);
-      return length_result;
-    }
-    static EuclideanAdvection build_visitor(
-      const yl::ScalarField& domain_field,
-      InputType inputs,
-      ResultType result)
-    { return EuclideanAdvection(domain_field, result); }
-  };
-
-
-  template <class TVisitor>
-  typename VisitorTraits<TVisitor>::ResultType
-  constant_step_advection(const yl::VectorField3d& advection_field,
-         const VolumeRef<int16_t>& domain,
-         const float max_advection_distance,
-         const float step_size,
-         const int verbosity,
-         const typename VisitorTraits<TVisitor>::InputType & inputs)
-  {
-    assert(max_advection_distance > 0);
-
-    const int size_x = domain.getSizeX();
-    const int size_y = domain.getSizeY();
-    const int size_z = domain.getSizeZ();
-
-    const std::vector<float> voxel_size = domain->getVoxelSize();
-    const float voxel_size_x = voxel_size[0];
-    const float voxel_size_y = voxel_size[1];
-    const float voxel_size_z = voxel_size[2];
-
-    typename VisitorTraits<TVisitor>::ResultType result
-      = VisitorTraits<TVisitor>::initResult(domain);
-
-    unsigned int n_success = 0, n_aborted = 0;
-
-    yl::ConstantStepAdvection advection(advection_field, step_size);
-    advection.set_max_iter(std::ceil(max_advection_distance
-                                    / std::abs(step_size)));
-    advection.set_verbose(verbosity - 1);
-
-    // This could be more elegant: the domain is first converted as float, then
-    // fed into a scalar field to ease interpolation.
-    carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
-    carto::VolumeRef<float> float_domain(*conv(domain));
-    yl::LinearlyInterpolatedScalarField domain_field(float_domain);
-
-    int slices_done = 0;
-    #pragma omp parallel for schedule(dynamic)
-    for(int z = 0; z < size_z; ++z)
-    {
-      for(int y = 0; y < size_y; ++y)
-      for(int x = 0; x < size_x; ++x)
-      {
-        if(domain(x, y, z)) {
-          const Point3df point(x * voxel_size_x,
-                              y * voxel_size_y,
-                              z * voxel_size_z);
-
-          TVisitor visitor
-            = VisitorTraits<TVisitor>::build_visitor(domain_field, inputs,
-                                                     result);
-          yl::Advection::Visitor& plain_visitor = visitor;
-          const bool success = advection.visitor_advection(plain_visitor,
-                                                           point);
-
-          if(success) {
-            // Each thread writes to different array elements, as a result no
-            // synchronization should be needed. However, while this is safe on
-            // most platforms, it does not seem to be guaranteed by the OpenMP
-            // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
-  //           length_result(x, y, z) = visitor.length();
-            #pragma omp atomic
-            ++n_success;
-          } else {
-            #pragma omp atomic
-            ++n_aborted;
-          }
-        }
-      }
-
-      #pragma omp atomic
-      ++slices_done;
-
-      if(verbosity) {
-        #pragma omp critical(print_stderr)
-        clog << "\r  " << slices_done << " / " << size_z << " slices processed. "
-            << n_success << " voxels successfully advected, "
-            << n_aborted << " aborted..." << flush;
-      }
-    }
-
-    if(verbosity)
-      clog << "\nyl::advect: "
-          << n_success << " voxels successfully advected, "
-          << n_aborted << " aborted." << endl;
-
-    return result;
-  }
+  bool opposite_direction = step_size < 0;
+  return advect<TubeAdvection>(advection_field, domain,
+                               max_advection_distance, step_size, verbosity,
+                               std::pair<const yl::ScalarField&, bool>(
+                                 divergence_field, opposite_direction));
 
 }
+
 
 VolumeRef<float>
 yl::advect_euclidean(const yl::VectorField3d& advection_field,
@@ -522,84 +512,7 @@ yl::advect_euclidean(const yl::VectorField3d& advection_field,
                      const float step_size,
                      const int verbosity)
 {
-  return constant_step_advection<EuclideanAdvection>(advection_field, domain,
-                                                     max_advection_distance,
-                                                     step_size, verbosity,
-                                                     Void());
-//   assert(max_advection_distance > 0);
-//
-//   const int size_x = domain.getSizeX();
-//   const int size_y = domain.getSizeY();
-//   const int size_z = domain.getSizeZ();
-//
-//   const std::vector<float> voxel_size = domain->getVoxelSize();
-//   const float voxel_size_x = voxel_size[0];
-//   const float voxel_size_y = voxel_size[1];
-//   const float voxel_size_z = voxel_size[2];
-//
-//   carto::VolumeRef<float> length_result(size_x, size_y, size_z);
-//   length_result->copyHeaderFrom(domain.header());
-//   length_result.fill(no_value);
-//
-//   unsigned int n_success = 0, n_aborted = 0;
-//
-//   yl::ConstantStepAdvection advection(advection_field, step_size);
-//   advection.set_max_iter(std::ceil(max_advection_distance
-//                                    / std::abs(step_size)));
-//   advection.set_verbose(verbosity - 1);
-//
-//   // This could be more elegant: the domain is first converted as float, then
-//   // fed into a scalar field to ease interpolation.
-//   carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
-//   carto::VolumeRef<float> float_domain(*conv(domain));
-//   yl::LinearlyInterpolatedScalarField domain_field(float_domain);
-//
-//   int slices_done = 0;
-//   #pragma omp parallel for schedule(dynamic)
-//   for(int z = 0; z < size_z; ++z)
-//   {
-//     for(int y = 0; y < size_y; ++y)
-//     for(int x = 0; x < size_x; ++x)
-//     {
-//       if(domain(x, y, z)) {
-//         const Point3df point(x * voxel_size_x,
-//                              y * voxel_size_y,
-//                              z * voxel_size_z);
-//
-//         EuclideanAdvection visitor(domain_field, length_result);
-//         yl::Advection::Visitor& plain_visitor = visitor;
-//         const bool success = advection.visitor_advection(plain_visitor, point);
-//
-//         if(success) {
-//           // Each thread writes to different array elements, as a result no
-//           // synchronization should be needed. However, while this is safe on
-//           // most platforms, it does not seem to be guaranteed by the OpenMP
-//           // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
-// //           length_result(x, y, z) = visitor.length();
-//           #pragma omp atomic
-//           ++n_success;
-//         } else {
-//           #pragma omp atomic
-//           ++n_aborted;
-//         }
-//       }
-//     }
-//
-//     #pragma omp atomic
-//     ++slices_done;
-//
-//     if(verbosity) {
-//       #pragma omp critical(print_stderr)
-//       clog << "\r  " << slices_done << " / " << size_z << " slices processed. "
-//            << n_success << " voxels successfully advected, "
-//            << n_aborted << " aborted..." << flush;
-//     }
-//   }
-//
-//   if(verbosity)
-//     clog << "\nyl::advect_euclidean: "
-//          << n_success << " voxels successfully advected, "
-//          << n_aborted << " aborted." << endl;
-//
-//   return length_result;
+  return advect<EuclideanAdvection>(advection_field, domain,
+                                    max_advection_distance,
+                                    step_size, verbosity, Void());
 }
