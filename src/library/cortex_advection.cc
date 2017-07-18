@@ -397,6 +397,34 @@ public:
 };
 
 
+template <typename T>
+class VisitorTraits<ValueAdvection<T> >
+{
+public:
+  typedef VolumeRef<T> ResultType;
+  typedef VolumeRef<T> InputType;
+
+  static ResultType init_result(const VolumeRef<int16_t>& domain)
+  {
+    const int size_x = domain.getSizeX();
+    const int size_y = domain.getSizeY();
+    const int size_z = domain.getSizeZ();
+    VolumeRef<T> value_result(size_x, size_y, size_z);
+    value_result->copyHeaderFrom(domain.header());
+    value_result.fill(no_value);
+    return value_result;
+  }
+
+  static inline EuclideanAdvection build_visitor(
+    const yl::ScalarField& domain_field,
+    const InputType & inputs,
+    ResultType result)
+  {
+    return ValueAdvection<T>(domain_field, inputs, result);
+  }
+};
+
+
 template <class TVisitor, class Advection=yl::ConstantStepAdvection>
 typename VisitorTraits<TVisitor>::ResultType
 advect(const yl::VectorField3d& advection_field,
@@ -516,3 +544,34 @@ yl::advect_euclidean(const yl::VectorField3d& advection_field,
                                     max_advection_distance,
                                     step_size, verbosity, Void());
 }
+
+
+namespace yl
+{
+
+template <typename T>
+VolumeRef<T>
+advect_value(const yl::VectorField3d& advection_field,
+                 const VolumeRef<T> value_seeds,
+                 const VolumeRef<int16_t>& domain,
+                 const float max_advection_distance,
+                 const float step_size,
+                 const int verbosity)
+{
+  return advect<EuclideanAdvection>(advection_field, domain,
+                                    max_advection_distance,
+                                    step_size, verbosity, value_seeds);
+}
+
+
+template <>
+VolumeRef<int16_t>
+advect_value(const yl::VectorField3d& advection_field,
+                 const VolumeRef<int16_t> value_seeds,
+                 const VolumeRef<int16_t>& domain,
+                 const float max_advection_distance,
+                 const float step_size,
+                 const int verbosity);
+
+} // namespace yl
+
