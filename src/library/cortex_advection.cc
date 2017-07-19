@@ -62,8 +62,8 @@ class TubeAdvection : public yl::Advection::Visitor
 public:
   TubeAdvection(const yl::ScalarField& divergence_field,
                 const yl::ScalarField& domain,
-                VolumeRef<float> volume_result,
-                VolumeRef<float> surface_result,
+                VolumeRef<float> & volume_result,
+                VolumeRef<float> & surface_result,
                 const bool opposite_direction=false)
     : m_divergence_field(divergence_field),
       m_domain(domain),
@@ -151,12 +151,12 @@ public:
     return m_abort;
   };
 
-  VolumeRef<float> volume_result() const
+  VolumeRef<float>& volume_result() const
   {
     return m_volume_result;
   }
 
-  VolumeRef<float> surface_result() const
+  VolumeRef<float>& surface_result() const
   {
     return m_surface_result;
   }
@@ -168,8 +168,8 @@ private:
   Point3df m_previous_point;
   float m_surface;
   float m_volume;
-  VolumeRef<float> m_volume_result;
-  VolumeRef<float> m_surface_result;
+  VolumeRef<float>& m_volume_result;
+  VolumeRef<float>& m_surface_result;
   bool m_abort;
   std::vector<float> m_voxel_size;
 };
@@ -178,7 +178,7 @@ class EuclideanAdvection : public yl::Advection::Visitor
 {
 public:
   EuclideanAdvection(const yl::ScalarField& domain,
-                     VolumeRef<float> length_result)
+                     VolumeRef<float>& length_result)
     : m_domain(domain),
       m_previous_point(),
       m_length(0.f),
@@ -232,7 +232,7 @@ public:
     return m_abort;
   };
 
-  VolumeRef<float> length_result() const
+  VolumeRef<float>& length_result() const
   {
     return m_length_result;
   }
@@ -242,7 +242,7 @@ private:
   Point3df m_previous_point;
   float m_length;
   bool m_abort;
-  VolumeRef<float> m_length_result;
+  VolumeRef<float>& m_length_result;
   std::vector<float> m_voxel_size;
 };
 
@@ -252,12 +252,13 @@ class ValueAdvection : public yl::Advection::Visitor
 {
 public:
   ValueAdvection(const yl::ScalarField& domain,
-                 VolumeRef<T> value_seed,
-                 VolumeRef<T> value_result)
+                 const VolumeRef<T>& value_seed,
+                 VolumeRef<T>& value_result)
     : m_domain(domain),
       m_previous_point(),
       m_length(0.f),
       m_abort(false),
+      m_value_seed(value_seed),
       m_value_result(value_result),
       m_voxel_size(value_seed->getVoxelSize())
   {
@@ -301,7 +302,7 @@ public:
     return m_abort;
   };
 
-  VolumeRef<float> value_result() const
+  VolumeRef<float>& value_result() const
   {
     return m_value_result;
   }
@@ -311,8 +312,8 @@ private:
   Point3df m_previous_point;
   float m_length;
   bool m_abort;
-  VolumeRef<T> m_value_seed;
-  VolumeRef<T> m_value_result;
+  const VolumeRef<T>& m_value_seed;
+  VolumeRef<T>& m_value_result;
   std::vector<float> m_voxel_size;
 };
 
@@ -332,8 +333,8 @@ public:
   typedef Void InputType;
   static ResultType init_result(const VolumeRef<int16_t>& domain) {}
   static inline TVisitor build_visitor(const yl::ScalarField& domain_field,
-                                InputType inputs,
-                                ResultType result)
+                                       const InputType& inputs,
+                                       ResultType& result)
   { return TVisitor(domain_field); }
 };
 
@@ -357,8 +358,8 @@ public:
 
   static inline EuclideanAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType & inputs,
-    ResultType result)
+    const InputType& inputs,
+    ResultType& result)
   {
     return EuclideanAdvection(domain_field, result);
   }
@@ -388,8 +389,8 @@ public:
 
   static inline TubeAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType & inputs,
-    ResultType result)
+    const InputType& inputs,
+    ResultType& result)
   {
     return TubeAdvection(inputs.first, domain_field, result.first,
                          result.second, inputs.second);
@@ -417,8 +418,8 @@ public:
 
   static inline ValueAdvection<T> build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType & inputs,
-    ResultType result)
+    const InputType& inputs,
+    ResultType& result)
   {
     return ValueAdvection<T>(domain_field, inputs, result);
   }
