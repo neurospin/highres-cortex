@@ -18,6 +18,7 @@ set(_commands
   ${OpenMP_commands}
   ylAdvectEuclidean
   ylAdvectTubes
+  ylAdvectValues
   ylPropagateAlongField
   ylLabelEachVoxel
   ylMergeCortexColumnRegions

@@ -411,11 +411,11 @@ public:
     const int size_z = domain.getSizeZ();
     VolumeRef<T> value_result(size_x, size_y, size_z);
     value_result->copyHeaderFrom(domain.header());
-    value_result.fill(no_value);
+    value_result.fill(0);
     return value_result;
   }
 
-  static inline EuclideanAdvection build_visitor(
+  static inline ValueAdvection<T> build_visitor(
     const yl::ScalarField& domain_field,
     const InputType & inputs,
     ResultType result)
@@ -432,9 +432,13 @@ advect(const yl::VectorField3d& advection_field,
        const float max_advection_distance,
        const float step_size,
        const int verbosity,
-       const typename VisitorTraits<TVisitor>::InputType & inputs)
+       const typename VisitorTraits<TVisitor>::InputType & inputs,
+       const VolumeRef<int16_t>& advect_seeds_domain = VolumeRef<int16_t>())
 {
   assert(max_advection_distance > 0);
+
+  const VolumeRef<int16_t> & advect_seeds_domain2
+    = advect_seeds_domain.getSizeX() <= 1 ? domain : advect_seeds_domain;
 
   const int size_x = domain.getSizeX();
   const int size_y = domain.getSizeY();
@@ -468,17 +472,17 @@ advect(const yl::VectorField3d& advection_field,
     for(int y = 0; y < size_y; ++y)
     for(int x = 0; x < size_x; ++x)
     {
-      if(domain(x, y, z)) {
+      if(advect_seeds_domain2(x, y, z)) {
         const Point3df point(x * voxel_size_x,
-                            y * voxel_size_y,
-                            z * voxel_size_z);
+                             y * voxel_size_y,
+                             z * voxel_size_z);
 
         TVisitor visitor
           = VisitorTraits<TVisitor>::build_visitor(domain_field, inputs,
                                                    result);
         yl::Advection::Visitor& plain_visitor = visitor;
         const bool success = advection.visitor_advection(plain_visitor,
-                                                          point);
+                                                         point);
 
         if(success) {
           // Each thread writes to different array elements, as a result no
@@ -552,26 +556,29 @@ namespace yl
 template <typename T>
 VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
-                 const VolumeRef<T> value_seeds,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const int verbosity)
+             const VolumeRef<T> & value_seeds,
+             const VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const int verbosity,
+             const VolumeRef<int16_t>& advect_seeds_domain
+               = VolumeRef<int16_t>())
 {
-  return advect<EuclideanAdvection>(advection_field, domain,
+  return advect<ValueAdvection<T> >(advection_field, domain,
                                     max_advection_distance,
-                                    step_size, verbosity, value_seeds);
+                                    step_size, verbosity, value_seeds,
+                                    advect_seeds_domain);
 }
 
-
-template <>
+template
 VolumeRef<int16_t>
 advect_value(const yl::VectorField3d& advection_field,
-                 const VolumeRef<int16_t> value_seeds,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const int verbosity);
+             const VolumeRef<int16_t> & value_seeds,
+             const VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const int verbosity,
+             const VolumeRef<int16_t>& advect_seeds_domain);
 
 } // namespace yl
 

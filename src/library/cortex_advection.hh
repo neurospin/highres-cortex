@@ -86,6 +86,33 @@ advect_euclidean(const yl::VectorField3d& advection_field,
                  float step_size,
                  int verbosity=0);
 
+/** Advect a point along a field, and propagate end points values to the
+    starting point
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p value_seeds : values to be propagated
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return advected values
+ */
+template <typename T>
+carto::VolumeRef<T>
+advect_value(const yl::VectorField3d& advection_field,
+             const carto::VolumeRef<T> & value_seeds,
+             const carto::VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const int verbosity,
+             const carto::VolumeRef<int16_t>& advect_seeds_domain
+              = carto::VolumeRef<int16_t>());
+
 } // namespace yl
 
 #endif // !defined(YL_ISOVOLUME_HH_INCLUDED)
