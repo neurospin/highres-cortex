@@ -73,6 +73,7 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
+  aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
   float step = 0.03f;
   float max_advection_distance = 6.f;
   aims::Writer<VolumeRef<float> > length_output_writer;
@@ -83,6 +84,9 @@ int main(const int argc, const char **argv)
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
+  app.addOption(advection_domain_reader, "--advect-domain",
+                "mask of the advection seeds domain: one inside, zero "
+                "outside - default: same as domain", true);
   app.addOption(grad_field_reader, "--grad-field",
                 "use the gradient of this scalar field", true);
   app.addOption(fieldx_reader, "--fieldx",
@@ -220,9 +224,24 @@ int main(const int argc, const char **argv)
     return EXIT_FAILURE;
   }
 
+  VolumeRef<int16_t> advection_domain_volume;
+  if( !advection_domain_reader.fileName().empty() )
+  {
+    if(verbose) clog << program_name << ": reading advection domain volume..."
+      << endl;
+    advection_domain_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
+    if(!advection_domain_reader.read(advection_domain_volume))
+    {
+      clog << program_name << ": cannot read advecton domain volume" << endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   VolumeRef<float> result_distance =
     yl::advect_euclidean(*advection_field, domain_volume,
-                         max_advection_distance, step, verbose);
+                         max_advection_distance, step, verbose,
+                         advection_domain_volume);
 
   success = length_output_writer.write(result_distance);
   if(!success) {

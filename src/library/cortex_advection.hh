@@ -65,7 +65,9 @@ advect_tubes(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<int16_t>& domain,
              float max_advection_distance,
              float step_size,
-             int verbosity=0);
+             int verbosity=0,
+             const carto::VolumeRef<int16_t>& advect_seeds_domain
+               = carto::VolumeRef<int16_t>());
 
 /** Advect a point along a field, keeping track of the distance
 
@@ -84,7 +86,9 @@ advect_euclidean(const yl::VectorField3d& advection_field,
                  const carto::VolumeRef<int16_t>& domain,
                  float max_advection_distance,
                  float step_size,
-                 int verbosity=0);
+                 int verbosity=0,
+                 const carto::VolumeRef<int16_t>& advect_seeds_domain
+                   = carto::VolumeRef<int16_t>());
 
 /** Advect a point along a field, and propagate end points values to the
     starting point

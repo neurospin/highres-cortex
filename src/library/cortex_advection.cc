@@ -527,13 +527,15 @@ yl::advect_tubes(const yl::VectorField3d& advection_field,
                  const VolumeRef<int16_t>& domain,
                  const float max_advection_distance,
                  const float step_size,
-                 const int verbosity)
+                 const int verbosity,
+                 const VolumeRef<int16_t>& advect_seeds_domain)
 {
   bool opposite_direction = step_size < 0;
   return advect<TubeAdvection>(advection_field, domain,
                                max_advection_distance, step_size, verbosity,
                                std::pair<const yl::ScalarField&, bool>(
-                                 divergence_field, opposite_direction));
+                                 divergence_field, opposite_direction),
+                               advect_seeds_domain);
 
 }
 
@@ -543,11 +545,13 @@ yl::advect_euclidean(const yl::VectorField3d& advection_field,
                      const VolumeRef<int16_t>& domain,
                      const float max_advection_distance,
                      const float step_size,
-                     const int verbosity)
+                     const int verbosity,
+                     const VolumeRef<int16_t>& advect_seeds_domain)
 {
   return advect<EuclideanAdvection>(advection_field, domain,
                                     max_advection_distance,
-                                    step_size, verbosity, Void());
+                                    step_size, verbosity, Void(),
+                                    advect_seeds_domain);
 }
 
 
@@ -575,6 +579,16 @@ template
 VolumeRef<int16_t>
 advect_value(const yl::VectorField3d& advection_field,
              const VolumeRef<int16_t> & value_seeds,
+             const VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const int verbosity,
+             const VolumeRef<int16_t>& advect_seeds_domain);
+
+template
+VolumeRef<float>
+advect_value(const yl::VectorField3d& advection_field,
+             const VolumeRef<float> & value_seeds,
              const VolumeRef<int16_t>& domain,
              const float max_advection_distance,
              const float step_size,
