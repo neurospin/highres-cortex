@@ -45,8 +45,16 @@ namespace yl
 
 class VectorField3d;
 class ScalarField;
+class LinearlyInterpolatedScalarField;
 
 /** Advect a tube along a field, starting with unit surface
+
+    This template function is parameterized by the template parameter:
+
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::SclarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
 
     \arg \p advection_field : vector field to advect along
     \arg \p divergence_field : the divergence of the normalized advection field
@@ -56,9 +64,12 @@ class ScalarField;
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
       Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
 
     \return pair of (tube's volume, tube's end surface)
  */
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
 std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
              const yl::ScalarField& divergence_field,
@@ -69,7 +80,46 @@ advect_tubes(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
                = carto::VolumeRef<int16_t>());
 
+/** Advect a tube along a field, starting with unit surface
+
+    This non-template function differs from the other (template) one in that it
+    takes the domain field as an additional, dynamic argument.
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p divergence_field : the divergence of the normalized advection field
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p domain_field : scalar field for the domain. This is a bit redundant
+      with the \p domain parameter, but given as a scalar field (which can be a
+      binary field, an interpolated field etc).
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return pair of (tube's volume, tube's end surface)
+ */
+std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
+advect_tubes(const yl::VectorField3d& advection_field,
+             const yl::ScalarField& divergence_field,
+             const carto::VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const yl::ScalarField & domain_field,
+             const int verbosity=0,
+             const carto::VolumeRef<int16_t>& advect_seeds_domain
+               = carto::VolumeRef<int16_t>());
+
 /** Advect a point along a field, keeping track of the distance
+
+    This template function is parameterized by the template parameter:
+
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::SclarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
 
     \arg \p advection_field : vector field to advect along
     \arg \p domain : the advection domain with zero outside, one inside
@@ -78,9 +128,12 @@ advect_tubes(const yl::VectorField3d& advection_field,
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
       Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
 
     \return Euclidean length of the advection path
  */
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
 carto::VolumeRef<float>
 advect_euclidean(const yl::VectorField3d& advection_field,
                  const carto::VolumeRef<int16_t>& domain,
@@ -90,8 +143,51 @@ advect_euclidean(const yl::VectorField3d& advection_field,
                  const carto::VolumeRef<int16_t>& advect_seeds_domain
                    = carto::VolumeRef<int16_t>());
 
+/** Advect a point along a field, keeping track of the distance
+
+    This non-template function differs from the other (template) one in that it
+    takes the domain field as an additional, dynamic argument.
+
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::SclarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p domain_field : scalar field for the domain. This is a bit redundant
+      with the \p domain parameter, but given as a scalar field (which can be a
+      binary field, an interpolated field etc).
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return Euclidean length of the advection path
+ */
+carto::VolumeRef<float>
+advect_euclidean(const yl::VectorField3d& advection_field,
+                 const carto::VolumeRef<int16_t>& domain,
+                 float max_advection_distance,
+                 float step_size,
+                 const yl::ScalarField & domain_field,
+                 int verbosity=0,
+                 const carto::VolumeRef<int16_t>& advect_seeds_domain
+                   = carto::VolumeRef<int16_t>());
+
 /** Advect a point along a field, and propagate end points values to the
     starting point
+
+    This template function is parameterized by the template parameters:
+
+    \p T : values image voxel type
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::SclarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
 
     \arg \p advection_field : vector field to advect along
     \arg \p value_seeds : values to be propagated
@@ -106,7 +202,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
 
     \return advected values
  */
-template <typename T>
+template <typename T, class TDomainField=yl::LinearlyInterpolatedScalarField>
 carto::VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<T> & value_seeds,
@@ -114,6 +210,42 @@ advect_value(const yl::VectorField3d& advection_field,
              const float max_advection_distance,
              const float step_size,
              const int verbosity,
+             const carto::VolumeRef<int16_t>& advect_seeds_domain
+              = carto::VolumeRef<int16_t>());
+
+/** Advect a point along a field, and propagate end points values to the
+    starting point
+
+    This function differs from the other one (with 2 template parameters) in
+    that it takes the domain field as an additional, dynamic argument.
+
+    \p T : values image voxel type
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p value_seeds : values to be propagated
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p domain_field : scalar field for the domain. This is a bit redundant
+      with the \p domain parameter, but given as a scalar field (which can be a
+      binary field, an interpolated field etc).
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return advected values
+ */
+template <typename T>
+carto::VolumeRef<T>
+advect_value(const yl::VectorField3d& advection_field,
+             const carto::VolumeRef<T> & value_seeds,
+             const carto::VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const yl::ScalarField & domain_field,
+             const int verbosity=0,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
               = carto::VolumeRef<int16_t>());
 

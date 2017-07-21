@@ -136,6 +136,21 @@ private:
   aims::LinearInterpolator<float> m_interp_field;
 };
 
+/** Access a scalar field stored in a volume
+
+    The field's value is linearly interpolated between integer coordinates.
+ */
+class BooleanScalarField : public ScalarField
+{
+public:
+  BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume);
+
+  virtual float evaluate(const Point3df& pos) const;
+private:
+  const carto::VolumeRef<int16_t>& m_field;
+  Point3df m_voxel_size;
+};
+
 }
 
 #endif // !defined(YL_FIELD_HH_INCLUDED)

@@ -125,3 +125,23 @@ evaluate(const Point3df& pos) const
   }
   return m_interp_field.value(pos);
 }
+
+
+yl::BooleanScalarField::
+BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume)
+  : m_field(field_volume)
+{
+  std::vector<float> vs = field_volume->getVoxelSize();
+  m_voxel_size[0] = vs[0];
+  m_voxel_size[1] = vs[1];
+  m_voxel_size[2] = vs[2];
+}
+
+float
+yl::BooleanScalarField::
+evaluate(const Point3df& pos) const
+{
+  return m_field->at(int(rint(pos[0] / m_voxel_size[0])),
+                     int(rint(pos[1] / m_voxel_size[1])),
+                     int(rint(pos[2] / m_voxel_size[2]))) == 0 ? 0.f : 1.f;
+}

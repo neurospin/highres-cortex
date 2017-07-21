@@ -47,12 +47,14 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/getopt/getopt2.h>
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
+#include <aims/utility/converter_volume.h>
 
 #include <highres-cortex/field.hh>
 #include <highres-cortex/cortex_advection.hh>
 
 using std::clog;
 using std::endl;
+using std::string;
 using carto::VolumeRef;
 using carto::verbose;
 using soma::AllocatorStrategy;
@@ -77,6 +79,12 @@ int main(const int argc, const char **argv)
   float step = 0.03f;
   float max_advection_distance = 6.f;
   aims::Writer<VolumeRef<float> > length_output_writer;
+  string domain_type;
+
+  std::set<string> allowed_domain_types;
+  allowed_domain_types.insert(""); // default
+  allowed_domain_types.insert("interpolated");
+  allowed_domain_types.insert("boolean");
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
@@ -109,6 +117,16 @@ int main(const int argc, const char **argv)
              << max_advection_distance << "]";
     app.addOption(max_advection_distance, "--max-dist", help_str.str(), true);
   }
+  {
+    std::ostringstream help_str;
+    help_str << "interpolation type for the domain: ";
+    std::set<string>::const_iterator i;
+    for(i=allowed_domain_types.begin(); i!=allowed_domain_types.end(); ++i)
+      if(!i->empty())
+        help_str << *i << ", ";
+    help_str << "[default: interpolated]";
+    app.addOption(domain_type, "--domain-type", help_str.str(), true);
+  }
 
 
   // Process command-line options
@@ -130,6 +148,13 @@ int main(const int argc, const char **argv)
 
   boost::shared_ptr<yl::VectorField3d> advection_field;
   bool success = true;
+
+  if(allowed_domain_types.find(domain_type)
+     == allowed_domain_types.end())
+  {
+    clog << program_name << ": unknown domain-type";
+    return EXIT_USAGE_ERROR;
+  }
 
   bool fieldx_provided = !fieldx_reader.fileName().empty();
   bool fieldy_provided = !fieldy_reader.fileName().empty();
@@ -238,9 +263,29 @@ int main(const int argc, const char **argv)
     }
   }
 
+  boost::shared_ptr<yl::ScalarField> domain_field;
+  if(domain_type == "boolean")
+  {
+    domain_field.reset(
+      new yl::BooleanScalarField(domain_volume));
+  }
+  else
+  {
+    // DomainFieldTraits is not exported in public API (in cortex_advection.cc)
+    // so we have to copy the code here
+
+    // This could be more elegant: the domain is first converted as float, then
+    // fed into a scalar field to ease interpolation.
+    carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
+    carto::VolumeRef<float> float_domain(*conv(domain_volume));
+    domain_field.reset(
+      new yl::LinearlyInterpolatedScalarField(float_domain));
+  }
+
   VolumeRef<float> result_distance =
     yl::advect_euclidean(*advection_field, domain_volume,
-                         max_advection_distance, step, verbose,
+                         max_advection_distance, step,
+                         *domain_field, verbose,
                          advection_domain_volume);
 
   success = length_output_writer.write(result_distance);
