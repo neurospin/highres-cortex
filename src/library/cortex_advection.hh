@@ -249,6 +249,12 @@ advect_value(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
               = carto::VolumeRef<int16_t>());
 
+/** Build a ScalarField of the given type from an int16_t volume
+ */
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+yl::ScalarField*
+create_domain_field(const carto::VolumeRef<int16_t>& domain);
+
 } // namespace yl
 
 #endif // !defined(YL_ISOVOLUME_HH_INCLUDED)

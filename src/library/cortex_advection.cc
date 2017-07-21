@@ -687,6 +687,15 @@ advect_value(const yl::VectorField3d& advection_field,
 }
 
 
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+yl::ScalarField*
+create_domain_field(const carto::VolumeRef<int16_t>& domain)
+{
+  return
+    new TDomainField(DomainFieldTraits<TDomainField>::build_field(domain));
+}
+
+
 template
 VolumeRef<int16_t>
 advect_value(const yl::VectorField3d& advection_field,
@@ -748,6 +757,15 @@ advect_value(const yl::VectorField3d& advection_field,
              const yl::ScalarField & domain_field,
              const int verbosity,
              const VolumeRef<int16_t>& advect_seeds_domain);
+
+template
+yl::ScalarField*
+create_domain_field(const carto::VolumeRef<int16_t>& domain);
+
+template
+yl::ScalarField*
+create_domain_field<yl::BooleanScalarField>(
+  const carto::VolumeRef<int16_t>& domain);
 
 } // namespace yl
 

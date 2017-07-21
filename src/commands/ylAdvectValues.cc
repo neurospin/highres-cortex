@@ -119,20 +119,14 @@ bool AdvectValues::doit(Process & p, const string & filename, Finder & finder)
   boost::shared_ptr<yl::ScalarField> domain_field;
   if(advect.domain_type == "boolean")
   {
-    domain_field.reset(
-      new yl::BooleanScalarField(advect.domain_volume));
+    domain_field.reset(yl::create_domain_field<yl::BooleanScalarField>(
+      advect.domain_volume));
   }
   else
   {
-    // DomainFieldTraits is not exported in public API (in cortex_advection.cc)
-    // so we have to copy the code here
-
-    // This could be more elegant: the domain is first converted as float, then
-    // fed into a scalar field to ease interpolation.
-    carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
-    carto::VolumeRef<float> float_domain(*conv(advect.domain_volume));
     domain_field.reset(
-      new yl::LinearlyInterpolatedScalarField(float_domain));
+      yl::create_domain_field<yl::LinearlyInterpolatedScalarField>(
+        advect.domain_volume));
   }
 
   VolumeRef<float> result_values =

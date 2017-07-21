@@ -267,19 +267,13 @@ int main(const int argc, const char **argv)
   if(domain_type == "boolean")
   {
     domain_field.reset(
-      new yl::BooleanScalarField(domain_volume));
+      yl::create_domain_field<yl::BooleanScalarField>(domain_volume));
   }
   else
   {
-    // DomainFieldTraits is not exported in public API (in cortex_advection.cc)
-    // so we have to copy the code here
-
-    // This could be more elegant: the domain is first converted as float, then
-    // fed into a scalar field to ease interpolation.
-    carto::Converter<VolumeRef<int16_t>, VolumeRef<float> > conv;
-    carto::VolumeRef<float> float_domain(*conv(domain_volume));
     domain_field.reset(
-      new yl::LinearlyInterpolatedScalarField(float_domain));
+      yl::create_domain_field<yl::LinearlyInterpolatedScalarField>(
+        domain_volume));
   }
 
   VolumeRef<float> result_distance =
