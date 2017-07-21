@@ -49,7 +49,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/io/writer.h>
 #include <aims/io/process.h>
 #include <aims/getopt/getoptProcess.h>
-#include <aims/utility/converter_volume.h>
 
 #include <highres-cortex/field.hh>
 #include <highres-cortex/cortex_advection.hh>

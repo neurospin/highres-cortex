@@ -52,7 +52,7 @@ class LinearlyInterpolatedScalarField;
     This template function is parameterized by the template parameter:
 
     \p TDomainField : domain field type, which should be a subclass of
-      \c yl::SclarField (or compatible API). The domain field is built from the
+      \c yl::ScalarField (or compatible API). The domain field is built from the
       domain image according to this method. The default is
       \c yl::LinearlyInterpolatedScalarField
 
@@ -68,6 +68,27 @@ class LinearlyInterpolatedScalarField;
       same as domain.
 
     \return pair of (tube's volume, tube's end surface)
+
+    In summary there are basically 3 ways to call advection functions:
+
+    * using a domain field instance as a ScalarField object:
+      \code res = advect_tubes(advection_field, divergence_field, domain,
+        max_advection_distance, step_size, domain_field, verbosity,
+        advect_seeds_domain);
+      \endcode
+
+    * using the default domain field (linearly interpolated) (which is actually
+      the template function with default template parameter:
+
+      \code res = advect_tubes(advection_field, divergence_field, domain,
+        max_advection_distance, step_size, verbosity, advect_seeds_domain);
+      \endcode
+
+    * usind a domain field class type as template:
+      \code res = advect_tubes<yl::BooleanScalarField>(advection_field,
+        divergence_field, domain, max_advection_distance, step_size, verbosity,
+        advect_seeds_domain);
+      \endcode
  */
 template <class TDomainField=yl::LinearlyInterpolatedScalarField>
 std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
@@ -117,7 +138,7 @@ advect_tubes(const yl::VectorField3d& advection_field,
     This template function is parameterized by the template parameter:
 
     \p TDomainField : domain field type, which should be a subclass of
-      \c yl::SclarField (or compatible API). The domain field is built from the
+      \c yl::ScalarField (or compatible API). The domain field is built from the
       domain image according to this method. The default is
       \c yl::LinearlyInterpolatedScalarField
 
@@ -132,6 +153,27 @@ advect_tubes(const yl::VectorField3d& advection_field,
       same as domain.
 
     \return Euclidean length of the advection path
+
+    In summary there are basically 3 ways to call advection functions:
+
+    * using a domain field instance as a ScalarField object:
+      \code res = advect_euclidean(advection_field, domain,
+        max_advection_distance, step_size, domain_field, verbosity,
+        advect_seeds_domain);
+      \endcode
+
+    * using the default domain field (linearly interpolated) (which is actually
+      the template function with default template parameter:
+
+      \code res = advect_euclidean(advection_field, domain,
+        max_advection_distance, step_size, verbosity, advect_seeds_domain);
+      \endcode
+
+    * usind a domain field class type as template:
+      \code res = advect_euclidean<yl::BooleanScalarField>(advection_field,
+        domain, max_advection_distance, step_size, verbosity,
+        advect_seeds_domain);
+      \endcode
  */
 template <class TDomainField=yl::LinearlyInterpolatedScalarField>
 carto::VolumeRef<float>
@@ -149,7 +191,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
     takes the domain field as an additional, dynamic argument.
 
     \p TDomainField : domain field type, which should be a subclass of
-      \c yl::SclarField (or compatible API). The domain field is built from the
+      \c yl::ScalarField (or compatible API). The domain field is built from the
       domain image according to this method. The default is
       \c yl::LinearlyInterpolatedScalarField
 
@@ -185,7 +227,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
 
     \p T : values image voxel type
     \p TDomainField : domain field type, which should be a subclass of
-      \c yl::SclarField (or compatible API). The domain field is built from the
+      \c yl::ScalarField (or compatible API). The domain field is built from the
       domain image according to this method. The default is
       \c yl::LinearlyInterpolatedScalarField
 
@@ -201,6 +243,27 @@ advect_euclidean(const yl::VectorField3d& advection_field,
       same as domain.
 
     \return advected values
+
+    In summary there are basically 3 ways to call advection functions:
+
+    * using a domain field instance as a ScalarField object:
+      \code res = advect_value(advection_field, value_seeds, domain,
+        max_advection_distance, step_size, domain_field, verbosity,
+        advect_seeds_domain);
+      \endcode
+
+    * using the default domain field (linearly interpolated) (which is actually
+      the template function with default template parameter:
+
+      \code res = advect_value(advection_field, value_seeds, domain,
+        max_advection_distance, step_size, verbosity, advect_seeds_domain);
+      \endcode
+
+    * usind a domain field class type as template:
+      \code res = advect_value<yl::BooleanScalarField>(advection_field,
+        value_seeds, domain, max_advection_distance, step_size, verbosity,
+        advect_seeds_domain);
+      \endcode
  */
 template <typename T, class TDomainField=yl::LinearlyInterpolatedScalarField>
 carto::VolumeRef<T>

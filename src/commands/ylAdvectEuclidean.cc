@@ -47,7 +47,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/getopt/getopt2.h>
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
-#include <aims/utility/converter_volume.h>
 
 #include <highres-cortex/field.hh>
 #include <highres-cortex/cortex_advection.hh>
