@@ -295,8 +295,6 @@ public:
       int(round(start_point[0] / m_voxel_size[0])),
       int(round(start_point[1] / m_voxel_size[1])),
       int(round(start_point[2] / m_voxel_size[2])));
-    if(pos == Point3d(241, 200, 143))
-      std::cout << "ADVECT TO " << pos << ": from: " << end_pos << ", value: " << m_value_seed(end_pos) << ", domain: " << m_domain.evaluate(m_previous_point) << endl;
     m_value_result(pos) = m_value_seed(end_pos);
   }
 
