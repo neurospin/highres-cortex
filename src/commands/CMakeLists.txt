@@ -17,6 +17,7 @@ set(OpenMP_commands
 set(_commands
   ${OpenMP_commands}
   ylAdvectEuclidean
+  ylAdvectPath
   ylAdvectTubes
   ylAdvectValues
   ylPropagateAlongField

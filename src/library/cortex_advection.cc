@@ -317,6 +317,62 @@ private:
   std::vector<float> m_voxel_size;
 };
 
+/** PathAdvection: record a wireframe mesh of advection "tracts"
+ */
+class PathAdvection : public yl::Advection::Visitor
+{
+public:
+  PathAdvection(const yl::ScalarField& domain,
+                AimsSurface<2>& path_result)
+    : m_domain(domain),
+      m_abort(false),
+      m_path_result(path_result)
+  {
+  };
+
+  void first(const Point3df& point)
+  {
+  };
+
+  void visit(const Point3df& point)
+  {
+    uint32_t n = uint32_t(m_path_result.vertex().size());
+    m_path_result.vertex().push_back(point);
+    if( n != 0 )
+      m_path_result.polygon().push_back(AimsVector<uint32_t, 2>(n-1, n));
+  };
+
+  bool move_on(const Point3df& point) const
+  {
+    if(m_abort)
+      return false;
+    try {
+      return m_domain.evaluate(point) >= 0.5f;
+    } catch(const yl::Field::UndefinedField&) {
+      return false;
+    }
+  };
+
+  void finished(const Point3df& start_point)
+  {
+  }
+
+  bool aborted() const {
+    return m_abort;
+  };
+
+  AimsSurface<2>& path_result() const
+  {
+    return m_path_result;
+  }
+
+private:
+  const yl::ScalarField& m_domain;
+  bool m_abort;
+  AimsSurface<2>& m_path_result;
+};
+
+
 
 /** VisitorTraits manages instantiation of Visitor specializations, and of
     input / output data in the advect() function.
@@ -426,6 +482,30 @@ public:
     ResultType& result)
   {
     return ValueAdvection<T>(domain_field, inputs, result);
+  }
+};
+
+
+template <>
+class VisitorTraits<PathAdvection>
+{
+public:
+  typedef AimsSurface<2> ResultType;
+  typedef Void InputType;
+
+  static ResultType init_result(const VolumeRef<int16_t>& domain,
+                                const InputType&)
+  {
+    AimsSurface<2> path_result;
+    return path_result;
+  }
+
+  static inline PathAdvection build_visitor(
+    const yl::ScalarField& domain_field,
+    const InputType& inputs,
+    ResultType& result)
+  {
+    return PathAdvection(domain_field, result);
   }
 };
 
@@ -683,6 +763,40 @@ advect_value(const yl::VectorField3d& advection_field,
     advection_field, domain,
     max_advection_distance,
     step_size, verbosity, value_seeds,
+    domain_field, advect_seeds_domain);
+}
+
+
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+AimsSurface<2>
+advect_path(const yl::VectorField3d& advection_field,
+            const carto::VolumeRef<int16_t>& domain,
+            float max_advection_distance,
+            float step_size,
+            int verbosity,
+            const carto::VolumeRef<int16_t>& advect_seeds_domain)
+{
+  return advect<PathAdvection, yl::ConstantStepAdvection, TDomainField>(
+    advection_field, domain,
+    max_advection_distance,
+    step_size, verbosity,
+    advect_seeds_domain);
+}
+
+
+AimsSurface<2>
+advect_path(const yl::VectorField3d& advection_field,
+            const carto::VolumeRef<int16_t>& domain,
+            float max_advection_distance,
+            float step_size,
+            const yl::ScalarField & domain_field,
+            int verbosity,
+            const carto::VolumeRef<int16_t>& advect_seeds_domain)
+{
+  return advect<PathAdvection, yl::ConstantStepAdvection>(
+    advection_field, domain,
+    max_advection_distance,
+    step_size, verbosity, Void(),
     domain_field, advect_seeds_domain);
 }
 

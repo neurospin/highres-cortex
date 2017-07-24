@@ -39,6 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #define YL_ISOVOLUME_HH_INCLUDED
 
 #include <cartodata/volume/volume.h>
+#include <aims/mesh/surface.h>
 
 namespace yl
 {
@@ -310,6 +311,95 @@ advect_value(const yl::VectorField3d& advection_field,
              const yl::ScalarField & domain_field,
              const int verbosity=0,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
+              = carto::VolumeRef<int16_t>());
+
+/** Advect a point along a field, recording advection tracts in a wireframe
+    mesh
+
+    This template function is parameterized by the template parameter:
+
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::ScalarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return Euclidean length of the advection path
+
+    In summary there are basically 3 ways to call advection functions:
+
+    * using a domain field instance as a ScalarField object:
+      \code res = advect_euclidean(advection_field, domain,
+        max_advection_distance, step_size, domain_field, verbosity,
+        advect_seeds_domain);
+      \endcode
+
+    * using the default domain field (linearly interpolated) (which is actually
+      the template function with default template parameter:
+
+      \code res = advect_euclidean(advection_field, domain,
+        max_advection_distance, step_size, verbosity, advect_seeds_domain);
+      \endcode
+
+    * using a domain field class type as template:
+      \code res = advect_euclidean<yl::BooleanScalarField>(advection_field,
+        domain, max_advection_distance, step_size, verbosity,
+        advect_seeds_domain);
+      \endcode
+ */
+template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+AimsSurface<2>
+advect_path(const yl::VectorField3d& advection_field,
+            const carto::VolumeRef<int16_t>& domain,
+            float max_advection_distance,
+            float step_size,
+            int verbosity=0,
+            const carto::VolumeRef<int16_t>& advect_seeds_domain
+              = carto::VolumeRef<int16_t>());
+
+/** Advect a point along a field, recording advection tracts in a wireframe
+    mesh
+
+    This non-template function differs from the other (template) one in that it
+    takes the domain field as an additional, dynamic argument.
+
+    \p TDomainField : domain field type, which should be a subclass of
+      \c yl::ScalarField (or compatible API). The domain field is built from the
+      domain image according to this method. The default is
+      \c yl::LinearlyInterpolatedScalarField
+
+    \arg \p advection_field : vector field to advect along
+    \arg \p domain : the advection domain with zero outside, one inside
+    \arg \p max_advection_distance : the maximum length of the advection path
+    \arg \p step_size : the constant length of an advection step. Can be
+      negative to advect in the opposite direction.
+    \arg \p domain_field : scalar field for the domain. This is a bit redundant
+      with the \p domain parameter, but given as a scalar field (which can be a
+      binary field, an interpolated field etc).
+    \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
+      Advection::set_verbose()
+    \arg \p advect_seeds_domain : advection starting points mask, by default
+      same as domain.
+
+    \return Euclidean length of the advection path
+ */
+AimsSurface<2>
+advect_path(const yl::VectorField3d& advection_field,
+            const carto::VolumeRef<int16_t>& domain,
+            float max_advection_distance,
+            float step_size,
+            const yl::ScalarField & domain_field,
+            int verbosity=0,
+            const carto::VolumeRef<int16_t>& advect_seeds_domain
               = carto::VolumeRef<int16_t>());
 
 /** Build a ScalarField of the given type from an int16_t volume
