@@ -326,20 +326,26 @@ public:
                 AimsSurface<2>& path_result)
     : m_domain(domain),
       m_abort(false),
+      m_first(true),
       m_path_result(path_result)
   {
   };
 
   void first(const Point3df& point)
   {
+    m_first = true;
   };
 
   void visit(const Point3df& point)
   {
-    uint32_t n = uint32_t(m_path_result.vertex().size());
     m_path_result.vertex().push_back(point);
-    if( n != 0 )
+    if( m_first )
+      m_first = false;
+    else
+    {
+      uint32_t n = uint32_t(m_path_result.vertex().size()) - 1;
       m_path_result.polygon().push_back(AimsVector<uint32_t, 2>(n-1, n));
+    }
   };
 
   bool move_on(const Point3df& point) const
@@ -361,6 +367,11 @@ public:
     return m_abort;
   };
 
+  void abort()
+  {
+    std::cout << "path aborted.\n";
+  }
+
   AimsSurface<2>& path_result() const
   {
     return m_path_result;
@@ -369,6 +380,7 @@ public:
 private:
   const yl::ScalarField& m_domain;
   bool m_abort;
+  bool m_first;
   AimsSurface<2>& m_path_result;
 };
 

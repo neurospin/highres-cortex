@@ -81,9 +81,9 @@ public:
     /** Indicates whether the Visitor encountered an error */
     virtual bool aborted() const = 0;
     /** Called after the advection is stopped by move_on() */
-    virtual void finished(const Point3df& point) {};
+    virtual void finished(const Point3df& point) {}
     /** Called when the advection cannot finish successfully */
-    virtual void abort() {};
+    virtual void abort() {}
   };
 
   /** Default iteration limit */
