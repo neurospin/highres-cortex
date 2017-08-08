@@ -97,7 +97,7 @@ public:
 
     // The test is written inverted so that NaN gives false
     if(!(m_surface > 0)) {
-      clog << "  Warning: TubeAdvection encountered non-positive surface, aborting" << endl;
+      clog << "  Warning: TubeAdvection encountered non-positive surface" << endl;
       m_abort = true;
       return;
     }
