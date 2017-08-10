@@ -1,6 +1,6 @@
 #! /bin/sh -e
 
-: ${SCRIPTS_DIR:=$(dirname "$0")/../scripts}
+: ${SCRIPTS_DIR:=$(dirname -- "$0")/../scripts}
 
 run_script_in_subdir() {
     mkdir -p "$1"
