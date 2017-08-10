@@ -45,12 +45,8 @@ ylIsoCurvature --verbose --mode sum \
     -i heat.nii.gz \
     -o sumcurvs.nii.gz
 
-# Exclude strong values at the border of the cortex, which are due to the
-# discontinuity of the second-order derivative.
-AimsThreshold -b --fg 1 -m eq -t 100 \
-    -i ../classif.nii.gz \
-    -o ./cortex.nii.gz
-AimsMerge -m oo -l 0 -v 0 \
-    -i sumcurvs.nii.gz \
-    -M cortex.nii.gz \
-    -o heat_div_gradn.nii.gz
+# Use a median filter to exclude strong values at the border of the cortex,
+# which are due to the discontinuity of the second-order derivative. This
+# significantly improves the precision (RMS error) of the curvature map, and of
+# the derived equivolumetric depth map.
+AimsMedianSmoothing -i sumcurvs.nii.gz -o heat_div_gradn.nii.gz
