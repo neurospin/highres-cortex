@@ -39,7 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <iostream>
 
 #include <boost/format.hpp>
-#include <boost/tr1/unordered_set.hpp>
+#include <boost/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/math/constants/constants.hpp>
 
@@ -284,7 +284,7 @@ eliminate_extrema()
               << std::flush;
   }
 
-  typedef std::tr1::unordered_set<Point3d, yl::PointHasher<Point3d> >
+  typedef boost::unordered_set<Point3d, yl::PointHasher<Point3d> >
     PointSetType;
   PointSetType extremum_points;
 
