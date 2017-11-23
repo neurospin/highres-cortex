@@ -136,9 +136,10 @@ private:
   aims::LinearInterpolator<float> m_interp_field;
 };
 
-/** Access a scalar field stored in a volume
+/** Access a boolean field stored in a volume
 
-    The field's value is linearly interpolated between integer coordinates.
+    The boolean field is using nearest neighbour interpolation, any non-zero
+    value (including NaN) is returned as true (1.0f).
  */
 class BooleanScalarField : public ScalarField
 {
