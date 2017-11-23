@@ -99,7 +99,7 @@ AdvectValues::AdvectValues()
 
 
 template <typename T>
-bool AdvectValues::doit(Process & p, const string & filename, Finder & finder)
+bool AdvectValues::doit(Process & p, const string & filename, Finder&)
 {
   AdvectValues & advect = static_cast<AdvectValues&>(p);
 

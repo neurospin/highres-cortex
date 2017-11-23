@@ -331,7 +331,7 @@ public:
   {
   };
 
-  void first(const Point3df& point)
+  void first(const Point3df&)
   {
     m_first = true;
   };
@@ -359,7 +359,7 @@ public:
     }
   };
 
-  void finished(const Point3df& start_point)
+  void finished(const Point3df&)
   {
   }
 
@@ -399,11 +399,11 @@ class VisitorTraits
 public:
   typedef Void ResultType;
   typedef Void InputType;
-  static ResultType init_result(const VolumeRef<int16_t>& domain,
-                                const InputType& inputs) {}
+  static ResultType init_result(const VolumeRef<int16_t>&,
+                                const InputType&) {}
   static inline TVisitor build_visitor(const yl::ScalarField& domain_field,
-                                       const InputType& inputs,
-                                       ResultType& result)
+                                       const InputType&,
+                                       ResultType&)
   { return TVisitor(domain_field); }
 };
 
@@ -428,7 +428,7 @@ public:
 
   static inline EuclideanAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType& inputs,
+    const InputType&,
     ResultType& result)
   {
     return EuclideanAdvection(domain_field, result);
@@ -505,7 +505,7 @@ public:
   typedef AimsSurface<2> ResultType;
   typedef Void InputType;
 
-  static ResultType init_result(const VolumeRef<int16_t>& domain,
+  static ResultType init_result(const VolumeRef<int16_t>&,
                                 const InputType&)
   {
     AimsSurface<2> path_result;
@@ -514,7 +514,7 @@ public:
 
   static inline PathAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType& inputs,
+    const InputType&,
     ResultType& result)
   {
     return PathAdvection(domain_field, result);
