@@ -138,7 +138,8 @@ private:
 
 /** Access a scalar field stored in a volume
 
-    The field's value is linearly interpolated between integer coordinates.
+    The field's value is the voxel value at the given coordinates (no
+    interpolation).
  */
 class BooleanScalarField : public ScalarField
 {
