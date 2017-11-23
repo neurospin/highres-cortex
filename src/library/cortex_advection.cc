@@ -648,7 +648,7 @@ advect(const yl::VectorField3d& advection_field,
 
 
 template <class TVisitor, class Advection=yl::ConstantStepAdvection,
-          class TDomainField=yl::LinearlyInterpolatedScalarField>
+          class TDomainField>
 inline typename VisitorTraits<TVisitor>::ResultType
 advect(const yl::VectorField3d& advection_field,
        const VolumeRef<int16_t>& domain,
@@ -670,7 +670,7 @@ advect(const yl::VectorField3d& advection_field,
 namespace yl
 {
 
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 std::pair<VolumeRef<float>, VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
                  const yl::ScalarField& divergence_field,
@@ -709,7 +709,7 @@ advect_tubes(const yl::VectorField3d& advection_field,
 }
 
 
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 VolumeRef<float>
 advect_euclidean(const yl::VectorField3d& advection_field,
                      const VolumeRef<int16_t>& domain,
@@ -742,7 +742,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
     domain_field, advect_seeds_domain);
 }
 
-template <typename T, class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <typename T, class TDomainField>
 VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
              const VolumeRef<T> & value_seeds,
@@ -779,7 +779,7 @@ advect_value(const yl::VectorField3d& advection_field,
 }
 
 
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 AimsSurface<2>
 advect_path(const yl::VectorField3d& advection_field,
             const carto::VolumeRef<int16_t>& domain,
@@ -813,7 +813,7 @@ advect_path(const yl::VectorField3d& advection_field,
 }
 
 
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 yl::ScalarField*
 create_domain_field(const carto::VolumeRef<int16_t>& domain)
 {
