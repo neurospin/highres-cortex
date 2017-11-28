@@ -1,5 +1,5 @@
+# Copyright CEA (2014, 2017).
 # Copyright Télécom ParisTech (2015).
-# Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.

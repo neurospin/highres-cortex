@@ -1,7 +1,8 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
 This file is part of highres-cortex, a collection of software designed
