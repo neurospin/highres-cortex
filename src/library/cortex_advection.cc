@@ -566,7 +566,7 @@ public:
     particular attention to this when writing the advection result in the
     visitor's finished() method.
  */
-template <class TVisitor, class Advection=yl::ConstantStepAdvection>
+template <class TVisitor, class TAdvection=yl::ConstantStepAdvection>
 typename VisitorTraits<TVisitor>::ResultType
 advect(const yl::VectorField3d& advection_field,
        const VolumeRef<int16_t>& domain,
@@ -596,7 +596,7 @@ advect(const yl::VectorField3d& advection_field,
 
   unsigned int n_success = 0, n_aborted = 0;
 
-  Advection advection(advection_field, step_size);
+  TAdvection advection(advection_field, step_size);
   advection.set_max_iter(std::ceil(max_advection_distance
                                   / std::abs(step_size)));
   advection.set_verbose(verbosity - 1);
@@ -654,7 +654,7 @@ advect(const yl::VectorField3d& advection_field,
 }
 
 
-template <class TVisitor, class Advection=yl::ConstantStepAdvection,
+template <class TVisitor, class TAdvection=yl::ConstantStepAdvection,
           class TDomainField>
 inline typename VisitorTraits<TVisitor>::ResultType
 advect(const yl::VectorField3d& advection_field,
@@ -665,7 +665,7 @@ advect(const yl::VectorField3d& advection_field,
        const typename VisitorTraits<TVisitor>::InputType & inputs,
        const VolumeRef<int16_t>& advect_seeds_domain = VolumeRef<int16_t>())
 {
-  return advect<TVisitor, Advection>(
+  return advect<TVisitor, TAdvection>(
     advection_field, domain, max_advection_distance, step_size,
     verbosity, inputs,
     DomainFieldTraits<TDomainField>::build_field(domain),
