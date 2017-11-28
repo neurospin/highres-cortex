@@ -142,7 +142,7 @@ float
 yl::BooleanScalarField::
 evaluate(const Point3df& pos) const
 {
-  return m_field->at(int(rint(pos[0] / m_voxel_size[0])),
-                     int(rint(pos[1] / m_voxel_size[1])),
-                     int(rint(pos[2] / m_voxel_size[2]))) == 0 ? 0.f : 1.f;
+  return m_field->at(lrint(pos[0] / m_voxel_size[0]),
+                     lrint(pos[1] / m_voxel_size[1]),
+                     lrint(pos[2] / m_voxel_size[2])) == 0 ? 0.f : 1.f;
 }

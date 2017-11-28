@@ -125,9 +125,10 @@ public:
 
   void finished(const Point3df& start_point)
   {
-    Point3df sp_int = Point3df(start_point[0] / m_voxel_size[0],
-                               start_point[1] / m_voxel_size[1],
-                               start_point[2] / m_voxel_size[2]);
+    Point3d sp_int = Point3d(
+      lrint(start_point[0] / m_voxel_size[0]),
+      lrint(start_point[1] / m_voxel_size[1]),
+      lrint(start_point[2] / m_voxel_size[2]));
     m_volume_result(sp_int) = volume();
     m_surface_result(sp_int) = surface();
   }
@@ -215,11 +216,11 @@ public:
 
   void finished(const Point3df& start_point)
   {
-    Point3df sp_int = Point3df(start_point[0] / m_voxel_size[0],
-                               start_point[1] / m_voxel_size[1],
-                               start_point[2] / m_voxel_size[2]);
-    m_length_result(round(sp_int[0]), round(sp_int[1]), round(sp_int[2]))
-      = length();
+    Point3d pos = Point3d(
+      lrint(start_point[0] / m_voxel_size[0]),
+      lrint(start_point[1] / m_voxel_size[1]),
+      lrint(start_point[2] / m_voxel_size[2]));
+    m_length_result(sp_int) = length();
   }
 
   float length() const
@@ -290,13 +291,13 @@ public:
   void finished(const Point3df& start_point)
   {
     Point3d end_pos = Point3d(
-      int(round(m_previous_point[0] / m_voxel_size[0])),
-      int(round(m_previous_point[1] / m_voxel_size[1])),
-      int(round(m_previous_point[2] / m_voxel_size[2])));
+      lrint(m_previous_point[0] / m_voxel_size[0]),
+      lrint(m_previous_point[1] / m_voxel_size[1]),
+      lrint(m_previous_point[2] / m_voxel_size[2]));
     Point3d pos = Point3d(
-      int(round(start_point[0] / m_voxel_size[0])),
-      int(round(start_point[1] / m_voxel_size[1])),
-      int(round(start_point[2] / m_voxel_size[2])));
+      lrint(start_point[0] / m_voxel_size[0]),
+      lrint(start_point[1] / m_voxel_size[1]),
+      lrint(start_point[2] / m_voxel_size[2]));
     m_value_result(pos) = m_value_seed(end_pos);
   }
 
@@ -361,7 +362,7 @@ public:
     }
   };
 
-  void finished(const Point3df&)
+  void finished(const Point3df& /*unused*/)
   {
   }
 
