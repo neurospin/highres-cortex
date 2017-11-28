@@ -87,7 +87,7 @@ struct float_isnan
 } // end of anonymous namespace
 
 carto::VolumeRef<float>
-yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
+yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
                     carto::VolumeRef<int16_t> domain,
                     const int16_t domain_label,
                     const int16_t origin_label,

@@ -51,9 +51,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 using std::clog;
 using std::endl;
-using std::flush;
 using carto::VolumeRef;
-using carto::Volume;
 using carto::verbose;
 using soma::AllocatorStrategy;
 using soma::AllocatorContext;
