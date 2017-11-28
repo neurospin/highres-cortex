@@ -1,8 +1,9 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+Contributor: Denis Rivière <denis.riviere@cea.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -124,4 +125,24 @@ evaluate(const Point3df& pos) const
     throw UndefinedField();
   }
   return m_interp_field.value(pos);
+}
+
+
+yl::BooleanScalarField::
+BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume)
+  : m_field(field_volume)
+{
+  std::vector<float> vs = field_volume->getVoxelSize();
+  m_voxel_size[0] = vs[0];
+  m_voxel_size[1] = vs[1];
+  m_voxel_size[2] = vs[2];
+}
+
+float
+yl::BooleanScalarField::
+evaluate(const Point3df& pos) const
+{
+  return m_field->at(lrint(pos[0] / m_voxel_size[0]),
+                     lrint(pos[1] / m_voxel_size[1]),
+                     lrint(pos[2] / m_voxel_size[2])) == 0 ? 0.f : 1.f;
 }

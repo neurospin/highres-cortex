@@ -2,8 +2,8 @@
 Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
-Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 Contributor: Denis Rivière <denis.riviere@cea.fr>.
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -42,6 +42,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <boost/make_shared.hpp>
 
+#include <soma-io/allocator/allocator.h>
 #include <cartobase/config/verbose.h>
 #include <cartodata/volume/volume.h>
 #include <aims/getopt/getopt2.h>
@@ -56,8 +57,8 @@ using std::endl;
 using std::string;
 using carto::VolumeRef;
 using carto::verbose;
-using soma::AllocatorContext;
 using soma::AllocatorStrategy;
+using soma::AllocatorContext;
 
 
 // Anonymous namespace for file-local symbols
@@ -73,12 +74,11 @@ int main(const int argc, const char **argv)
   // Initialize command-line option parsing
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
-  aims::Reader<VolumeRef<float> > divergence_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
   aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
   float step = 0.03f;
   float max_advection_distance = 6.f;
-  aims::Writer<VolumeRef<float> > volume_output_writer, surface_output_writer;
+  aims::Writer<AimsTimeSurface<2, Void> > path_output_writer;
   string domain_type;
 
   std::set<string> allowed_domain_types;
@@ -88,7 +88,7 @@ int main(const int argc, const char **argv)
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-"Advect a tube from each voxel, keeping track of its volume and end surface."
+"Advect a line from each voxel, recording advection tracts in a wireframe mesh."
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
@@ -103,12 +103,8 @@ int main(const int argc, const char **argv)
                 "y component of vector field", true);
   app.addOption(fieldz_reader, "--fieldz",
                 "z component of vector field", true);
-  app.addOption(divergence_field_reader, "--divergence",
-                "divergence of the normalized vector field");
-  app.addOption(volume_output_writer, "--output-volumes",
-                "output volume containing the tubes' volume");
-  app.addOption(surface_output_writer, "--output-surfaces",
-                "output volume containing the tubes' end surface");
+  app.addOption(path_output_writer, "--output-path",
+                "output mesh containing the advection paths");
   {
     std::ostringstream help_str;
     help_str << "move in steps this big (millimetres) [default: "
@@ -267,15 +263,6 @@ int main(const int argc, const char **argv)
     }
   }
 
-  if(verbose) clog << program_name << ": reading divergence volume..." << endl;
-  VolumeRef<float> divergence_field_volume;
-  divergence_field_reader.setAllocatorContext(
-    AllocatorContext(AllocatorStrategy::ReadOnly));
-  if(!divergence_field_reader.read(divergence_field_volume)) {
-    return false; // Failure
-  }
-  yl::LinearlyInterpolatedScalarField divergence_field(divergence_field_volume);
-
   boost::shared_ptr<yl::ScalarField> domain_field;
   if(domain_type == "boolean")
   {
@@ -289,24 +276,18 @@ int main(const int argc, const char **argv)
         domain_volume));
   }
 
-  std::pair<VolumeRef<float>, VolumeRef<float> > results =
-    yl::advect_tubes(*advection_field, divergence_field, domain_volume,
-                     max_advection_distance, step, *domain_field, verbose,
-                     advection_domain_volume);
+  AimsSurface<2> result_path =
+    yl::advect_path(*advection_field, domain_volume,
+                    max_advection_distance, step,
+                    *domain_field, verbose,
+                    advection_domain_volume);
 
-  {
-    bool write_success = volume_output_writer.write(results.first);
-    if(!write_success) {
-      clog << program_name << ": cannot write output volume" << endl;
-    }
-    success = success && write_success;
-  }
-  {
-    bool write_success = surface_output_writer.write(results.second);
-    if(!write_success) {
-      clog << program_name << ": cannot write output surface" << endl;
-    }
-    success = success && write_success;
+  AimsTimeSurface<2, Void> path_mesh;
+  path_mesh[0] = result_path;
+
+  success = path_output_writer.write(path_mesh);
+  if(!success) {
+    clog << program_name << ": cannot write output mesh" << endl;
   }
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;

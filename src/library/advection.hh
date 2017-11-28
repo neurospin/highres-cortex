@@ -1,7 +1,8 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
 This file is part of highres-cortex, a collection of software designed
@@ -81,9 +82,9 @@ public:
     /** Indicates whether the Visitor encountered an error */
     virtual bool aborted() const = 0;
     /** Called after the advection is stopped by move_on() */
-    virtual void finished() {};
+    virtual void finished(const Point3df&) {}
     /** Called when the advection cannot finish successfully */
-    virtual void abort() {};
+    virtual void abort() {}
   };
 
   /** Default iteration limit */
