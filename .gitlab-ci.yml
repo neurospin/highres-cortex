@@ -1,15 +1,19 @@
 before_script:
+  - sudo apt-get -qq update
   - sudo apt-get -qq install --no-install-recommends libgsl0-dev
 
-test:ubuntu16.04-trunk:
-  image: cati/brainvisa-opensource:ubuntu-16.04-trunk
-  script:
-    - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
-    - make
-    - make test
+# Disabled temporarily, as that image is not available from Docker Hub anymore,
+# and I do not have a back-up
+#
+# test:ubuntu16.04-trunk:
+#   image: cati/brainvisa-dev-opensource:ubuntu-16.04-trunk
+#   script:
+#     - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
+#     - make
+#     - make test
 
 test:ubuntu16.04-bug_fix:
-  image: cati/brainvisa-opensource:ubuntu-16.04-bug_fix
+  image: cati/brainvisa-dev-opensource:ubuntu-16.04-bug_fix
   script:
     - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
     - make

@@ -2,8 +2,8 @@
 Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
-Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 Contributor: Denis Rivière <denis.riviere@cea.fr>.
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -78,7 +78,7 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
   float step = 0.03f;
   float max_advection_distance = 6.f;
-  aims::Writer<VolumeRef<float> > length_output_writer;
+  aims::Writer<AimsTimeSurface<2, Void> > path_output_writer;
   string domain_type;
 
   std::set<string> allowed_domain_types;
@@ -88,7 +88,7 @@ int main(const int argc, const char **argv)
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-"Advect a line from each voxel, keeping track of its length."
+"Advect a line from each voxel, recording advection tracts in a wireframe mesh."
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
@@ -103,8 +103,8 @@ int main(const int argc, const char **argv)
                 "y component of vector field", true);
   app.addOption(fieldz_reader, "--fieldz",
                 "z component of vector field", true);
-  app.addOption(length_output_writer, "--output-length",
-                "output volume containing the advection distance");
+  app.addOption(path_output_writer, "--output-path",
+                "output mesh containing the advection paths");
   {
     std::ostringstream help_str;
     help_str << "size of the advection step (millimetres) [default: "
@@ -276,15 +276,18 @@ int main(const int argc, const char **argv)
         domain_volume));
   }
 
-  VolumeRef<float> result_distance =
-    yl::advect_euclidean(*advection_field, domain_volume,
-                         max_advection_distance, step,
-                         *domain_field, verbose,
-                         advection_domain_volume);
+  AimsSurface<2> result_path =
+    yl::advect_path(*advection_field, domain_volume,
+                    max_advection_distance, step,
+                    *domain_field, verbose,
+                    advection_domain_volume);
 
-  success = length_output_writer.write(result_distance);
+  AimsTimeSurface<2, Void> path_mesh;
+  path_mesh[0] = result_path;
+
+  success = path_output_writer.write(path_mesh);
   if(!success) {
-    clog << program_name << ": cannot write output volume" << endl;
+    clog << program_name << ": cannot write output mesh" << endl;
   }
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;

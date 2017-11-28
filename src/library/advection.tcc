@@ -1,8 +1,9 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+Contributor: Denis Rivière <denis.riviere@cea.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -56,6 +57,7 @@ visitor_advection(TVisitor& visitor,
   }
 
   unsigned int iter = 0;
+  Point3df start_point = point;
   visitor.first(point);
 
   while(visitor.move_on(point)) {
@@ -104,7 +106,7 @@ visitor_advection(TVisitor& visitor,
     }
   }
 
-  visitor.finished();
+  visitor.finished(start_point);
 
   if(m_verbose >= 2) {
     clog << "  advection finished after " << iter << " iterations" << endl;

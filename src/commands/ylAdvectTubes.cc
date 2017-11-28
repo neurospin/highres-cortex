@@ -1,8 +1,9 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+Contributor: Denis Rivière <denis.riviere@cea.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -52,6 +53,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 using std::clog;
 using std::endl;
+using std::string;
 using carto::VolumeRef;
 using carto::verbose;
 using soma::AllocatorContext;
@@ -73,9 +75,16 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<float> > grad_field_reader;
   aims::Reader<VolumeRef<float> > divergence_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
+  aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
   float step = 0.03f;
   float max_advection_distance = 6.f;
   aims::Writer<VolumeRef<float> > volume_output_writer, surface_output_writer;
+  string domain_type;
+
+  std::set<string> allowed_domain_types;
+  allowed_domain_types.insert(""); // default
+  allowed_domain_types.insert("interpolated");
+  allowed_domain_types.insert("boolean");
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
@@ -83,6 +92,9 @@ int main(const int argc, const char **argv)
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
+  app.addOption(advection_domain_reader, "--advect-domain",
+                "mask of the advection seeds domain: one inside, zero "
+                "outside - default: same as domain", true);
   app.addOption(grad_field_reader, "--grad-field",
                 "use the gradient of this scalar field", true);
   app.addOption(fieldx_reader, "--fieldx",
@@ -99,7 +111,7 @@ int main(const int argc, const char **argv)
                 "output volume containing the tubes' end surface");
   {
     std::ostringstream help_str;
-    help_str << "move in steps this big (millimetres) [default: "
+    help_str << "size of the advection step (millimetres) [default: "
              << step << "]";
     app.addOption(step, "--step", help_str.str(), true);
   }
@@ -108,6 +120,16 @@ int main(const int argc, const char **argv)
     help_str << "maximum advection distance (millimetres) [default: "
              << max_advection_distance << "]";
     app.addOption(max_advection_distance, "--max-dist", help_str.str(), true);
+  }
+  {
+    std::ostringstream help_str;
+    help_str << "interpolation type for the domain: ";
+    std::set<string>::const_iterator i;
+    for(i=allowed_domain_types.begin(); i!=allowed_domain_types.end(); ++i)
+      if(!i->empty())
+        help_str << *i << ", ";
+    help_str << "[default: interpolated]";
+    app.addOption(domain_type, "--domain-type", help_str.str(), true);
   }
 
 
@@ -130,6 +152,13 @@ int main(const int argc, const char **argv)
 
   boost::shared_ptr<yl::VectorField3d> advection_field;
   bool success = true;
+
+  if(allowed_domain_types.find(domain_type)
+     == allowed_domain_types.end())
+  {
+    clog << program_name << ": unknown domain-type";
+    return EXIT_USAGE_ERROR;
+  }
 
   bool fieldx_provided = !fieldx_reader.fileName().empty();
   bool fieldy_provided = !fieldy_reader.fileName().empty();
@@ -224,6 +253,20 @@ int main(const int argc, const char **argv)
     return EXIT_FAILURE;
   }
 
+  VolumeRef<int16_t> advection_domain_volume;
+  if( !advection_domain_reader.fileName().empty() )
+  {
+    if(verbose) clog << program_name << ": reading advection domain volume..."
+      << endl;
+    advection_domain_reader.setAllocatorContext(
+      AllocatorContext(AllocatorStrategy::ReadOnly));
+    if(!advection_domain_reader.read(advection_domain_volume))
+    {
+      clog << program_name << ": cannot read advection domain volume" << endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   if(verbose) clog << program_name << ": reading divergence volume..." << endl;
   VolumeRef<float> divergence_field_volume;
   divergence_field_reader.setAllocatorContext(
@@ -233,9 +276,23 @@ int main(const int argc, const char **argv)
   }
   yl::LinearlyInterpolatedScalarField divergence_field(divergence_field_volume);
 
+  boost::shared_ptr<yl::ScalarField> domain_field;
+  if(domain_type == "boolean")
+  {
+    domain_field.reset(
+      yl::create_domain_field<yl::BooleanScalarField>(domain_volume));
+  }
+  else
+  {
+    domain_field.reset(
+      yl::create_domain_field<yl::LinearlyInterpolatedScalarField>(
+        domain_volume));
+  }
+
   std::pair<VolumeRef<float>, VolumeRef<float> > results =
     yl::advect_tubes(*advection_field, divergence_field, domain_volume,
-                     max_advection_distance, step, verbose);
+                     max_advection_distance, step, *domain_field, verbose,
+                     advection_domain_volume);
 
   {
     bool write_success = volume_output_writer.write(results.first);

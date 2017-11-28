@@ -2,8 +2,8 @@
 Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
-Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 Contributor: Denis Rivière <denis.riviere@cea.fr>.
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -48,6 +48,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/getopt/getopt2.h>
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
+#include <aims/io/process.h>
+#include <aims/getopt/getoptProcess.h>
 
 #include <highres-cortex/field.hh>
 #include <highres-cortex/cortex_advection.hh>
@@ -59,6 +61,8 @@ using carto::VolumeRef;
 using carto::verbose;
 using soma::AllocatorStrategy;
 using soma::AllocatorContext;
+using aims::Process;
+using aims::Finder;
 
 
 // Anonymous namespace for file-local symbols
@@ -69,17 +73,90 @@ std::string program_name;
 }
 
 
+class AdvectValues : public Process
+{
+public:
+  AdvectValues();
+  virtual ~AdvectValues() {}
+  template <typename T>
+  static bool doit(Process & p, const string & filename, Finder & finder);
+
+  boost::shared_ptr<yl::VectorField3d> advection_field;
+  VolumeRef<int16_t> domain_volume;
+  VolumeRef<int16_t> advection_domain_volume;
+  float step;
+  float max_advection_distance;
+  string domain_type;
+  string values_output_fname;
+};
+
+
+AdvectValues::AdvectValues()
+  : Process(), step(0.03f), max_advection_distance(6.f)
+{
+  registerProcessType( "Volume", "S16", &AdvectValues::doit<int16_t> );
+  registerProcessType( "Volume", "FLOAT", &AdvectValues::doit<float> );
+}
+
+
+template <typename T>
+bool AdvectValues::doit(Process & p, const string & filename, Finder&)
+{
+  AdvectValues & advect = static_cast<AdvectValues&>(p);
+
+  if(verbose) clog << program_name << ": reading seed values volume..."
+    << endl;
+  aims::Reader<VolumeRef<T> > values_seeds_reader(filename);
+  VolumeRef<T> values_seeds;
+  values_seeds_reader.setAllocatorContext(
+    AllocatorContext(AllocatorStrategy::ReadOnly));
+  if(!values_seeds_reader.read(values_seeds))
+  {
+    clog << program_name << ": cannot read seed values volume" << endl;
+    return EXIT_FAILURE;
+  }
+
+  boost::shared_ptr<yl::ScalarField> domain_field;
+  if(advect.domain_type == "boolean")
+  {
+    domain_field.reset(yl::create_domain_field<yl::BooleanScalarField>(
+      advect.domain_volume));
+  }
+  else
+  {
+    domain_field.reset(
+      yl::create_domain_field<yl::LinearlyInterpolatedScalarField>(
+        advect.domain_volume));
+  }
+
+  VolumeRef<float> result_values =
+    yl::advect_value(*advect.advection_field, values_seeds,
+                     advect.domain_volume,
+                     advect.max_advection_distance, advect.step,
+                     *domain_field,
+                     verbose,
+                     advect.advection_domain_volume);
+
+  aims::Writer<VolumeRef<T> > values_output_writer(advect.values_output_fname);
+  bool success;
+  success = values_output_writer.write(result_values);
+  if(!success) {
+    clog << program_name << ": cannot write output volume" << endl;
+  }
+
+  return success;
+}
+
+
 int main(const int argc, const char **argv)
 {
   // Initialize command-line option parsing
+  AdvectValues advect;
+  aims::ProcessInput values_seeds_pi(advect);
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
   aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
-  float step = 0.03f;
-  float max_advection_distance = 6.f;
-  aims::Writer<VolumeRef<float> > length_output_writer;
-  string domain_type;
 
   std::set<string> allowed_domain_types;
   allowed_domain_types.insert(""); // default
@@ -88,7 +165,8 @@ int main(const int argc, const char **argv)
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-"Advect a line from each voxel, keeping track of its length."
+"Advect a line from each voxel, copying the destination label into each "
+"origin voxel."
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
@@ -103,19 +181,22 @@ int main(const int argc, const char **argv)
                 "y component of vector field", true);
   app.addOption(fieldz_reader, "--fieldz",
                 "z component of vector field", true);
-  app.addOption(length_output_writer, "--output-length",
-                "output volume containing the advection distance");
+  app.addOption(values_seeds_pi, "--seed-values",
+                "volume containing the values to be advected");
+  app.addOption(advect.values_output_fname, "--output-values",
+                "output volume containing the advected values");
   {
     std::ostringstream help_str;
     help_str << "size of the advection step (millimetres) [default: "
-             << step << "]";
-    app.addOption(step, "--step", help_str.str(), true);
+             << advect.step << "]";
+    app.addOption(advect.step, "--step", help_str.str(), true);
   }
   {
     std::ostringstream help_str;
     help_str << "maximum advection distance (millimetres) [default: "
-             << max_advection_distance << "]";
-    app.addOption(max_advection_distance, "--max-dist", help_str.str(), true);
+             << advect.max_advection_distance << "]";
+    app.addOption(advect.max_advection_distance, "--max-dist", help_str.str(),
+                  true);
   }
   {
     std::ostringstream help_str;
@@ -125,7 +206,7 @@ int main(const int argc, const char **argv)
       if(!i->empty())
         help_str << *i << ", ";
     help_str << "[default: interpolated]";
-    app.addOption(domain_type, "--domain-type", help_str.str(), true);
+    app.addOption(advect.domain_type, "--domain-type", help_str.str(), true);
   }
 
 
@@ -146,10 +227,9 @@ int main(const int argc, const char **argv)
     return EXIT_USAGE_ERROR;
   }
 
-  boost::shared_ptr<yl::VectorField3d> advection_field;
   bool success = true;
 
-  if(allowed_domain_types.find(domain_type)
+  if(allowed_domain_types.find(advect.domain_type)
      == allowed_domain_types.end())
   {
     clog << program_name << ": unknown domain-type";
@@ -192,8 +272,9 @@ int main(const int argc, const char **argv)
            << "'specified as --grad-field, aborting" << endl;
       return EXIT_FAILURE;
     }
-    advection_field = boost::make_shared<yl::LinearlyInterpolatedScalarFieldGradient>
-      (grad_field);
+    advect.advection_field
+      = boost::make_shared<yl::LinearlyInterpolatedScalarFieldGradient>
+        (grad_field);
   } else {
     // --fieldx, --fieldy, --fieldz provided
     if(verbose) clog << program_name << ": reading field..." << endl;
@@ -235,57 +316,34 @@ int main(const int argc, const char **argv)
            << endl;
       return EXIT_FAILURE;
     }
-    advection_field = boost::make_shared<yl::LinearlyInterpolatedVectorField3d>
-      (fieldx, fieldy, fieldz);
+    advect.advection_field
+      = boost::make_shared<yl::LinearlyInterpolatedVectorField3d>
+        (fieldx, fieldy, fieldz);
   }
 
-  VolumeRef<int16_t> domain_volume;
   if(verbose) clog << program_name << ": reading domain volume..." << endl;
   domain_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
-  if(!domain_reader.read(domain_volume))
+  if(!domain_reader.read(advect.domain_volume))
   {
     clog << program_name << ": cannot read domain volume" << endl;
     return EXIT_FAILURE;
   }
 
-  VolumeRef<int16_t> advection_domain_volume;
   if( !advection_domain_reader.fileName().empty() )
   {
     if(verbose) clog << program_name << ": reading advection domain volume..."
       << endl;
     advection_domain_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
-    if(!advection_domain_reader.read(advection_domain_volume))
+    if(!advection_domain_reader.read(advect.advection_domain_volume))
     {
       clog << program_name << ": cannot read advection domain volume" << endl;
       return EXIT_FAILURE;
     }
   }
 
-  boost::shared_ptr<yl::ScalarField> domain_field;
-  if(domain_type == "boolean")
-  {
-    domain_field.reset(
-      yl::create_domain_field<yl::BooleanScalarField>(domain_volume));
-  }
-  else
-  {
-    domain_field.reset(
-      yl::create_domain_field<yl::LinearlyInterpolatedScalarField>(
-        domain_volume));
-  }
-
-  VolumeRef<float> result_distance =
-    yl::advect_euclidean(*advection_field, domain_volume,
-                         max_advection_distance, step,
-                         *domain_field, verbose,
-                         advection_domain_volume);
-
-  success = length_output_writer.write(result_distance);
-  if(!success) {
-    clog << program_name << ": cannot write output volume" << endl;
-  }
+  success = advect.execute( values_seeds_pi.filename );
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
