@@ -617,7 +617,6 @@ advect(const yl::VectorField3d& advection_field,
           // synchronization should be needed. However, while this is safe on
           // most platforms, it does not seem to be guaranteed by the OpenMP
           // specification (OpenMP API v3.1, July 2011, p. 14, l. 16).
-//           length_result(x, y, z) = visitor.length();
           #pragma omp atomic
           ++n_success;
         } else {
@@ -673,12 +672,12 @@ namespace yl
 template <class TDomainField>
 std::pair<VolumeRef<float>, VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
-                 const yl::ScalarField& divergence_field,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const int verbosity,
-                 const VolumeRef<int16_t>& advect_seeds_domain)
+             const yl::ScalarField& divergence_field,
+             const VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const int verbosity,
+             const VolumeRef<int16_t>& advect_seeds_domain)
 {
   bool opposite_direction = step_size < 0;
   return advect<TubeAdvection, yl::ConstantStepAdvection, TDomainField>(
@@ -691,13 +690,13 @@ advect_tubes(const yl::VectorField3d& advection_field,
 
 std::pair<VolumeRef<float>, VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
-                 const yl::ScalarField& divergence_field,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const yl::ScalarField & domain_field,
-                 const int verbosity,
-                 const VolumeRef<int16_t>& advect_seeds_domain)
+             const yl::ScalarField& divergence_field,
+             const VolumeRef<int16_t>& domain,
+             const float max_advection_distance,
+             const float step_size,
+             const yl::ScalarField & domain_field,
+             const int verbosity,
+             const VolumeRef<int16_t>& advect_seeds_domain)
 {
   bool opposite_direction = step_size < 0;
   return advect<TubeAdvection, yl::ConstantStepAdvection>(
@@ -712,11 +711,11 @@ advect_tubes(const yl::VectorField3d& advection_field,
 template <class TDomainField>
 VolumeRef<float>
 advect_euclidean(const yl::VectorField3d& advection_field,
-                     const VolumeRef<int16_t>& domain,
-                     const float max_advection_distance,
-                     const float step_size,
-                     const int verbosity,
-                     const VolumeRef<int16_t>& advect_seeds_domain)
+                 const VolumeRef<int16_t>& domain,
+                 const float max_advection_distance,
+                 const float step_size,
+                 const int verbosity,
+                 const VolumeRef<int16_t>& advect_seeds_domain)
 {
   return advect<EuclideanAdvection, yl::ConstantStepAdvection,
                 TDomainField>(
@@ -894,4 +893,3 @@ create_domain_field<yl::BooleanScalarField>(
   const carto::VolumeRef<int16_t>& domain);
 
 } // namespace yl
-
