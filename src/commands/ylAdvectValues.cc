@@ -165,7 +165,8 @@ int main(const int argc, const char **argv)
 
   program_name = argv[0];
   aims::AimsApplication app(argc, argv,
-"Advect a line from each voxel, keeping track of its length."
+"Advect a line from each voxel, copying the destination label into each "
+"origin voxel."
 );
   app.addOption(domain_reader, "--domain",
                 "mask of the calculation domain: one inside, zero outside");
