@@ -57,7 +57,7 @@ template <typename Tlabel>
 struct SeedValueAscensionResult
 {
   typedef Tlabel result_type;
-  Tlabel operator()(const Tlabel& label, const Point3df&, float) const
+  Tlabel operator()(const Tlabel& label, const Point3df& /*point*/, float /*distance*/) const
   {
     return label;
   };
@@ -72,7 +72,7 @@ struct SeedAndPointAscensionResult
 {
   typedef std::pair<Tlabel, Point3df> result_type;
   std::pair<Tlabel, Point3df>
-  operator()(const Tlabel& label, const Point3df& point, float) const
+  operator()(const Tlabel& label, const Point3df& point, float /*distance*/) const
   {
     return std::make_pair(label, point);
   };
@@ -208,7 +208,7 @@ public:
   ScalarFieldSumVisitor(const boost::shared_ptr<yl::ScalarField>& field)
     : m_field(field), m_sum(0.f) {};
 
-  void init(const Point3df&) {};
+  void init(const Point3df& /*start_point*/) {};
   void visit(const Point3df& point)
   {
     m_sum += m_field->evaluate(point);
@@ -231,9 +231,8 @@ integrate_field_along_advection(const Point3df& start_point,
   ScalarFieldSumVisitor visitor(field);
   if(visitor_ascension(start_point, seeds, ignore_label, visitor)) {
     return m_step * visitor.sum();
-  } else {
-    throw AbortedAdvection();
   }
+  throw AbortedAdvection();
 }
 
 template <class TVisitor, typename Tlabel>

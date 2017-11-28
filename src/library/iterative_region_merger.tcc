@@ -218,10 +218,9 @@ public:
     // B.
     if(this->traversing() && !other.traversing())
       return true;
-    else if(!this->traversing() && other.traversing())
+    if(!this->traversing() && other.traversing())
       return false;
-    else
-     return this->fusion_ordering() > other.fusion_ordering();
+    return this->fusion_ordering() > other.fusion_ordering();
   }
 
   void set_handle(const Handle& handle)

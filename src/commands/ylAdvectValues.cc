@@ -100,7 +100,7 @@ AdvectValues::AdvectValues()
 
 
 template <typename T>
-bool AdvectValues::doit(Process & p, const string & filename, Finder&)
+bool AdvectValues::doit(Process & p, const string & filename, Finder& /*unused*/)
 {
   AdvectValues & advect = dynamic_cast<AdvectValues&>(p);
 
@@ -261,7 +261,7 @@ int main(const int argc, const char **argv)
 
   if(grad_field_provided) {
     // --grad-field provided
-    if(verbose) clog << program_name << ": reading field..." << endl;
+    if(verbose != 0) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> grad_field;
     grad_field_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -277,7 +277,7 @@ int main(const int argc, const char **argv)
         (grad_field);
   } else {
     // --fieldx, --fieldy, --fieldz provided
-    if(verbose) clog << program_name << ": reading field..." << endl;
+    if(verbose != 0) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> fieldx, fieldy, fieldz;
     fieldx_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -321,7 +321,7 @@ int main(const int argc, const char **argv)
         (fieldx, fieldy, fieldz);
   }
 
-  if(verbose) clog << program_name << ": reading domain volume..." << endl;
+  if(verbose != 0) clog << program_name << ": reading domain volume..." << endl;
   domain_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
   if(!domain_reader.read(advect.domain_volume))
@@ -332,7 +332,7 @@ int main(const int argc, const char **argv)
 
   if( !advection_domain_reader.fileName().empty() )
   {
-    if(verbose) clog << program_name << ": reading advection domain volume..."
+    if(verbose != 0) clog << program_name << ": reading advection domain volume..."
       << endl;
     advection_domain_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));

@@ -137,16 +137,14 @@ public:
   {
     if(m_abort)
       return no_value;
-    else
-      return m_surface;
+    return m_surface;
   };
 
   float volume() const
   {
     if(m_abort)
       return no_value;
-    else
-      return m_volume;
+    return m_volume;
   };
 
   bool aborted() const
@@ -227,8 +225,7 @@ public:
   {
     if(m_abort)
       return no_value;
-    else
-      return m_length;
+    return m_length;
   };
 
   bool aborted() const {
@@ -362,7 +359,7 @@ public:
     }
   };
 
-  void finished(const Point3df& /*unused*/)
+  void finished(const Point3df& /*start_point*/)
   {
   }
 
@@ -402,11 +399,11 @@ class VisitorTraits
 public:
   typedef Void ResultType;
   typedef Void InputType;
-  static ResultType init_result(const VolumeRef<int16_t>&,
-                                const InputType&) {}
+  static ResultType init_result(const VolumeRef<int16_t>& /*result_like*/,
+                                const InputType& /*inputs*/) {}
   static inline TVisitor build_visitor(const yl::ScalarField& domain_field,
-                                       const InputType&,
-                                       ResultType&)
+                                       const InputType& /*inputs*/,
+                                       ResultType& /*result*/)
   { return TVisitor(domain_field); }
 };
 
@@ -417,21 +414,21 @@ public:
   typedef VolumeRef<float> ResultType;
   typedef Void InputType;
 
-  static ResultType init_result(const VolumeRef<int16_t>& domain,
-                                const InputType&)
+  static ResultType init_result(const VolumeRef<int16_t>& result_like,
+                                const InputType& /*inputs*/)
   {
-    const int size_x = domain.getSizeX();
-    const int size_y = domain.getSizeY();
-    const int size_z = domain.getSizeZ();
+    const int size_x = result_like.getSizeX();
+    const int size_y = result_like.getSizeY();
+    const int size_z = result_like.getSizeZ();
     VolumeRef<float> length_result(size_x, size_y, size_z);
-    length_result->copyHeaderFrom(domain.header());
+    length_result->copyHeaderFrom(result_like.header());
     length_result.fill(no_value);
     return length_result;
   }
 
   static inline EuclideanAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType&,
+    const InputType& /*inputs*/,
     ResultType& result)
   {
     return EuclideanAdvection(domain_field, result);
@@ -446,17 +443,17 @@ public:
   typedef std::pair<VolumeRef<float>, VolumeRef<float> > ResultType;
   typedef std::pair<const yl::ScalarField &, bool> InputType;
 
-  static ResultType init_result(const VolumeRef<int16_t>& domain,
-                                const InputType&)
+  static ResultType init_result(const VolumeRef<int16_t>& result_like,
+                                const InputType& /*inputs*/)
   {
-    const int size_x = domain.getSizeX();
-    const int size_y = domain.getSizeY();
-    const int size_z = domain.getSizeZ();
+    const int size_x = result_like.getSizeX();
+    const int size_y = result_like.getSizeY();
+    const int size_z = result_like.getSizeZ();
     carto::VolumeRef<float> surface_result(size_x, size_y, size_z);
-    surface_result->copyHeaderFrom(domain.header());
+    surface_result->copyHeaderFrom(result_like.header());
     surface_result.fill(no_value);
     carto::VolumeRef<float> volume_result(size_x, size_y, size_z);
-    volume_result->copyHeaderFrom(domain.header());
+    volume_result->copyHeaderFrom(result_like.header());
     volume_result.fill(no_value);
     return std::make_pair(volume_result, surface_result);
   }
@@ -479,14 +476,14 @@ public:
   typedef VolumeRef<T> ResultType;
   typedef VolumeRef<T> InputType;
 
-  static ResultType init_result(const VolumeRef<int16_t>& domain,
+  static ResultType init_result(const VolumeRef<int16_t>& result_like,
                                 const InputType& inputs)
   {
-    const int size_x = domain.getSizeX();
-    const int size_y = domain.getSizeY();
-    const int size_z = domain.getSizeZ();
+    const int size_x = result_like.getSizeX();
+    const int size_y = result_like.getSizeY();
+    const int size_z = result_like.getSizeZ();
     VolumeRef<T> value_result(size_x, size_y, size_z);
-    value_result->copyHeaderFrom(domain.header());
+    value_result->copyHeaderFrom(result_like.header());
     *value_result = *inputs;
     return value_result;
   }
@@ -508,8 +505,8 @@ public:
   typedef AimsSurface<2> ResultType;
   typedef Void InputType;
 
-  static ResultType init_result(const VolumeRef<int16_t>&,
-                                const InputType&)
+  static ResultType init_result(const VolumeRef<int16_t>& /*result_like*/,
+                                const InputType& /*inputs*/)
   {
     AimsSurface<2> path_result;
     return path_result;
@@ -517,7 +514,7 @@ public:
 
   static inline PathAdvection build_visitor(
     const yl::ScalarField& domain_field,
-    const InputType&,
+    const InputType& /*inputs*/,
     ResultType& result)
   {
     return PathAdvection(domain_field, result);

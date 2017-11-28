@@ -58,7 +58,7 @@ inline float square(float x)
   return x * x;
 }
 
-inline bool proj_is_valid(float xproj, float, float)
+inline bool proj_is_valid(float xproj, float /*unused*/, float /*unused*/)
 {
   // Invalid values are (-1, -1, -1), and no valid coordinate is supposed to be
   // negative

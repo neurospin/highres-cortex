@@ -188,7 +188,7 @@ int main(const int argc, const char **argv)
     return EXIT_USAGE_ERROR;
   }
 
-  if(verbose) clog << program_name << ": reading input..." << endl;
+  if(verbose != 0) clog << program_name << ": reading input..." << endl;
   input_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
   VolumeRef<Real> input;
@@ -204,7 +204,7 @@ int main(const int argc, const char **argv)
   VolumeRef<Real> result = sum_curvatures(input);
 
 
-  if(verbose) clog << program_name << ": writing output..." << endl;
+  if(verbose != 0) clog << program_name << ": writing output..." << endl;
   {
     bool write_success = output_writer.write(result);
     if(!write_success) {

@@ -128,7 +128,7 @@ int main(const int argc, const char **argv)
     return EXIT_USAGE_ERROR;
   }
 
-  if(verbose) clog << program_name << ": reading classif..." << endl;
+  if(verbose != 0) clog << program_name << ": reading classif..." << endl;
   classif_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
   VolumeRef<int16_t> classif;
@@ -163,7 +163,7 @@ int main(const int argc, const char **argv)
   VolumeRef<Real> solution = solver.solution();
 
 
-  if(verbose) clog << program_name << ": writing output..." << endl;
+  if(verbose != 0) clog << program_name << ": writing output..." << endl;
   {
     bool write_success = output_writer.write(solution);
     if(!write_success) {

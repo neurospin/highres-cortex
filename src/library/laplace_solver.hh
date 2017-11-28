@@ -67,7 +67,7 @@ public:
 
   void SOR(Real absolute_precision,
            float typical_cortical_thickness);
-  void clamp_to_range(const Real min, const Real max);
+  void clamp_to_range(Real min, Real max);
   void eliminate_extrema();
 
   carto::VolumeRef<Real> solution() const;

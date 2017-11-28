@@ -81,11 +81,11 @@ public:
   };
   Point3d pop();
 
-  void add(const Point3d&, float priority);
-  void update_priority(const Point3d&, float new_priority);
-  void increase_priority(const Point3d&, float new_priority);
-  void decrease_priority(const Point3d&, float new_priority);
-  void add_or_update(const Point3d&, float priority);
+  void add(const Point3d& /*point*/, float priority);
+  void update_priority(const Point3d& /*point*/, float new_priority);
+  void increase_priority(const Point3d& /*point*/, float new_priority);
+  void decrease_priority(const Point3d& /*point*/, float new_priority);
+  void add_or_update(const Point3d& /*point*/, float priority);
 
   bool empty() const
   {
@@ -144,7 +144,7 @@ public:
   };
   Point3d pop();
 
-  void add(const Point3d&, float priority);
+  void add(const Point3d& /*point*/, float priority);
 
   bool empty() const
   {

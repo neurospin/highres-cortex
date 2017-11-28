@@ -181,7 +181,7 @@ int main(const int argc, const char **argv)
 
   if(grad_field_provided) {
     // --grad-field provided
-    if(verbose) clog << program_name << ": reading field..." << endl;
+    if(verbose != 0) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> grad_field;
     grad_field_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -196,7 +196,7 @@ int main(const int argc, const char **argv)
       (grad_field);
   } else {
     // --fieldx, --fieldy, --fieldz provided
-    if(verbose) clog << program_name << ": reading field..." << endl;
+    if(verbose != 0) clog << program_name << ": reading field..." << endl;
     VolumeRef<float> fieldx, fieldy, fieldz;
     fieldx_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -240,7 +240,7 @@ int main(const int argc, const char **argv)
   }
 
   VolumeRef<int16_t> domain_volume;
-  if(verbose) clog << program_name << ": reading domain volume..." << endl;
+  if(verbose != 0) clog << program_name << ": reading domain volume..." << endl;
   domain_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
   if(!domain_reader.read(domain_volume))
@@ -252,7 +252,7 @@ int main(const int argc, const char **argv)
   VolumeRef<int16_t> advection_domain_volume;
   if( !advection_domain_reader.fileName().empty() )
   {
-    if(verbose) clog << program_name << ": reading advection domain volume..."
+    if(verbose != 0) clog << program_name << ": reading advection domain volume..."
       << endl;
     advection_domain_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));

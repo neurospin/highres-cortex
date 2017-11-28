@@ -64,11 +64,11 @@ upwind_direction(float field_left,
 {
   if(field_right < field_left && field_right < field_centre) {
     return 1;
-  } else if(field_left < field_centre) {
-    return -1;
-  } else {
-    return 0;
   }
+  if(field_left < field_centre) {
+    return -1;
+  }
+  return 0;
 }
 
 /* depending on the compiler (gcc) version and standard (c++9x/ c++11),
@@ -189,7 +189,7 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
     dir = upwind_direction(upwind_field(x - 1, y, z),
                            upwind_field(x, y, z),
                            upwind_field(x + 1, y, z));
-    if(dir) {
+    if(dir != 0) {
       fx = (upwind_field(x, y, z) - upwind_field(x + dir, y, z)) * inv_voxsize_x;
       vx = solution(x + dir, y, z);
     } else {
@@ -200,7 +200,7 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
     dir = upwind_direction(upwind_field(x, y - 1, z),
                            upwind_field(x, y, z),
                            upwind_field(x, y + 1, z));
-    if(dir) {
+    if(dir != 0) {
       fy = (upwind_field(x, y, z) - upwind_field(x, y + dir, z)) * inv_voxsize_y;
       vy = solution(x, y + dir, z);
     } else {
@@ -211,7 +211,7 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
     dir = upwind_direction(upwind_field(x, y, z - 1),
                            upwind_field(x, y, z),
                            upwind_field(x, y, z + 1));
-    if(dir) {
+    if(dir != 0) {
       fz = (upwind_field(x, y, z) - upwind_field(x, y, z + dir)) * inv_voxsize_z;
       vz = solution(x, y, z + dir);
     } else {
