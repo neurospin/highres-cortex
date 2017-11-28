@@ -557,7 +557,13 @@ public:
   }
 };
 
+/** Perform an advection for all seeds in a volume
 
+    \warning TVisitor must be thread-safe, because the advection from multiple
+    seeds will be performed in parallel if OpenMP is enabled. You should pay
+    particular attention to this when writing the advection result in the
+    visitor's finished() method.
+ */
 template <class TVisitor, class Advection=yl::ConstantStepAdvection>
 typename VisitorTraits<TVisitor>::ResultType
 advect(const yl::VectorField3d& advection_field,
