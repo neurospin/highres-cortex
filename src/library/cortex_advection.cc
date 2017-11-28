@@ -216,7 +216,7 @@ public:
 
   void finished(const Point3df& start_point)
   {
-    Point3d pos = Point3d(
+    Point3d sp_int = Point3d(
       lrint(start_point[0] / m_voxel_size[0]),
       lrint(start_point[1] / m_voxel_size[1]),
       lrint(start_point[2] / m_voxel_size[2]));
