@@ -261,7 +261,7 @@ int main(const int argc, const char **argv)
       AllocatorContext(AllocatorStrategy::ReadOnly));
     if(!advection_domain_reader.read(advection_domain_volume))
     {
-      clog << program_name << ": cannot read advecton domain volume" << endl;
+      clog << program_name << ": cannot read advection domain volume" << endl;
       return EXIT_FAILURE;
     }
   }
