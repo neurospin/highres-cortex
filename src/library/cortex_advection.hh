@@ -85,7 +85,7 @@ class LinearlyInterpolatedScalarField;
         max_advection_distance, step_size, verbosity, advect_seeds_domain);
       \endcode
 
-    * usind a domain field class type as template:
+    * using a domain field class type as template:
       \code res = advect_tubes<yl::BooleanScalarField>(advection_field,
         divergence_field, domain, max_advection_distance, step_size, verbosity,
         advect_seeds_domain);
@@ -170,7 +170,7 @@ advect_tubes(const yl::VectorField3d& advection_field,
         max_advection_distance, step_size, verbosity, advect_seeds_domain);
       \endcode
 
-    * usind a domain field class type as template:
+    * using a domain field class type as template:
       \code res = advect_euclidean<yl::BooleanScalarField>(advection_field,
         domain, max_advection_distance, step_size, verbosity,
         advect_seeds_domain);
@@ -260,7 +260,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
         max_advection_distance, step_size, verbosity, advect_seeds_domain);
       \endcode
 
-    * usind a domain field class type as template:
+    * using a domain field class type as template:
       \code res = advect_value<yl::BooleanScalarField>(advection_field,
         value_seeds, domain, max_advection_distance, step_size, verbosity,
         advect_seeds_domain);
