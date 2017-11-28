@@ -107,7 +107,7 @@ int main(const int argc, const char **argv)
                 "output volume containing the advection distance");
   {
     std::ostringstream help_str;
-    help_str << "move in steps this big (millimetres) [default: "
+    help_str << "size of the advection step (millimetres) [default: "
              << step << "]";
     app.addOption(step, "--step", help_str.str(), true);
   }
