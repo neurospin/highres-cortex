@@ -272,7 +272,7 @@ int main(const int argc, const char **argv)
   divergence_field_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
   if(!divergence_field_reader.read(divergence_field_volume)) {
-    return false; // Failure
+    return EXIT_FAILURE;
   }
   yl::LinearlyInterpolatedScalarField divergence_field(divergence_field_volume);
 
