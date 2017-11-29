@@ -50,14 +50,15 @@ template <class TVisitor>
 bool
 yl::Advection::
 visitor_advection(TVisitor& visitor,
-                  Point3df point) const
+                  const Point3df& start_point) const
 {
   if(m_verbose >= 2) {
-    clog << "yl::Advection::visitor_advection starting at " << point << endl;
+    clog << "yl::Advection::visitor_advection starting at "
+         << start_point << endl;
   }
 
   unsigned int iter = 0;
-  Point3df start_point = point;
+  Point3df point = start_point;
   visitor.first(point);
 
   while(visitor.move_on(point)) {

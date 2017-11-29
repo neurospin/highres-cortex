@@ -3,7 +3,7 @@ Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
-Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+Contributor: Denis Rivière <denis.riviere@cea.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -64,7 +64,7 @@ public:
   template <class TVisitor>
   bool
   visitor_advection(TVisitor& visitor,
-                    Point3df start_point) const;
+                    const Point3df& start_point) const;
 
   /** Abstract base class for advection visitors */
   class Visitor
@@ -73,11 +73,11 @@ public:
     Visitor() {};
     virtual ~Visitor() {};
 
-    /** Called on the first point of the advection path */
+    /** Called before visit() on the first point of the advection path */
     virtual void first(const Point3df& point) = 0;
-    /** Called for every point of the advection path, except the first */
+    /** Called for every point on the advection path, including the first */
     virtual void visit(const Point3df& point) = 0;
-    /** Predicate that decides if the advection stops */
+    /** Predicate that decides if the advection will continue or stop */
     virtual bool move_on(const Point3df& point) const = 0;
     /** Indicates whether the Visitor encountered an error */
     virtual bool aborted() const = 0;
