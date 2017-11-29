@@ -331,7 +331,7 @@ public:
   {
   };
 
-  void first(const Point3df&)
+  void first(const Point3df& /*point*/)
   {
     m_first = true;
   };
