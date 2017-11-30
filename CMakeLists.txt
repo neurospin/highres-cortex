@@ -59,6 +59,10 @@ BRAINVISA_DEPENDENCY(RUN DEPENDS libgsl RUN)
 
 # OpenMP is optional
 find_package(OpenMP)
+# OPENMP_FOUND is never set ! Have to test something else
+if( OpenMP_C_FLAGS )
+  BRAINVISA_DEPENDENCY(RUN DEPENDS openmp RUN)
+endif()
 
 find_package(Doxygen)
 
