@@ -177,8 +177,6 @@ public:
 
 private:
   boost::shared_ptr<VectorField3d> m_vector_field;
-  float m_voxel_size_x, m_voxel_size_y, m_voxel_size_z;
-  float m_invsize_x, m_invsize_y, m_invsize_z;
   unsigned int m_max_iter;
   float m_step;
   int m_verbose;

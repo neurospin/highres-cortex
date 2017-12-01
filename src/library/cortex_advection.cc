@@ -400,7 +400,9 @@ public:
   typedef Void ResultType;
   typedef Void InputType;
   static ResultType init_result(const VolumeRef<int16_t>& /*result_like*/,
-                                const InputType& /*inputs*/) {}
+                                const InputType& /*inputs*/) {
+    return Void();
+  }
   static inline TVisitor build_visitor(const yl::ScalarField& domain_field,
                                        const InputType& /*inputs*/,
                                        ResultType& /*result*/)
