@@ -1,3 +1,4 @@
+# Copyright Forschungszentrum Jülich GmbH (2016).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -11,11 +12,14 @@
 
 set(OpenMP_commands
   ylLaplacian
+  ylIsoCurvature
 )
 set(_commands
   ${OpenMP_commands}
   ylAdvectEuclidean
+  ylAdvectPath
   ylAdvectTubes
+  ylAdvectValues
   ylPropagateAlongField
   ylLabelEachVoxel
   ylMergeCortexColumnRegions

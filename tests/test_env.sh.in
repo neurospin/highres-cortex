@@ -1,0 +1,23 @@
+#! /bin/sh -e
+#
+# Copyright Forschungszentrum Jülich GmbH (2017).
+#
+# Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
+
+# Run the command passed as argument within a suitable environment
+
+# Point to the BrainVISA tree that was used for compilation
+export PATH="@brainvisa-cmake_DIR@/../../../bin:$PATH"
+. @brainvisa-cmake_DIR@/../../../bin/bv_env.sh
+
+# Paths specific to highres-cortex (needed for out-of-tree build)
+export PATH="@CMAKE_RUNTIME_OUTPUT_DIRECTORY@:$PATH"
+export LD_LIBRARY_PATH="@CMAKE_LIBRARY_OUTPUT_DIRECTORY@:$LD_LIBRARY_PATH"
+export PYTHONPATH="@CMAKE_BINARY_DIR@/python:$PYTHONPATH"
+
+"$@"

@@ -80,7 +80,7 @@ public:
   typedef boost::transform_iterator<select1st<Bucket::value_type>,
                                     Bucket::const_iterator> const_point_iterator;
 
-  LabelVolume(const carto::VolumeRef<Tlabel> &vol, Tlabel background = 0);
+  explicit LabelVolume(const carto::VolumeRef<Tlabel> &vol, Tlabel background = 0);
   virtual ~LabelVolume() {};
 
   void merge_regions(Tlabel eating_label, Tlabel eaten_label);

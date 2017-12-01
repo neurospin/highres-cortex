@@ -41,7 +41,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <boost/heap/priority_queue.hpp>
 #include <boost/heap/d_ary_heap.hpp>
-#include <boost/tr1/unordered_map.hpp>
+#include <boost/unordered_map.hpp>
 
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
@@ -81,11 +81,11 @@ public:
   };
   Point3d pop();
 
-  void add(const Point3d&, float priority);
-  void update_priority(const Point3d&, float new_priority);
-  void increase_priority(const Point3d&, float new_priority);
-  void decrease_priority(const Point3d&, float new_priority);
-  void add_or_update(const Point3d&, float priority);
+  void add(const Point3d& /*point*/, float priority);
+  void update_priority(const Point3d& /*point*/, float new_priority);
+  void increase_priority(const Point3d& /*point*/, float new_priority);
+  void decrease_priority(const Point3d& /*point*/, float new_priority);
+  void add_or_update(const Point3d& /*point*/, float priority);
 
   bool empty() const
   {
@@ -119,7 +119,7 @@ private:
   typedef FrontQueue::handle_type QueueHandle;
   FrontQueue m_queue;
 
-  std::tr1::unordered_map<Point3d, QueueHandle, PointHasher<Point3d> >
+  boost::unordered_map<Point3d, QueueHandle, PointHasher<Point3d> >
     m_handle_map;
 
   carto::VolumeRef<int16_t> m_domain;
@@ -144,7 +144,7 @@ public:
   };
   Point3d pop();
 
-  void add(const Point3d&, float priority);
+  void add(const Point3d& /*point*/, float priority);
 
   bool empty() const
   {

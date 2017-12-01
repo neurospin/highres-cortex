@@ -63,7 +63,7 @@ namespace
 {
 const int EXIT_USAGE_ERROR = 2;
 std::string program_name;
-}
+} // end of anonymous namespace
 
 
 int main(const int argc, const char **argv)
@@ -149,7 +149,7 @@ int main(const int argc, const char **argv)
   }
 
 
-  if(verbose) clog << program_name << ": reading field..." << endl;
+  if(verbose != 0) clog << program_name << ": reading field..." << endl;
   AimsData<float> upwind_field;
   upwind_field_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::InternalModif)); // for border
@@ -169,7 +169,7 @@ int main(const int argc, const char **argv)
   }
 
   AimsData<int16_t> domain_volume;
-  if(verbose) clog << program_name << ": reading domain volume..." << endl;
+  if(verbose != 0) clog << program_name << ": reading domain volume..." << endl;
   domain_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::InternalModif));
   if(!domain_reader.read(domain_volume, 1 /* border */))
@@ -181,7 +181,7 @@ int main(const int argc, const char **argv)
 
   carto::VolumeRef<float> speed_map;
   if(using_speed_map) {
-    if(verbose) clog << program_name << ": reading speed map..." << endl;
+    if(verbose != 0) clog << program_name << ": reading speed map..." << endl;
     speed_map_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
     bool success = speed_map_reader.read(speed_map);
@@ -199,7 +199,7 @@ int main(const int argc, const char **argv)
     }
   }
 
-  if(verbose) clog << program_name << ": computing upwind distance..." << endl;
+  if(verbose != 0) clog << program_name << ": computing upwind distance..." << endl;
   VolumeRef<float> result_distance;
   if(using_speed_map) {
 #if 0
@@ -217,7 +217,7 @@ int main(const int argc, const char **argv)
   }
 
 
-  if(verbose) clog << program_name << ": writing output..." << endl;
+  if(verbose != 0) clog << program_name << ": writing output..." << endl;
   success = output_writer.write(result_distance);
   if(!success) {
     clog << program_name << ": cannot write output volume" << endl;

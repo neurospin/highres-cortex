@@ -49,7 +49,7 @@ template <typename Tlabel, class RegionQualityCriterion>
 class IterativeRegionMerger
 {
 public:
-  IterativeRegionMerger(
+  explicit IterativeRegionMerger(
     const LabelVolume<Tlabel>& label_vol,
     const RegionQualityCriterion& criterion=RegionQualityCriterion(),
     int verbosity=0);

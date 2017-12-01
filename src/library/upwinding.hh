@@ -69,7 +69,7 @@ namespace yl
  *    can be equal)
  */
 carto::VolumeRef<float>
-upwind_distance(const carto::VolumeRef<float> upwind_field,
+upwind_distance(const carto::VolumeRef<float>& upwind_field,
                 carto::VolumeRef<int16_t> domain,
                 int16_t domain_label,
                 int16_t origin_label,

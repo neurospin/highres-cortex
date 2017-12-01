@@ -59,9 +59,6 @@ namespace
 {
 const int EXIT_USAGE_ERROR = 2;
 std::string program_name;
-}
-
-namespace {
 
 template <class VolumeType>
 float get_smallest_voxel_spacing(const VolumeType& volume)
@@ -126,10 +123,11 @@ int main(const int argc, const char **argv)
     return EXIT_USAGE_ERROR;
   }
 
-  VolumeRef<int32_t> input_regions;
+  VolumeRef<int32_t> input_regions_volume;
   input_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
-  input_reader.read(input_regions);
+  input_reader.read(input_regions_volume);
+  const yl::LabelVolume<int32_t> input_regions(input_regions_volume);
 
   CSF_projections_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));

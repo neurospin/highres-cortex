@@ -1,5 +1,6 @@
 #!/bin/sh -e
 #
+# Copyright Forschungszentrum Jülich GmbH (2016).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -38,5 +39,14 @@
 
 ylLaplacian --classif ../classif.nii.gz --output heat.nii.gz
 
-# Normalized gradient's divergence
-python div_gradn.py
+# Normalized gradient's divergence (equivalent to the sum of the two principal
+# curvatures of isosurfaces)
+ylIsoCurvature --verbose --mode sum \
+    -i heat.nii.gz \
+    -o sumcurvs.nii.gz
+
+# Use a median filter to exclude strong values at the border of the cortex,
+# which are due to the discontinuity of the second-order derivative. This
+# significantly improves the precision (RMS error) of the curvature map, and of
+# the derived equivolumetric depth map.
+AimsMedianSmoothing -i sumcurvs.nii.gz -o heat_div_gradn.nii.gz

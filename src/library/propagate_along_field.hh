@@ -55,7 +55,7 @@ namespace yl
 class PropagateAlongField
 {
 public:
-  PropagateAlongField(const boost::shared_ptr<VectorField3d>& vector_field);
+  explicit PropagateAlongField(const boost::shared_ptr<VectorField3d>& vector_field);
   /** Provide the field as separate scalar components.
 
       The field will be linearly interpolated.
@@ -72,20 +72,20 @@ public:
       - 2: show aborted field ascensions
       - more: for debugging, see source code and #debug_output.
    */
-  void setVerbose(int=1);
+  void setVerbose(int verbosity=1);
 
   /** Move in steps of the specified size (millimetres).
 
       The default step size is #default_step.
    */
-  void setStep(float);
+  void setStep(float step);
 
   /** Abort following the gradient after a number of iterations.
 
       This is to prevent infinite looping when the propagation falls in a local
       minimum or loops over itself. By default this is #default_max_iter.
    */
-  void setMaxIter(unsigned int);
+  void setMaxIter(unsigned int max_iter);
 
   /** Move along the field until a nonzero label is found.
 
@@ -177,8 +177,6 @@ public:
 
 private:
   boost::shared_ptr<VectorField3d> m_vector_field;
-  float m_voxel_size_x, m_voxel_size_y, m_voxel_size_z;
-  float m_invsize_x, m_invsize_y, m_invsize_z;
   unsigned int m_max_iter;
   float m_step;
   int m_verbose;
@@ -202,10 +200,10 @@ private:
   template<class ResultRecorder, typename Tlabel>
   void
   internal_propagation(const carto::VolumeRef<Tlabel> &seeds,
-                       const Tlabel target_label,
+                       Tlabel target_label,
                        ResultRecorder& result_recorder) const;
 };
 
-};
+} // namespace yl
 
 #endif // !defined(YL_PROPAGATE_ALONG_FIELD_HH)

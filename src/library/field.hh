@@ -1,8 +1,9 @@
 /*
-Copyright CEA (2014).
+Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+Contributor: Denis Rivière <denis.riviere@cea.fr>.
 
 This file is part of highres-cortex, a collection of software designed
 to process high-resolution magnetic resonance images of the cerebral
@@ -112,7 +113,7 @@ private:
 class LinearlyInterpolatedScalarFieldGradient : public VectorField3d
 {
 public:
-  LinearlyInterpolatedScalarFieldGradient(
+  explicit LinearlyInterpolatedScalarFieldGradient(
     const carto::VolumeRef<float>& scalar_field);
   virtual void evaluate(const Point3df& pos, Point3df& output) const;
 private:
@@ -129,13 +130,29 @@ private:
 class LinearlyInterpolatedScalarField : public ScalarField
 {
 public:
-  LinearlyInterpolatedScalarField(const carto::VolumeRef<float>& field_volume);
+  explicit LinearlyInterpolatedScalarField(const carto::VolumeRef<float>& field_volume);
 
   virtual float evaluate(const Point3df& pos) const;
 private:
   aims::LinearInterpolator<float> m_interp_field;
 };
 
-}
+/** Access a boolean field stored in a volume
+
+    The boolean field is using nearest neighbour interpolation, any non-zero
+    value (including NaN) is returned as true (1.0f).
+ */
+class BooleanScalarField : public ScalarField
+{
+public:
+  explicit BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume);
+
+  virtual float evaluate(const Point3df& pos) const;
+private:
+  const carto::VolumeRef<int16_t>& m_field;
+  Point3df m_voxel_size;
+};
+
+}  // namespace yl
 
 #endif // !defined(YL_FIELD_HH_INCLUDED)

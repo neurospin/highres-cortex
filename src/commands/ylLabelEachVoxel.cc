@@ -56,7 +56,7 @@ namespace
 {
 const int EXIT_USAGE_ERROR = 2;
 std::string program_name;
-}
+} // end of anonymous namespace
 
 int main(const int argc, const char **argv)
 {
@@ -117,13 +117,13 @@ int main(const int argc, const char **argv)
   for(int y = 0; y < size_y; ++y)
   for(int x = 0; x < size_x; ++x)
   {
-    if(input_mask(x, y, z)) {
+    if(input_mask(x, y, z) != 0) {
       labelled_volume(x, y, z) = next_label;
       next_label++;
     }
   }
 
-  if(verbose) {
+  if(verbose != 0) {
     clog << program_name << ": assigned labels between " << first_label
          << " and " << next_label - 1 << "." << endl;
   }

@@ -51,7 +51,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 using std::clog;
 using std::endl;
 using carto::VolumeRef;
-using carto::verbose;
 using soma::AllocatorStrategy;
 using soma::AllocatorContext;
 
@@ -59,7 +58,7 @@ namespace
 {
 const int EXIT_USAGE_ERROR = 2;
 std::string program_name;
-}
+} // end of anonymous namespace
 
 int main(const int argc, const char **argv)
 {

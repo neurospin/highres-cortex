@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2017).
 Copyright CEA (2014).
 Copyright Université Paris XI (2014).
 
@@ -88,33 +89,10 @@ bool doit(aims::Process& proc_base,
   PropagateAlongFieldProcess &proc =
     dynamic_cast<PropagateAlongFieldProcess&>(proc_base);
 
-  bool fieldx_provided = !proc.fieldx_reader.fileName().empty();
-  bool fieldy_provided = !proc.fieldy_reader.fileName().empty();
-  bool fieldz_provided = !proc.fieldz_reader.fileName().empty();
-  bool grad_field_provided = !proc.grad_field_reader.fileName().empty();
-
   boost::shared_ptr<yl::VectorField3d> vector_field;
   bool success = true;
 
-  if(!grad_field_provided && !(fieldx_provided
-                               && fieldy_provided
-                               && fieldz_provided)) {
-    clog << program_name
-         << ": must provide either --grad-field or --field{x,y,z}"
-         << endl;
-    return EXIT_USAGE_ERROR;
-  }
-
-  if(grad_field_provided && (fieldx_provided
-                             || fieldy_provided
-                             || fieldz_provided)) {
-    clog << program_name
-         << ": must provide either --grad-field or --field{x,y,z}, not both"
-         << endl;
-    return EXIT_USAGE_ERROR;
-  }
-
-  if(grad_field_provided) {
+  if(!proc.grad_field_reader.fileName().empty()) {
     // --grad-field provided
     if(verbose) clog << program_name << ": reading field..." << endl;
     proc.grad_field_reader.setAllocatorContext(
@@ -125,7 +103,7 @@ bool doit(aims::Process& proc_base,
       clog << program_name << ": error reading file '"
            << proc.fieldx_reader.fileName()
            << "'specified as --grad-field, aborting" << endl;
-      return EXIT_FAILURE;
+      return false;
     }
     vector_field = boost::make_shared<yl::LinearlyInterpolatedScalarFieldGradient>
       (grad_field);
@@ -140,7 +118,7 @@ bool doit(aims::Process& proc_base,
       clog << program_name << ": error reading file '"
            << proc.fieldx_reader.fileName() << "'specified as --fieldx, aborting"
            << endl;
-      return EXIT_FAILURE;
+      return false;
     }
     proc.fieldy_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -149,7 +127,7 @@ bool doit(aims::Process& proc_base,
       clog << program_name << ": error reading file '"
            << proc.fieldy_reader.fileName() << "'specified as --fieldy, aborting"
            << endl;
-      return EXIT_FAILURE;
+      return false;
     }
     proc.fieldz_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
@@ -158,7 +136,7 @@ bool doit(aims::Process& proc_base,
       clog << program_name << ": error reading file '"
            << proc.fieldz_reader.fileName() << "'specified as --fieldz, aborting"
            << endl;
-      return EXIT_FAILURE;
+      return false;
     }
     if(fieldx.getSizeX() != fieldy.getSizeX() ||
        fieldx.getSizeX() != fieldz.getSizeX() ||
@@ -168,7 +146,7 @@ bool doit(aims::Process& proc_base,
        fieldx.getSizeZ() != fieldz.getSizeZ()) {
       clog << program_name << ": the sizes of the field volumes do not match"
            << endl;
-      return EXIT_FAILURE;
+      return false;
     }
     vector_field = boost::make_shared<yl::LinearlyInterpolatedVectorField3d>
       (fieldx, fieldy, fieldz);
@@ -231,7 +209,7 @@ bool doit(aims::Process& proc_base,
   if(target_label != proc.target_label) {
     clog << program_name << ": --target-label value is out of the range "
       "permitted by the label data type " << finder.dataType() << endl;
-    return EXIT_FAILURE;
+    return false;
   }
 
   // Initialize with null pointers
@@ -247,7 +225,7 @@ bool doit(aims::Process& proc_base,
     regions = propagator.propagate_regions(seeds, target_label);
   }
 
-  if(regions != 0) {
+  if(!regions.isNull()) {
     if(verbose) clog << program_name << ": writing output regions "
                      << proc.output_regions_filename << " as Volume of "
                      << finder.dataType() << "..." << endl;
@@ -255,14 +233,14 @@ bool doit(aims::Process& proc_base,
     success = writer.write(regions) && success;
   }
 
-  if(points != 0) {
+  if(!points.isNull()) {
     if(verbose) clog << program_name
                      << ": writing destination points " << endl;
     success = proc.output_points_writer.write(points) && success;
   }
 
-  return EXIT_SUCCESS;
-};
+  return true;
+}
 
 PropagateAlongFieldProcess::PropagateAlongFieldProcess()
   : target_label(0),
@@ -307,7 +285,7 @@ int main(const int argc, const char **argv)
                 "[default: 0]", true);
   {
     std::ostringstream help_str;
-    help_str << "move in steps this big (millimetres) [default: "
+    help_str << "size of the advection step (millimetres) [default: "
              << proc.step << "]";
     app.addOption(proc.step, "--step", help_str.str(), true);
   }
@@ -341,5 +319,30 @@ int main(const int argc, const char **argv)
     return EXIT_USAGE_ERROR;
   }
 
-  return proc.execute(seeds_filename);
+  bool fieldx_provided = !proc.fieldx_reader.fileName().empty();
+  bool fieldy_provided = !proc.fieldy_reader.fileName().empty();
+  bool fieldz_provided = !proc.fieldz_reader.fileName().empty();
+  bool grad_field_provided = !proc.grad_field_reader.fileName().empty();
+
+  if(!grad_field_provided && !(fieldx_provided
+                               && fieldy_provided
+                               && fieldz_provided)) {
+    clog << program_name
+         << ": must provide either --grad-field or --field{x,y,z}"
+         << endl;
+    return EXIT_USAGE_ERROR;
+  }
+
+  if(grad_field_provided && (fieldx_provided
+                             || fieldy_provided
+                             || fieldz_provided)) {
+    clog << program_name
+         << ": must provide either --grad-field or --field{x,y,z}, not both"
+         << endl;
+    return EXIT_USAGE_ERROR;
+  }
+
+  bool success = proc.execute(seeds_filename);
+
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

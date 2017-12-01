@@ -64,17 +64,30 @@ upwind_direction(float field_left,
 {
   if(field_right < field_left && field_right < field_centre) {
     return 1;
-  } else if(field_left < field_centre) {
-    return -1;
-  } else {
-    return 0;
   }
+  if(field_left < field_centre) {
+    return -1;
+  }
+  return 0;
 }
+
+/* depending on the compiler (gcc) version and standard (c++9x/ c++11),
+   isnan may be a template or a regular function. I have found no other way
+   than using a wrapping structure.
+   (see also: http://stackoverflow.com/questions/17574242/how-to-use-isnan-as-a-predicate-function-to-stdfind-if-c11)
+*/
+struct float_isnan
+{
+  inline bool operator ()( float x ) const
+  {
+    return std::isnan( x );
+  }
+};
 
 } // end of anonymous namespace
 
 carto::VolumeRef<float>
-yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
+yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
                     carto::VolumeRef<int16_t> domain,
                     const int16_t domain_label,
                     const int16_t origin_label,
@@ -93,8 +106,8 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     std::bind1st(std::not_equal_to<int16_t>(), domain_label)));
 
   assert(yl::xyz_min_border(upwind_field) >= 1);
-  assert(yl::check_border_values(upwind_field,
-                                 static_cast<bool (*)(float)>(std::isnan)));
+  // see above float_isnan struct for why not using std::isnan directly
+  assert(yl::check_border_values(upwind_field, float_isnan()));
 
   std::auto_ptr<aims::strel::Connectivity> connectivity(
     aims::strel::ConnectivityFactory::create("6"));
@@ -176,7 +189,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     dir = upwind_direction(upwind_field(x - 1, y, z),
                            upwind_field(x, y, z),
                            upwind_field(x + 1, y, z));
-    if(dir) {
+    if(dir != 0) {
       fx = (upwind_field(x, y, z) - upwind_field(x + dir, y, z)) * inv_voxsize_x;
       vx = solution(x + dir, y, z);
     } else {
@@ -187,7 +200,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     dir = upwind_direction(upwind_field(x, y - 1, z),
                            upwind_field(x, y, z),
                            upwind_field(x, y + 1, z));
-    if(dir) {
+    if(dir != 0) {
       fy = (upwind_field(x, y, z) - upwind_field(x, y + dir, z)) * inv_voxsize_y;
       vy = solution(x, y + dir, z);
     } else {
@@ -198,7 +211,7 @@ yl::upwind_distance(const carto::VolumeRef<float> upwind_field,
     dir = upwind_direction(upwind_field(x, y, z - 1),
                            upwind_field(x, y, z),
                            upwind_field(x, y, z + 1));
-    if(dir) {
+    if(dir != 0) {
       fz = (upwind_field(x, y, z) - upwind_field(x, y, z + dir)) * inv_voxsize_z;
       vz = solution(x, y, z + dir);
     } else {

@@ -57,7 +57,7 @@ class LaplaceSolver
                           " floating-point (non-integer) types");
 
 public:
-  LaplaceSolver(const carto::VolumeRef<int16_t>& classif);
+  explicit LaplaceSolver(const carto::VolumeRef<int16_t>& classif);
 
   /** Initialize the output volume to a reasonable value
    *
@@ -67,7 +67,7 @@ public:
 
   void SOR(Real absolute_precision,
            float typical_cortical_thickness);
-  void clamp_to_range(const Real min, const Real max);
+  void clamp_to_range(Real min, Real max);
   void eliminate_extrema();
 
   carto::VolumeRef<Real> solution() const;
@@ -88,6 +88,6 @@ private:
   int m_verbosity;
 };
 
-}
+} // namespace yl
 
 #endif // !defined(LAPLACE_SOLVER_HH_INCLUDED)
