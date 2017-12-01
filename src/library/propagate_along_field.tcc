@@ -154,11 +154,11 @@ internal_ascension(const Point3df &start_point,
     const float xp = current_point[0],
       yp = current_point[1], zp = current_point[2];
 
-    const int ix = static_cast<int>((xp * invsize_x) + 0.5f);
+    const int ix = lround(xp * invsize_x);
     if(ix < 0 || ix >= size_x) break;
-    const int iy = static_cast<int>((yp * invsize_y) + 0.5f);
+    const int iy = lround(yp * invsize_y);
     if(iy < 0 || iy >= size_y) break;
-    const int iz = static_cast<int>((zp * invsize_z) + 0.5f);
+    const int iz = lround(zp * invsize_z);
     if(iz < 0 || iz >= size_z) break;
 
     const Tlabel seed_value = seeds(ix, iy, iz);
@@ -272,11 +272,11 @@ visitor_ascension(const Point3df& start_point,
     const float xp = current_point[0],
       yp = current_point[1], zp = current_point[2];
 
-    const int ix = static_cast<int>((xp * invsize_x) + 0.5f);
+    const int ix = lround(xp * invsize_x);
     if(ix < 0 || ix >= size_x) break;
-    const int iy = static_cast<int>((yp * invsize_y) + 0.5f);
+    const int iy = lround(yp * invsize_y);
     if(iy < 0 || iy >= size_y) break;
-    const int iz = static_cast<int>((zp * invsize_z) + 0.5f);
+    const int iz = lround(zp * invsize_z);
     if(iz < 0 || iz >= size_z) break;
 
     const Tlabel seed_value = seeds(ix, iy, iz);

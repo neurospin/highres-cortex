@@ -126,9 +126,9 @@ public:
   void finished(const Point3df& start_point)
   {
     Point3d sp_int = Point3d(
-      lrint(start_point[0] / m_voxel_size[0]),
-      lrint(start_point[1] / m_voxel_size[1]),
-      lrint(start_point[2] / m_voxel_size[2]));
+      lround(start_point[0] / m_voxel_size[0]),
+      lround(start_point[1] / m_voxel_size[1]),
+      lround(start_point[2] / m_voxel_size[2]));
     m_volume_result(sp_int) = volume();
     m_surface_result(sp_int) = surface();
   }
@@ -215,9 +215,9 @@ public:
   void finished(const Point3df& start_point)
   {
     Point3d sp_int = Point3d(
-      lrint(start_point[0] / m_voxel_size[0]),
-      lrint(start_point[1] / m_voxel_size[1]),
-      lrint(start_point[2] / m_voxel_size[2]));
+      lround(start_point[0] / m_voxel_size[0]),
+      lround(start_point[1] / m_voxel_size[1]),
+      lround(start_point[2] / m_voxel_size[2]));
     m_length_result(sp_int) = length();
   }
 
@@ -288,13 +288,13 @@ public:
   void finished(const Point3df& start_point)
   {
     Point3d end_pos = Point3d(
-      lrint(m_previous_point[0] / m_voxel_size[0]),
-      lrint(m_previous_point[1] / m_voxel_size[1]),
-      lrint(m_previous_point[2] / m_voxel_size[2]));
+      lround(m_previous_point[0] / m_voxel_size[0]),
+      lround(m_previous_point[1] / m_voxel_size[1]),
+      lround(m_previous_point[2] / m_voxel_size[2]));
     Point3d pos = Point3d(
-      lrint(start_point[0] / m_voxel_size[0]),
-      lrint(start_point[1] / m_voxel_size[1]),
-      lrint(start_point[2] / m_voxel_size[2]));
+      lround(start_point[0] / m_voxel_size[0]),
+      lround(start_point[1] / m_voxel_size[1]),
+      lround(start_point[2] / m_voxel_size[2]));
     m_value_result(pos) = m_value_seed(end_pos);
   }
 
