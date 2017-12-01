@@ -45,13 +45,13 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <boost/shared_ptr.hpp>
 #include <boost/tuple/tuple.hpp>
 
+namespace
+{
+
 using carto::VolumeRef;
 using std::clog;
 using std::endl;
 using std::flush;
-
-namespace
-{
 
 template <typename Tlabel>
 struct SeedValueAscensionResult
@@ -205,7 +205,7 @@ internal_ascension(const Point3df &start_point,
 class ScalarFieldSumVisitor
 {
 public:
-  ScalarFieldSumVisitor(const boost::shared_ptr<yl::ScalarField>& field)
+  explicit ScalarFieldSumVisitor(const boost::shared_ptr<yl::ScalarField>& field)
     : m_field(field), m_sum(0.f) {};
 
   void init(const Point3df& /*start_point*/) {};
@@ -339,7 +339,7 @@ template <typename Tlabel>
 class SeedValueRecorder
 {
 public:
-  SeedValueRecorder(const VolumeRef<Tlabel>& seeds)
+  explicit SeedValueRecorder(const VolumeRef<Tlabel>& seeds)
     : m_seed_values(new carto::Volume<Tlabel>(*seeds)) {};
 
   void record(const int x, const int y, const int z,
@@ -358,7 +358,7 @@ template <typename Tlabel>
 class SeedValueAndPointRecorder
 {
 public:
-  SeedValueAndPointRecorder(const VolumeRef<Tlabel>& seeds)
+  explicit SeedValueAndPointRecorder(const VolumeRef<Tlabel>& seeds)
     : m_seed_values(new carto::Volume<Tlabel>(*seeds)),
       m_points(seeds.getSizeX(), seeds.getSizeY(), seeds.getSizeZ(), 3)
   {
@@ -387,10 +387,11 @@ private:
 
 } // end of anonymous namespace
 
+
 template<typename Tlabel>
-VolumeRef<Tlabel>
+carto::VolumeRef<Tlabel>
 yl::PropagateAlongField::
-propagate_regions(const VolumeRef<Tlabel> &seeds,
+propagate_regions(const carto::VolumeRef<Tlabel> &seeds,
                   const Tlabel target_label) const
 {
   SeedValueRecorder<Tlabel> result_recorder(seeds);
@@ -401,7 +402,7 @@ propagate_regions(const VolumeRef<Tlabel> &seeds,
 template<typename Tlabel>
 std::pair<carto::VolumeRef<Tlabel>, carto::VolumeRef<float> >
 yl::PropagateAlongField::
-propagate_regions_keeping_dests(const VolumeRef<Tlabel> &seeds,
+propagate_regions_keeping_dests(const carto::VolumeRef<Tlabel> &seeds,
                                 const Tlabel target_label) const
 {
   SeedValueAndPointRecorder<Tlabel> result_recorder(seeds);
@@ -412,7 +413,7 @@ propagate_regions_keeping_dests(const VolumeRef<Tlabel> &seeds,
 template<class ResultRecorder, typename Tlabel>
 void
 yl::PropagateAlongField::
-internal_propagation(const VolumeRef<Tlabel> &seeds,
+internal_propagation(const carto::VolumeRef<Tlabel> &seeds,
                      const Tlabel target_label,
                      ResultRecorder& result_recorder) const
 {
@@ -428,9 +429,9 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
   const float voxel_size_z = voxel_size[2];
 
   if(m_verbose) {
-    clog << "yl::PropagateAlongField::propagate_regions:\n"
-            "  maximum propagation distance: "
-         << std::abs(m_step * m_max_iter) << " mm." << endl;
+    std::clog << "yl::PropagateAlongField::propagate_regions:\n"
+                 "  maximum propagation distance: "
+              << std::abs(m_step * m_max_iter) << " mm." << std::endl;
   }
 
   unsigned int n_propagated = 0, n_dead_end = 0, n_lost = 0;
@@ -471,18 +472,18 @@ internal_propagation(const VolumeRef<Tlabel> &seeds,
 
     if(m_verbose) {
       #pragma omp critical(print_stderr)
-      clog << "\r  " << slices_done << " / "
-           << size_z << " slices processed. "
-           << n_propagated << " voxels propagated, "
-           << n_dead_end << " dead-end, "
-           << n_lost << " lost..." << flush;
+      std::clog << "\r  " << slices_done << " / "
+                << size_z << " slices processed. "
+                << n_propagated << " voxels propagated, "
+                << n_dead_end << " dead-end, "
+                << n_lost << " lost..." << std::flush;
     }
   }
 
   if(m_verbose) {
-    clog << "\nyl::PropagateAlongField::propagate_regions: "
-         << n_propagated << " propagated, "
-         << n_dead_end << " dead-end, "
-         << n_lost << " lost." << endl;
+    std::clog << "\nyl::PropagateAlongField::propagate_regions: "
+              << n_propagated << " propagated, "
+              << n_dead_end << " dead-end, "
+              << n_lost << " lost." << std::endl;
   }
 }

@@ -48,8 +48,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include "cortex.hh"
 
-using aims::AimsFastAllocationData;
-
 namespace
 {
 
@@ -103,7 +101,7 @@ float large_eigenvalue(const yl::MomentAccumulator& moments)
 {
   struct WorkspaceHolder
   {
-    WorkspaceHolder(gsl_eigen_symm_workspace* w_) : w(w_) {};
+    explicit WorkspaceHolder(gsl_eigen_symm_workspace* w_) : w(w_) {};
     ~WorkspaceHolder() {gsl_eigen_symm_free(w);};
     gsl_eigen_symm_workspace* const w;
   };
@@ -131,7 +129,7 @@ public:
       m_end_first(end_first),
       m_begin_second(begin_second) {}
 
-  ChainedIterator(const BaseIterator& begin)
+  explicit ChainedIterator(const BaseIterator& begin)
     : ChainedIterator::iterator_adaptor_(begin),
       m_end_first(),
       m_begin_second() {}
@@ -194,9 +192,6 @@ cache(const PointIterator& point_it_begin,
   std::size_t& region_size = cache.region_size();
   bool& touches_CSF = cache.touches_CSF();
   bool& touches_white = cache.touches_white();
-  region_size = 0;
-  touches_CSF = false;
-  touches_white = false;
 
   for(PointIterator point_it = point_it_begin;
       point_it != point_it_end;

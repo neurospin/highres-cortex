@@ -38,13 +38,11 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <iostream>
 
-using std::clog;
-using std::endl;
 
 namespace
 {
 int debug_output = 0;
-}
+}  // end of anonymous namespace
 
 template <class TVisitor>
 bool
@@ -52,6 +50,9 @@ yl::Advection::
 visitor_advection(TVisitor& visitor,
                   const Point3df& start_point) const
 {
+  using std::clog;
+  using std::endl;
+
   if(m_verbose >= 2) {
     clog << "yl::Advection::visitor_advection starting at "
          << start_point << endl;

@@ -128,10 +128,10 @@ std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
              const yl::ScalarField& divergence_field,
              const carto::VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
+             float max_advection_distance,
+             float step_size,
              const yl::ScalarField & domain_field,
-             const int verbosity=0,
+             int verbosity=0,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
                = carto::VolumeRef<int16_t>());
 
@@ -272,9 +272,9 @@ carto::VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<T> & value_seeds,
              const carto::VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const int verbosity,
+             float max_advection_distance,
+             float step_size,
+             int verbosity,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
               = carto::VolumeRef<int16_t>());
 
@@ -307,10 +307,10 @@ carto::VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<T> & value_seeds,
              const carto::VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
+             float max_advection_distance,
+             float step_size,
              const yl::ScalarField & domain_field,
-             const int verbosity=0,
+             int verbosity=0,
              const carto::VolumeRef<int16_t>& advect_seeds_domain
               = carto::VolumeRef<int16_t>());
 

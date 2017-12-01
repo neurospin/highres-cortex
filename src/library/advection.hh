@@ -48,7 +48,7 @@ namespace yl
 class Advection
 {
 public:
-  Advection(const VectorField3d& advection_field);
+  explicit Advection(const VectorField3d& advection_field);
   virtual ~Advection() {};
 
   /** Advect a visitor along a vector field

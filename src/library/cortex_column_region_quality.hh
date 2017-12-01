@@ -120,7 +120,13 @@ public:
   class Cache
   {
   public:
-    Cache() : m_CSF_moments(), m_white_moments() {};
+    Cache()
+      : m_CSF_moments(),
+        m_white_moments(),
+        m_region_size(0),
+        m_touches_CSF(false),
+        m_touches_white(false)
+    {};
     Cache(const MomentAccumulator& CSF_moments,
           const MomentAccumulator& white_moments,
           std::size_t region_size,

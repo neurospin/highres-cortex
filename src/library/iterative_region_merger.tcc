@@ -469,4 +469,4 @@ merge_worst_regions_iteratively()
   }
 }
 
-};
+}  // namespace yl

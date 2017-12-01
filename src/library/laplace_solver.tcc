@@ -108,7 +108,8 @@ LaplaceSolver(const carto::VolumeRef<int16_t>& classif)
     m_solution(classif->getSizeX(),
                classif->getSizeY(),
                classif->getSizeZ(),
-               1, s_border_width)
+               1, s_border_width),
+    m_verbosity(0)
 {
   m_solution->copyHeaderFrom(classif->header());
 }

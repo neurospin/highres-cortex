@@ -55,7 +55,7 @@ namespace yl
 class PropagateAlongField
 {
 public:
-  PropagateAlongField(const boost::shared_ptr<VectorField3d>& vector_field);
+  explicit PropagateAlongField(const boost::shared_ptr<VectorField3d>& vector_field);
   /** Provide the field as separate scalar components.
 
       The field will be linearly interpolated.
@@ -204,6 +204,6 @@ private:
                        ResultRecorder& result_recorder) const;
 };
 
-};
+} // namespace yl
 
 #endif // !defined(YL_PROPAGATE_ALONG_FIELD_HH)

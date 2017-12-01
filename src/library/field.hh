@@ -113,7 +113,7 @@ private:
 class LinearlyInterpolatedScalarFieldGradient : public VectorField3d
 {
 public:
-  LinearlyInterpolatedScalarFieldGradient(
+  explicit LinearlyInterpolatedScalarFieldGradient(
     const carto::VolumeRef<float>& scalar_field);
   virtual void evaluate(const Point3df& pos, Point3df& output) const;
 private:
@@ -130,7 +130,7 @@ private:
 class LinearlyInterpolatedScalarField : public ScalarField
 {
 public:
-  LinearlyInterpolatedScalarField(const carto::VolumeRef<float>& field_volume);
+  explicit LinearlyInterpolatedScalarField(const carto::VolumeRef<float>& field_volume);
 
   virtual float evaluate(const Point3df& pos) const;
 private:
@@ -145,7 +145,7 @@ private:
 class BooleanScalarField : public ScalarField
 {
 public:
-  BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume);
+  explicit BooleanScalarField(const carto::VolumeRef<int16_t>& field_volume);
 
   virtual float evaluate(const Point3df& pos) const;
 private:
@@ -153,6 +153,6 @@ private:
   Point3df m_voxel_size;
 };
 
-}
+}  // namespace yl
 
 #endif // !defined(YL_FIELD_HH_INCLUDED)
