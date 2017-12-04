@@ -598,8 +598,9 @@ advect(const yl::VectorField3d& advection_field,
   unsigned int n_success = 0, n_aborted = 0;
 
   TAdvection advection(advection_field, step_size);
-  advection.set_max_iter(size_t(std::ceil(max_advection_distance
-                                          / std::abs(step_size))));
+  advection.set_max_iter(
+    static_cast<size_t>(std::ceil(max_advection_distance
+                                  / std::abs(step_size))));
   advection.set_verbose(verbosity - 1);
 
   int slices_done = 0;
