@@ -1,0 +1,98 @@
+<pipeline>
+    <doc>
+        Compute equivolumetric depth
+    </doc>
+    <process name="laplace"
+             module="highres_cortex.capsul.processes.Laplacian"/>
+    <process name="sumcurvs"
+             module="highres_cortex.capsul.processes.IsoCurvature">
+      <set name="mode" value="'sum'"/>
+    </process>
+    <process name="sumcurvs_medfilt"
+             module="highres_cortex.capsul.processes.MedianFilter">
+      <set name="x_size" value="3"/>
+      <set name="y_size" value="3"/>
+      <set name="z_size" value="3"/>
+    </process>
+    <process name="binarize_cortex"
+             module="highres_cortex.capsul.processes.BinarizeCortex"/>
+    <process name="negate_step_size"
+             module="highres_cortex.capsul.processes.NegateFloat"/>
+    <process name="advect_toward_pial"
+             module="highres_cortex.capsul.processes.AdvectTubesAlongGradient">
+      <set name="domain_type" value="'interpolated'"/>
+    </process>
+    <process name="advect_toward_white"
+             module="highres_cortex.capsul.processes.AdvectTubesAlongGradient">
+      <set name="domain_type" value="'interpolated'"/>
+    </process>
+    <process name="total_tube_volume"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 + I2'"/>
+    </process>
+    <process name="pial_volume_fraction"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 / I2'"/>
+    </process>
+    <process name="merge_wm"
+             module="highres_cortex.capsul.processes.MergeImagesOneToOne">
+      <set name="label" value="200"/>
+      <set name="value" value="1"/>
+    </process>
+
+    <link source="verbosity" dest="laplace.verbosity"/>
+    <link source="laplace_precision" dest="laplace.precision"/>
+    <link source="laplace_typical_cortical_thickness"
+          dest="laplace.typical_cortical_thickness"/>
+
+    <link source="laplace.laplace_field" dest="sumcurvs.input_image"/>
+    <link source="verbosity" dest="sumcurvs.verbosity"/>
+    <link source="sumcurvs.output_image" dest="sumcurvs_medfilt.input_image"/>
+
+    <link source="classif" dest="binarize_cortex.classif"/>
+
+    <link source="advection_step_size" dest="negate_step_size.x"/>
+
+    <link source="binarize_cortex.output_image" dest="advect_toward_pial.domain"/>
+    <link source="laplace.laplace_field" dest="advect_toward_pial.grad_field"/>
+    <link source="sumcurvs_medfilt.output_image" dest="advect_toward_pial.divergence"/>
+    <link source="advection_step_size" dest="advect_toward_pial.step"/>
+    <link source="advection_max_dist" dest="advect_toward_pial.max_dist"/>
+    <link source="verbosity" dest="advect_toward_pial.verbosity"/>
+
+    <link source="binarize_cortex.output_image" dest="advect_toward_white.domain"/>
+    <link source="laplace.laplace_field" dest="advect_toward_white.grad_field"/>
+    <link source="sumcurvs_medfilt.output_image" dest="advect_toward_white.divergence"/>
+    <link source="negate_step_size.minus_x" dest="advect_toward_white.step"/>
+    <link source="advection_max_dist" dest="advect_toward_white.max_dist"/>
+    <link source="verbosity" dest="advect_toward_white.verbosity"/>
+
+    <link source="advect_toward_pial.output_volumes"
+          dest="total_tube_volume.input_image_1"/>
+    <link source="advect_toward_white.output_volumes"
+          dest="total_tube_volume.input_image_2"/>
+
+    <link source="advect_toward_pial.output_volumes"
+          dest="pial_volume_fraction.input_image_1"/>
+    <link source="total_tube_volume.output_image"
+          dest="pial_volume_fraction.input_image_2"/>
+
+    <link source="pial_volume_fraction.output_image" dest="merge_wm.input_image"/>
+    <link source="classif" dest="merge_wm.mask_image"/>
+    <link source="merge_wm.output_image" dest="equivolumetric_depth"/>
+
+    <gui>
+      <position name="inputs" x="-272" y="252"/>
+      <position name="laplace" x="-187" y="64"/>
+      <position name="sumcurvs" x="53" y="145"/>
+      <position name="sumcurvs_medfilt" x="232" y="155"/>
+      <position name="binarize_cortex" x="-30" y="715"/>
+      <position name="negate_step_size" x="-30" y="600"/>
+      <position name="advect_toward_pial" x="392" y="343"/>
+      <position name="advect_toward_white" x="392" y="627"/>
+      <position name="total_tube_volume" x="621" y="505"/>
+      <position name="pial_volume_fraction" x="693" y="657"/>
+      <position name="merge_wm" x="892" y="549"/>
+      <position name="outputs" x="1073" y="608"/>
+    </gui>
+</pipeline>
