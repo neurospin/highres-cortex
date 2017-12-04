@@ -273,13 +273,13 @@ int main(const int argc, const char **argv)
                 "- zero is the region of propagation,\n"
                 "- negative labels are forbidden regions.");
   app.addOption(proc.grad_field_reader, "--grad-field",
-                "use the gradient of this scalar field", true);
+                "scalar field whose gradient is to be advected along", true);
   app.addOption(proc.fieldx_reader, "--fieldx",
-                "x component of vector field", true);
+                "x component of vector field to advect along", true);
   app.addOption(proc.fieldy_reader, "--fieldy",
-                "y component of vector field", true);
+                "y component of vector field to advect along", true);
   app.addOption(proc.fieldz_reader, "--fieldz",
-                "z component of vector field", true);
+                "z component of vector field to advect along", true);
   app.addOption(proc.target_label, "--target-label",
                 "voxels having this label are used as starting points "
                 "[default: 0]", true);

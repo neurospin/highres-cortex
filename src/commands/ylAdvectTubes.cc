@@ -96,13 +96,13 @@ int main(const int argc, const char **argv)
                 "mask of the advection seeds domain: one inside, zero "
                 "outside - default: same as domain", true);
   app.addOption(grad_field_reader, "--grad-field",
-                "use the gradient of this scalar field", true);
+                "scalar field whose gradient is to be advected along", true);
   app.addOption(fieldx_reader, "--fieldx",
-                "x component of vector field", true);
+                "x component of vector field to advect along", true);
   app.addOption(fieldy_reader, "--fieldy",
-                "y component of vector field", true);
+                "y component of vector field to advect along", true);
   app.addOption(fieldz_reader, "--fieldz",
-                "z component of vector field", true);
+                "z component of vector field to advect along", true);
   app.addOption(divergence_field_reader, "--divergence",
                 "divergence of the normalized vector field");
   app.addOption(volume_output_writer, "--output-volumes",
