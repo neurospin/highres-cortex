@@ -92,7 +92,7 @@ class LinearlyInterpolatedScalarField;
         advect_seeds_domain);
       \endcode
  */
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 std::pair<carto::VolumeRef<float>, carto::VolumeRef<float> >
 advect_tubes(const yl::VectorField3d& advection_field,
              const yl::ScalarField& divergence_field,
@@ -177,7 +177,7 @@ advect_tubes(const yl::VectorField3d& advection_field,
         advect_seeds_domain);
       \endcode
  */
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 carto::VolumeRef<float>
 advect_euclidean(const yl::VectorField3d& advection_field,
                  const carto::VolumeRef<int16_t>& domain,
@@ -267,7 +267,7 @@ advect_euclidean(const yl::VectorField3d& advection_field,
         advect_seeds_domain);
       \endcode
  */
-template <typename T, class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <typename T, class TDomainField>
 carto::VolumeRef<T>
 advect_value(const yl::VectorField3d& advection_field,
              const carto::VolumeRef<T> & value_seeds,
@@ -357,7 +357,7 @@ advect_value(const yl::VectorField3d& advection_field,
         advect_seeds_domain);
       \endcode
  */
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 AimsSurface<2>
 advect_path(const yl::VectorField3d& advection_field,
             const carto::VolumeRef<int16_t>& domain,
@@ -405,7 +405,7 @@ advect_path(const yl::VectorField3d& advection_field,
 
 /** Build a ScalarField of the given type from an int16_t volume
  */
-template <class TDomainField=yl::LinearlyInterpolatedScalarField>
+template <class TDomainField>
 yl::ScalarField*
 create_domain_field(const carto::VolumeRef<int16_t>& domain);
 
