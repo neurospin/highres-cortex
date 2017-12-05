@@ -53,10 +53,6 @@ BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
 # No run-time dependency as we use header-only Boost libraries
 
 
-find_package(GSL REQUIRED)
-BRAINVISA_DEPENDENCY(DEV DEPENDS libgsl DEV)
-BRAINVISA_DEPENDENCY(RUN DEPENDS libgsl RUN)
-
 # OpenMP is optional
 find_package(OpenMP)
 # OPENMP_FOUND is never set ! Have to test something else

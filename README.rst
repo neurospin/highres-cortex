@@ -69,7 +69,7 @@ Step-by-step compilation
 
 You can compile this package as part of the BrainVISA_ source tree, which is based on CMake_ and uses a custom-made driver called ``bv_maker``.
 
-1. Install the dependencies. Under Ubuntu, the required packages are: ``subversion git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev libgsl0-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite``.
+1. Install the dependencies. Under Ubuntu, the required packages are: ``subversion git cmake make gcc g++ gfortran pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev zlib1g-dev libtiff-dev python2.7-dev python-sip-dev python-numpy python-six libqt4-sql-sqlite``.
 
 2. Bootstrap the ``bv_maker`` tool::
 
@@ -119,7 +119,6 @@ Dependencies
 ============
 
 - AIMS version 4.5 or later, an image processing library distributed as part of BrainVISA_.
-- GSL_ (GNU Scientific Library).
 - Boost_ version 1.49 or later.
 - Python_ version 2.6 or later.
 - CMake_ version 2.6 or later, with its extension ``brainvisa-cmake`` (distributed with BrainVISA_).
@@ -129,10 +128,15 @@ Dependencies
 Licence
 =======
 
-The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). Compiled code that links to the GPL-licensed GSL_ forms a derivative work thereof, and thus must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
+The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). This library contains code that is under the GNU LGPL licence (see `src/library/iterative_region_merger.tcc`_), as a result, compiled code must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
+
+External code used in this repository
+-------------------------------------
+
+- Code for numerical diagonalization of 3×3 matrices (`src/library/cortex_column_region_quality.tcc`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`.
+
 
 .. _BrainVISA: http://brainvisa.info/
-.. _GSL: http://www.gnu.org/software/gsl/
 .. _Boost: http://www.boost.org/
 .. _CMake: http://www.cmake.org/
 .. _Python: https://www.python.org/
