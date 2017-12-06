@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2017).
 Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
@@ -75,8 +76,8 @@ int main(const int argc, const char **argv)
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
-  aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
-  float step = 0.03f;
+  aims::Reader<VolumeRef<int16_t> > seeds_reader;
+  float step_size = 0.03f;
   float max_advection_distance = 6.f;
   aims::Writer<AimsTimeSurface<2, Void> > path_output_writer;
   string domain_type;
@@ -91,10 +92,10 @@ int main(const int argc, const char **argv)
 "Advect a line from each voxel, recording advection tracts in a wireframe mesh."
 );
   app.addOption(domain_reader, "--domain",
-                "mask of the calculation domain: one inside, zero outside");
-  app.addOption(advection_domain_reader, "--advect-domain",
-                "mask of the advection seeds domain: one inside, zero "
-                "outside - default: same as domain", true);
+                "mask of the advection domain: one inside, zero outside");
+  app.addOption(seeds_reader, "--seeds",
+                "mask of the advection seeds - default: same as domain", true);
+  app.alias("--advect-domain", "--seeds"); // backward compatibility
   app.addOption(grad_field_reader, "--grad-field",
                 "scalar field whose gradient is to be advected along", true);
   app.addOption(fieldx_reader, "--fieldx",
@@ -108,9 +109,10 @@ int main(const int argc, const char **argv)
   {
     std::ostringstream help_str;
     help_str << "size of the advection step (millimetres) [default: "
-             << step << "]";
-    app.addOption(step, "--step", help_str.str(), true);
+             << step_size << "]";
+    app.addOption(step_size, "--step-size", help_str.str(), true);
   }
+  app.alias("--step", "--step-size"); // backward compatibility
   {
     std::ostringstream help_str;
     help_str << "maximum advection distance (millimetres) [default: "
@@ -249,18 +251,20 @@ int main(const int argc, const char **argv)
     return EXIT_FAILURE;
   }
 
-  VolumeRef<int16_t> advection_domain_volume;
-  if( !advection_domain_reader.fileName().empty() )
+  VolumeRef<int16_t> seeds_volume;
+  if( !seeds_reader.fileName().empty() )
   {
-    if(verbose != 0) clog << program_name << ": reading advection domain volume..."
+    if(verbose != 0) clog << program_name << ": reading seeds volume..."
       << endl;
-    advection_domain_reader.setAllocatorContext(
+    seeds_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
-    if(!advection_domain_reader.read(advection_domain_volume))
+    if(!seeds_reader.read(seeds_volume))
     {
-      clog << program_name << ": cannot read advection domain volume" << endl;
+      clog << program_name << ": cannot read seeds volume" << endl;
       return EXIT_FAILURE;
     }
+  } else {
+    seeds_volume = domain_volume;
   }
 
   boost::shared_ptr<yl::ScalarField> domain_field;
@@ -277,10 +281,9 @@ int main(const int argc, const char **argv)
   }
 
   AimsSurface<2> result_path =
-    yl::advect_path(*advection_field, domain_volume,
-                    max_advection_distance, step,
-                    *domain_field, verbose,
-                    advection_domain_volume);
+    yl::advect_path(seeds_volume, *domain_field,
+                    *advection_field,
+                    max_advection_distance, step_size, verbose);
 
   AimsTimeSurface<2, Void> path_mesh;
   path_mesh[0] = result_path;
