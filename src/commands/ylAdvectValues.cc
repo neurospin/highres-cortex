@@ -130,7 +130,7 @@ bool AdvectValuesProcess::doit(Process & p, const string & filename, Finder& /*u
         advect.domain_volume));
   }
 
-  VolumeRef<float> result_values =
+  VolumeRef<T> result_values =
     yl::advect_value(advect.seeds_volume, *domain_field,
                      *advect.advection_field, values_seeds,
                      advect.max_advection_distance, advect.step_size, verbose);
