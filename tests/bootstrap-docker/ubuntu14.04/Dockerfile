@@ -8,3 +8,5 @@ RUN echo '. /root/brainvisa/build/bin/bv_env.sh /root/brainvisa/build' \
 
 # delete all the apt list files since they're big and get stale quickly
 RUN rm -rf /var/lib/apt/lists/*
+
+RUN cd /root/brainvisa/build && ctest -R highres_cortex
