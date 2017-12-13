@@ -11,9 +11,11 @@
 
 # Run the command passed as argument within a suitable environment
 
-# Paths specific to highres-cortex (needed for out-of-tree build)
-export PATH="@CMAKE_RUNTIME_OUTPUT_DIRECTORY@:$PATH"
-export LD_LIBRARY_PATH="@CMAKE_LIBRARY_OUTPUT_DIRECTORY@:$LD_LIBRARY_PATH"
-export PYTHONPATH="@CMAKE_BINARY_DIR@/python:$PYTHONPATH"
+if [ -z "$BRAINVISA_PACKAGE_INSTALL_PREFIX" ]; then
+  # Paths specific to highres-cortex (needed for out-of-tree build)
+  export PATH="@CMAKE_RUNTIME_OUTPUT_DIRECTORY@:$PATH"
+  export LD_LIBRARY_PATH="@CMAKE_LIBRARY_OUTPUT_DIRECTORY@:$LD_LIBRARY_PATH"
+  export PYTHONPATH="@CMAKE_BINARY_DIR@/python:$PYTHONPATH"
+fi
 
 "$@"
