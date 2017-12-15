@@ -9,8 +9,11 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# This script must be run from inside the tests/ directory
-test_dir=$PWD
+test_dir=$(dirname -- "$0")
+[ -f "$test_dir/run_all_scripts.sh" ] || {
+    echo "$0: cannot find the directory containing run_all_scripts.sh" >&2
+    exit 1
+}
 
 # Create a temporary directory, make sure that it will be deleted on exit
 tmpdir=
@@ -24,8 +27,6 @@ trap 'cleanup; trap - TERM EXIT; kill -TERM $$' TERM
 trap 'trap - QUIT EXIT; kill -QUIT $$' QUIT
 tmpdir=$(mktemp -d)
 
-
-export PYTHONPATH="$test_dir/../python:$PYTHONPATH"
 
 cd -- "$tmpdir"
 python -m highres_cortex.test.synthetic_data 5 3 0.3
