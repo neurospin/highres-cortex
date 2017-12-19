@@ -38,7 +38,7 @@ from highres_cortex.test.compare_with_reference import *
 c = ResultComparator(".")
 success = c.ensure_max_rms_errors([
     ("heat/heat.nii.gz", 0.021),
-    ("isovolume/pial-volume-fraction.nii.gz", 0.020),
+    ("isovolume/equivolumic_depth.nii.gz", 0.020),
     ("laplace-euclidean/pial-fraction.nii.gz", 0.017),
     ("laplace-euclidean/total-length.nii.gz", 0.150),
     ("upwind-euclidean/pial-fraction.nii.gz", 0.023),
