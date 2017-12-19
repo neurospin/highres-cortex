@@ -41,14 +41,14 @@ if [ "$ID" = ubuntu ] || [ "$ID_LIKE" = ubuntu ]; then
         packages="subversion ca-certificates git cmake make gcc g++ gfortran \
                   gcc-4.9 g++-4.9 gfortran-4.9 pkg-config libblitz0-dev \
                   libsigc++-2.0-dev libxml2-dev libqt4-dev libboost-dev \
-                  zlib1g-dev libgsl-dev python2.7-dev python-sip-dev \
+                  zlib1g-dev python2.7-dev python-sip-dev \
                   python-numpy python-six libqt4-sql-sqlite"
     elif [ "$VERSION_ID" = 14.04 ]; then
         # libqt4-sql-sqlite is not needed, but warnings show up when it is not
         # present
         packages="subversion ca-certificates git cmake make gcc g++ gfortran \
                   pkg-config libblitz0-dev libsigc++-2.0-dev libxml2-dev \
-                  libqt4-dev libboost-dev zlib1g-dev libgsl0-dev \
+                  libqt4-dev libboost-dev zlib1g-dev \
                   python2.7-dev python-sip-dev python-numpy python-six \
                   libqt4-sql-sqlite"
     fi

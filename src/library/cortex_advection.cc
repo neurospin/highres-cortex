@@ -64,8 +64,8 @@ class TubeAdvection : public yl::Advection::Visitor
 public:
   TubeAdvection(const yl::ScalarField& divergence_field,
                 const yl::ScalarField& domain,
-                VolumeRef<float> & volume_result,
-                VolumeRef<float> & surface_result,
+                VolumeRef<float>& volume_result,
+                VolumeRef<float>& surface_result,
                 const bool opposite_direction=false)
     : m_divergence_field(divergence_field),
       m_domain(domain),
@@ -443,7 +443,7 @@ class VisitorTraits<TubeAdvection>
 {
 public:
   typedef std::pair<VolumeRef<float>, VolumeRef<float> > ResultType;
-  typedef std::pair<const yl::ScalarField &, bool> InputType;
+  typedef std::pair<const yl::ScalarField *, bool> InputType;
 
   static ResultType init_result(const VolumeRef<int16_t>& result_like,
                                 const InputType& /*inputs*/)
@@ -465,7 +465,7 @@ public:
     const InputType& inputs,
     ResultType& result)
   {
-    return TubeAdvection(inputs.first, domain_field, result.first,
+    return TubeAdvection(*inputs.first, domain_field, result.first,
                          result.second, inputs.second);
   }
 };
@@ -566,39 +566,36 @@ public:
     particular attention to this when writing the advection result in the
     visitor's finished() method.
  */
-template <class TVisitor, class TAdvection=yl::ConstantStepAdvection>
+template <class TVisitor, class TAdvection>
 typename VisitorTraits<TVisitor>::ResultType
-advect(const yl::VectorField3d& advection_field,
-       const VolumeRef<int16_t>& domain,
+advect(const VolumeRef<int16_t>& seeds,
+       const yl::ScalarField& domain,
+       const yl::VectorField3d& advection_field,
        const float max_advection_distance,
        const float step_size,
        const int verbosity,
-       const typename VisitorTraits<TVisitor>::InputType & inputs,
-       const yl::ScalarField & domain_field,
-       const VolumeRef<int16_t>& advect_seeds_domain = VolumeRef<int16_t>())
+       const typename VisitorTraits<TVisitor>::InputType& visitor_inputs)
 {
   assert(max_advection_distance > 0);
 
-  const VolumeRef<int16_t> & advect_seeds_domain2
-    = advect_seeds_domain.getSizeX() <= 1 ? domain : advect_seeds_domain;
+  const int size_x = seeds.getSizeX();
+  const int size_y = seeds.getSizeY();
+  const int size_z = seeds.getSizeZ();
 
-  const int size_x = domain.getSizeX();
-  const int size_y = domain.getSizeY();
-  const int size_z = domain.getSizeZ();
-
-  const std::vector<float> voxel_size = domain->getVoxelSize();
+  const std::vector<float> voxel_size = seeds->getVoxelSize();
   const float voxel_size_x = voxel_size[0];
   const float voxel_size_y = voxel_size[1];
   const float voxel_size_z = voxel_size[2];
 
   typename VisitorTraits<TVisitor>::ResultType result
-    = VisitorTraits<TVisitor>::init_result(domain, inputs);
+    = VisitorTraits<TVisitor>::init_result(seeds, visitor_inputs);
 
   unsigned int n_success = 0, n_aborted = 0;
 
   TAdvection advection(advection_field, step_size);
-  advection.set_max_iter(std::ceil(max_advection_distance
-                                  / std::abs(step_size)));
+  advection.set_max_iter(
+    static_cast<size_t>(std::ceil(max_advection_distance
+                                  / std::abs(step_size))));
   advection.set_verbose(verbosity - 1);
 
   int slices_done = 0;
@@ -608,13 +605,13 @@ advect(const yl::VectorField3d& advection_field,
     for(int y = 0; y < size_y; ++y)
     for(int x = 0; x < size_x; ++x)
     {
-      if(advect_seeds_domain2(x, y, z)) {
+      if(seeds(x, y, z) != 0) {
         const Point3df point(x * voxel_size_x,
                              y * voxel_size_y,
                              z * voxel_size_z);
 
         TVisitor visitor
-          = VisitorTraits<TVisitor>::build_visitor(domain_field, inputs,
+          = VisitorTraits<TVisitor>::build_visitor(domain, visitor_inputs,
                                                    result);
         yl::Advection::Visitor& plain_visitor = visitor;
         const bool success = advection.visitor_advection(plain_visitor,
@@ -653,170 +650,68 @@ advect(const yl::VectorField3d& advection_field,
   return result;
 }
 
-
-template <class TVisitor, class TAdvection=yl::ConstantStepAdvection,
-          class TDomainField>
-inline typename VisitorTraits<TVisitor>::ResultType
-advect(const yl::VectorField3d& advection_field,
-       const VolumeRef<int16_t>& domain,
-       const float max_advection_distance,
-       const float step_size,
-       const int verbosity,
-       const typename VisitorTraits<TVisitor>::InputType & inputs,
-       const VolumeRef<int16_t>& advect_seeds_domain = VolumeRef<int16_t>())
-{
-  return advect<TVisitor, TAdvection>(
-    advection_field, domain, max_advection_distance, step_size,
-    verbosity, inputs,
-    DomainFieldTraits<TDomainField>::build_field(domain),
-    advect_seeds_domain);
-}
-
 } // end of anonymous namespace
 
 namespace yl
 {
 
-template <class TDomainField>
 std::pair<VolumeRef<float>, VolumeRef<float> >
-advect_tubes(const yl::VectorField3d& advection_field,
+advect_tubes(const VolumeRef<int16_t>& seeds,
+             const yl::ScalarField& domain,
+             const yl::VectorField3d& advection_field,
              const yl::ScalarField& divergence_field,
-             const VolumeRef<int16_t>& domain,
              const float max_advection_distance,
              const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain)
+             const int verbosity)
 {
-  bool opposite_direction = step_size < 0;
-  return advect<TubeAdvection, yl::ConstantStepAdvection, TDomainField>(
-    advection_field, domain,
-    max_advection_distance, step_size, verbosity,
-    std::pair<const yl::ScalarField&, bool>(
-      divergence_field, opposite_direction),
-    advect_seeds_domain);
-}
-
-std::pair<VolumeRef<float>, VolumeRef<float> >
-advect_tubes(const yl::VectorField3d& advection_field,
-             const yl::ScalarField& divergence_field,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const yl::ScalarField & domain_field,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain)
-{
-  bool opposite_direction = step_size < 0;
+  const std::pair<const yl::ScalarField*, bool> visitor_inputs(
+    &divergence_field, step_size < 0);
   return advect<TubeAdvection, yl::ConstantStepAdvection>(
-    advection_field, domain,
+    seeds, domain, advection_field,
     max_advection_distance, step_size, verbosity,
-    std::pair<const yl::ScalarField&, bool>(
-      divergence_field, opposite_direction),
-    domain_field, advect_seeds_domain);
-}
-
-
-template <class TDomainField>
-VolumeRef<float>
-advect_euclidean(const yl::VectorField3d& advection_field,
-                 const VolumeRef<int16_t>& domain,
-                 const float max_advection_distance,
-                 const float step_size,
-                 const int verbosity,
-                 const VolumeRef<int16_t>& advect_seeds_domain)
-{
-  return advect<EuclideanAdvection, yl::ConstantStepAdvection,
-                TDomainField>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity, Void(),
-    advect_seeds_domain);
+    visitor_inputs);
 }
 
 VolumeRef<float>
-advect_euclidean(const yl::VectorField3d& advection_field,
-                 const VolumeRef<int16_t>& domain,
+advect_euclidean(const VolumeRef<int16_t>& seeds,
+                 const yl::ScalarField& domain,
+                 const yl::VectorField3d& advection_field,
                  const float max_advection_distance,
                  const float step_size,
-                 const yl::ScalarField & domain_field,
-                 const int verbosity,
-                 const VolumeRef<int16_t>& advect_seeds_domain)
+                 const int verbosity)
 {
   return advect<EuclideanAdvection, yl::ConstantStepAdvection>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity, Void(),
-    domain_field, advect_seeds_domain);
-}
-
-template <typename T, class TDomainField>
-VolumeRef<T>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<T> & value_seeds,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain)
-{
-  return advect<ValueAdvection<T>, yl::ConstantStepAdvection,
-                TDomainField>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity, value_seeds,
-    advect_seeds_domain);
+    seeds, domain, advection_field,
+    max_advection_distance, step_size, verbosity, Void());
 }
 
 template <typename T>
 VolumeRef<T>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<T> & value_seeds,
-             const VolumeRef<int16_t>& domain,
+advect_value(const VolumeRef<int16_t>& seeds,
+             const yl::ScalarField& domain,
+             const yl::VectorField3d& advection_field,
+             const VolumeRef<T>& values,
              const float max_advection_distance,
              const float step_size,
-             const yl::ScalarField & domain_field,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain)
+             const int verbosity)
 {
   return advect<ValueAdvection<T>, yl::ConstantStepAdvection>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity, value_seeds,
-    domain_field, advect_seeds_domain);
+    seeds, domain, advection_field,
+    max_advection_distance, step_size, verbosity,
+    values);
 }
 
-
-template <class TDomainField>
 AimsSurface<2>
-advect_path(const yl::VectorField3d& advection_field,
-            const carto::VolumeRef<int16_t>& domain,
+advect_path(const carto::VolumeRef<int16_t>& seeds,
+            const yl::ScalarField& domain,
+            const yl::VectorField3d& advection_field,
             float max_advection_distance,
             float step_size,
-            int verbosity,
-            const carto::VolumeRef<int16_t>& advect_seeds_domain)
-{
-  return advect<PathAdvection, yl::ConstantStepAdvection, TDomainField>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity,
-    advect_seeds_domain);
-}
-
-
-AimsSurface<2>
-advect_path(const yl::VectorField3d& advection_field,
-            const carto::VolumeRef<int16_t>& domain,
-            float max_advection_distance,
-            float step_size,
-            const yl::ScalarField & domain_field,
-            int verbosity,
-            const carto::VolumeRef<int16_t>& advect_seeds_domain)
+            int verbosity)
 {
   return advect<PathAdvection, yl::ConstantStepAdvection>(
-    advection_field, domain,
-    max_advection_distance,
-    step_size, verbosity, Void(),
-    domain_field, advect_seeds_domain);
+    seeds, domain, advection_field,
+    max_advection_distance, step_size, verbosity, Void());
 }
 
 
@@ -831,69 +726,30 @@ create_domain_field(const carto::VolumeRef<int16_t>& domain)
 
 template
 VolumeRef<int16_t>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<int16_t> & value_seeds,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
-
-template
-VolumeRef<int16_t>
-advect_value<int16_t, yl::BooleanScalarField>(
+advect_value<int16_t>(
+             const VolumeRef<int16_t>& seeds,
+             const yl::ScalarField& domain,
              const yl::VectorField3d& advection_field,
-             const VolumeRef<int16_t> & value_seeds,
-             const VolumeRef<int16_t>& domain,
+             const VolumeRef<int16_t>& values,
              const float max_advection_distance,
              const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
-template
-VolumeRef<int16_t>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<int16_t> & value_seeds,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const yl::ScalarField & domain_field,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
+             const int verbosity);
 
 template
 VolumeRef<float>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<float> & value_seeds,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
-
-template
-VolumeRef<float>
-advect_value<float, yl::BooleanScalarField>(
+advect_value<float>(
+             const VolumeRef<int16_t>& seeds,
+             const yl::ScalarField& domain,
              const yl::VectorField3d& advection_field,
-             const VolumeRef<float> & value_seeds,
-             const VolumeRef<int16_t>& domain,
+             const VolumeRef<float>& value_seeds,
              const float max_advection_distance,
              const float step_size,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
-template
-VolumeRef<float>
-advect_value(const yl::VectorField3d& advection_field,
-             const VolumeRef<float> & value_seeds,
-             const VolumeRef<int16_t>& domain,
-             const float max_advection_distance,
-             const float step_size,
-             const yl::ScalarField & domain_field,
-             const int verbosity,
-             const VolumeRef<int16_t>& advect_seeds_domain);
+             const int verbosity);
 
 template
 yl::ScalarField*
-create_domain_field(const carto::VolumeRef<int16_t>& domain);
+create_domain_field<yl::LinearlyInterpolatedScalarField>(
+  const carto::VolumeRef<int16_t>& domain);
 
 template
 yl::ScalarField*
