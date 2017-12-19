@@ -39,29 +39,35 @@
 
 import capsul.api
 import capsul.process.xml
-from traits.api import Enum, File, Float, Int, Str, Undefined
+from traits.api import Bool, Enum, File, Float, Int, Str, Undefined
+
+
+VOLUME_EXTENSIONS = ['.nii.gz', '.vimg', '.vinfo', '.vhdr', '.img', '.hdr',
+                     '.v', '.i', '.mnc', '.mnc.gz', '.nii', '.jpg', '.gif',
+                     '.png', '.mng', '.bmp', '.pbm', '.pgm', '.ppm', '.xbm',
+                     '.xpm', '.tiff', '.tif', '.ima', '.dim', '']
 
 
 class Laplacian(capsul.api.Process):
     """Solve the Laplacian model in the cortex"""
 
     classif = File(
-        Undefined, output=False,
-        doc="classification image of the cortex (100 inside, 0 in CSF, "
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
     precision = Float(
         0.001, output=False, optional=True,
-        doc="desired maximum relative error in first-order finite differences")
+        desc="target maximum relative error in first-order finite differences")
     typical_cortical_thickness = Float(
         3, output=False, optional=True,
-        doc="typical thickness of the cortex (mm), used for accelerating "
+        desc="typical thickness of the cortex (mm), used for accelerating "
         "convergence")
-    verbosity = Int(1, output=False, optional=True, doc="Verbosity level")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     laplace_field = File(
-        Undefined, output=True,
-        doc="output pseudo-temperature field (from 0 in CSF to 1 in the white "
-        "matter)"
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output pseudo-temperature field (from 0 in CSF to 1 in the "
+        "white matter)"
     )
 
     def get_commandline(self):
@@ -79,25 +85,24 @@ class IsoCurvature(capsul.api.Process):
     """Compute the curvature of isosurfaces"""
 
     input_image = File(
-        Undefined, output=False,
-        doc="input image volume (scalar field)")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image volume (scalar field)")
     # modes mean, geom, pri1, pri2 are currently unimplemented
     mode = Enum(
         "sum", values=("sum",), output=False, optional=True,
-        doc="type of curvature to compute")
-    verbosity = Int(1, output=False, optional=True,
-                    doc="Verbosity level")
+        desc="type of curvature to compute")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     output_image = File(
-        Undefined, output=True,
-        doc="output image volume containing the curvature of the isosurfaces "
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output image volume containing the curvature of the isosurfaces "
         "of the input field"
     )
 
     def get_commandline(self):
         return [
             "ylIsoCurvature",
-            "--input", self.output_image,
+            "--input", self.input_image,
             "--mode", self.mode,
             "--output", self.output_image,
             "--verbose", str(self.verbosity)]
@@ -107,27 +112,24 @@ class MedianFilter(capsul.api.Process):
     """Median filter smoothing"""
 
     input_image = File(
-        Undefined, output=False,
-        doc="input image")
-    x_size = Int(3, output=False, optional=True,
-                 doc="X size of the filter mask")
-    y_size = Int(3, output=False, optional=True,
-                 doc="Y size of the filter mask")
-    z_size = Int(3, output=False, optional=True,
-                 doc="Z size of the filter mask")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image")
+    x_size = Int(3, output=False, optional=True, desc="X size of the filter mask")
+    y_size = Int(3, output=False, optional=True, desc="Y size of the filter mask")
+    z_size = Int(3, output=False, optional=True, desc="Z size of the filter mask")
 
     output_image = File(
-        Undefined, output=True,
-        doc="median-filtered image"
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="median-filtered image"
     )
 
     def get_commandline(self):
         return [
             "AimsMedianSmoothing",
             "--input", self.input_image,
-            "--dx", str(self.size_x),
-            "--dy", str(self.size_y),
-            "--dz", str(self.size_z),
+            "--dx", str(self.x_size),
+            "--dy", str(self.y_size),
+            "--dz", str(self.z_size),
             "--output", self.output_image]
 
 
@@ -135,13 +137,13 @@ class BinarizeCortex(capsul.api.Process):
     """Extract a binary image (0/1) of the cortex"""
 
     classif = File(
-        Undefined, output=False,
-        doc="classification image of the cortex (100 inside, 0 in CSF, "
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
 
     output_image = File(
-        Undefined, output=True,
-        doc="binary image of the cortex (1 in the cortex, 0 elsewhere)"
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="binary image of the cortex (1 in the cortex, 0 elsewhere)"
     )
 
     def get_commandline(self):
@@ -151,65 +153,72 @@ class BinarizeCortex(capsul.api.Process):
             "--output", self.output_image]
 
 
-@capsul.process.xml.xml_process("""
-<process capsul_xml="2.0">
-    <input name="x" type="float"
-           doc="Floating-point number (x) to be negated"/>
-    <return name="minus_x" type="float" doc="Negated number (-x)"/>
-</process>
-""")
-def NegateFloat(x):
-    return -x
-
-
 class AdvectTubesAlongGradient(capsul.api.Process):
     """Advect a tube from each voxel, return its volume and end surface."""
 
     domain = File(
-        Undefined, output=False,
-        doc="mask of the calculation domain: one inside, zero outside")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="mask of the calculation domain: one inside, zero outside")
     grad_field = File(
-        Undefined, output=False,
-        doc="scalar field whose gradient is to be advected along")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="scalar field whose gradient is to be advected along")
     divergence = File(
-        Undefined, output=False,
-        doc="divergence of the normalized vector field")
-    step = Float(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="divergence of the normalized vector field")
+    step_size = Float(
         Undefined, output=False, default=0.03,
-        doc="size of the advection step (millimetres)")
+        desc="size of the advection step (millimetres)")
+    upfield = Bool(
+        False, optional=True,
+        desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
         Undefined, output=False, default=6,
-        doc="maximum advection distance (millimetres)")
+        desc="maximum advection distance (millimetres)")
     domain_type = Enum(
         "interpolated", values=("boolean", "interpolated"), output=False,
-        doc="interpolation type for the domain")
-    verbosity = Int(1, output=False, optional=True,
-                    doc="Verbosity level")
+        desc="interpolation type for the domain")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     output_volumes = File(
-        Undefined, output=True,
-        doc="output volume containing the tubes' volume")
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output volume containing the tubes' volume")
     output_surfaces = File(
-        Undefined, output=True,
-        doc="output volume containing the tubes' end surface")
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output volume containing the tubes' end surface")
+
+    def get_commandline(self):
+        command_step_size = ((-self.step_size) if self. upfield
+                             else self.step_size)
+        args = [
+            "ylAdvectTubes",
+            "--domain", self.domain,
+            "--grad-field", self.grad_field,
+            "--divergence", self.divergence,
+            "--step-size", repr(command_step_size),
+            "--max-dist", repr(self.max_dist),
+            "--domain-type", self.domain_type,
+            "--verbose", str(self.verbosity),
+            "--output-volumes", self.output_volumes,
+            "--output-surfaces", self.output_surfaces]
+        return args
 
 
 class ImageArithmetic2Inputs(capsul.api.Process):
     """Compute arithmetic from 2 input images"""
 
     input_image_1 = File(
-        Undefined, output=False,
-        doc="input image I1")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image I1")
     input_image_2 = File(
-        Undefined, output=False,
-        doc="input image I2")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image I2")
     formula = Str(
         Undefined, output=False,
-        doc="arithmetic formula referring to I1 and I2")
+        desc="arithmetic formula referring to I1 and I2")
 
     output_image = File(
-        Undefined, output=True,
-        doc="result of the arithmetic"
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="result of the arithmetic"
     )
 
     def get_commandline(self):
@@ -224,21 +233,21 @@ class MergeImagesOneToOne(capsul.api.Process):
     """Merge values into an image using a mask image."""
 
     input_image = File(
-        Undefined, output=False,
-        doc="input image")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image")
     mask_image = File(
-        Undefined, output=False,
-        doc="mask image (must have an integer voxel type)")
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="mask image (must have an integer voxel type)")
     label = Int(
         Undefined, output=False,
-        doc="only label of the mask image to take into account")
+        desc="only label of the mask image to take into account")
     value = Float(
         Undefined, output=False,
-        doc="replacement value")
+        desc="replacement value")
 
     output_image = File(
-        Undefined, output=True,
-        doc="output image"
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output image"
     )
 
     def get_commandline(self):
@@ -247,5 +256,14 @@ class MergeImagesOneToOne(capsul.api.Process):
             "-l", str(self.label),
             "-v", repr(self.value),
             "-i", self.input_image,
-            "-M", self.merge_source_image,
+            "-M", self.mask_image,
             "-o", self.output_image]
+
+class VolumeSink(capsul.api.Process):
+    """Use this process to ignore a mandatory output."""
+
+    file = File(Undefined, allowed_extensions=VOLUME_EXTENSIONS,
+                desc="Volume file to be ignored")
+
+    def _run_process(self):
+        pass
