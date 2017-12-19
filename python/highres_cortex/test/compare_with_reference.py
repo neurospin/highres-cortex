@@ -238,7 +238,7 @@ class ResultComparator:
             path(result_file), path(reference_file),
             self._classif)
 
-        rms_error = math.sqrt((diff ** 2).mean())
+        rms_error = math.sqrt(numpy.square(diff).mean())
         bias = diff.mean()
 
         return (rms_error, bias)
