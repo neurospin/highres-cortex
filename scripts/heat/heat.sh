@@ -49,4 +49,5 @@ ylIsoCurvature --verbose --mode sum \
 # which are due to the discontinuity of the second-order derivative. This
 # significantly improves the precision (RMS error) of the curvature map, and of
 # the derived equivolumetric depth map.
-AimsMedianSmoothing -i sumcurvs.nii.gz -o heat_div_gradn.nii.gz
+AimsRemoveNaN -np --value 0 -i sumcurvs.nii.gz -o sumcurvs_nonan.nii.gz
+AimsMedianSmoothing -i sumcurvs_nonan.nii.gz -o heat_div_gradn.nii.gz

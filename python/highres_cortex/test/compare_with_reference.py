@@ -100,6 +100,8 @@ class ResultComparator:
             "reference_euclidean.nii.gz",
         os.path.join("isovolume", "pial-volume-fraction.nii.gz"):
             "reference_equivolumic.nii.gz",
+        os.path.join("isovolume", "equivolumic_depth.nii.gz"):
+            "reference_equivolumic.nii.gz",
         os.path.join("upwind-euclidean", "total-length.nii.gz"):
             "reference_thickness.nii.gz",
         os.path.join("upwind-euclidean", "pial-fraction.nii.gz"):
@@ -238,7 +240,7 @@ class ResultComparator:
             path(result_file), path(reference_file),
             self._classif)
 
-        rms_error = math.sqrt((diff ** 2).mean())
+        rms_error = math.sqrt(numpy.square(diff).mean())
         bias = diff.mean()
 
         return (rms_error, bias)
