@@ -108,6 +108,36 @@ class IsoCurvature(capsul.api.Process):
             "--verbose", str(self.verbosity)]
 
 
+class RemoveNaN(capsul.api.Process):
+    """Remove NaN values from an image"""
+
+    input_image = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image")
+    value = Float(
+        0, output=False, optional=True,
+        desc="replacement value")
+    percentage = Bool(
+        True, output=False, optional=True,
+        desc="interpret value as a percentage of the image intensity range")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+
+    output_image = File(
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output image"
+    )
+
+    def get_commandline(self):
+        np_option = [] if self.percentage else ["-np"]
+        return [
+            "AimsRemoveNaN",
+            "-i", self.input_image
+        ] + np_option + [
+            "--value", self.value,
+            "-o", self.output_image,
+            "--verbose", str(self.verbosity)]
+
+
 class MedianFilter(capsul.api.Process):
     """Median filter smoothing"""
 

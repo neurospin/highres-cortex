@@ -8,6 +8,11 @@
              module="highres_cortex.capsul.processes.IsoCurvature">
       <set name="mode" value="'sum'"/>
     </process>
+    <process name="sumcurvs_remove_nan"
+             module="highres_cortex.capsul.processes.RemoveNaN">
+      <set name="value" value="0"/>
+      <set name="percentage" value="False"/>
+    </process>
     <process name="sumcurvs_medfilt"
              module="highres_cortex.capsul.processes.MedianFilter">
       <set name="x_size" value="3"/>
@@ -50,7 +55,12 @@
 
     <link source="laplace.laplace_field" dest="sumcurvs.input_image"/>
     <link source="verbosity" dest="sumcurvs.verbosity"/>
-    <link source="sumcurvs.output_image" dest="sumcurvs_medfilt.input_image"/>
+
+    <link source="sumcurvs.output_image"
+          dest="sumcurvs_remove_nan.input_image"/>
+
+    <link source="sumcurvs_remove_nan.output_image"
+          dest="sumcurvs_medfilt.input_image"/>
 
     <link source="classif" dest="binarize_cortex.classif"/>
 
@@ -87,10 +97,11 @@
     <link source="merge_wm.output_image" dest="equivolumetric_depth"/>
 
     <gui>
-      <position name="inputs" x="-272" y="252"/>
-      <position name="laplace" x="-187" y="64"/>
+      <position name="inputs" x="-196" y="459"/>
+      <position name="laplace" x="-195" y="146"/>
       <position name="sumcurvs" x="53" y="145"/>
-      <position name="sumcurvs_medfilt" x="232" y="155"/>
+      <position name="sumcurvs_remove_nan" x="232" y="155"/>
+      <position name="sumcurvs_medfilt" x="465" y="155"/>
       <position name="binarize_cortex" x="-30" y="715"/>
       <position name="advect_toward_pial" x="392" y="343"/>
       <position name="advect_toward_white" x="392" y="650"/>
