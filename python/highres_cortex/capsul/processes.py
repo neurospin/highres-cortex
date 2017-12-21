@@ -196,13 +196,13 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
         desc="divergence of the normalized vector field")
     step_size = Float(
-        Undefined, output=False, default=0.03,
+        0.03, output=False, optional=True,
         desc="size of the advection step (millimetres)")
     upfield = Bool(
         False, optional=True,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
-        Undefined, output=False, default=6,
+        6, output=False, optional=True,
         desc="maximum advection distance (millimetres)")
     domain_type = Enum(
         "interpolated", values=("boolean", "interpolated"), output=False,
@@ -243,13 +243,13 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
         doc="scalar field whose gradient is to be advected along")
     step_size = Float(
-        Undefined, output=False, default=0.03,
+        0.03, output=False, optional=True,
         doc="size of the advection step (millimetres)")
     upfield = Bool(
         False, optional=True,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
-        Undefined, output=False, default=6,
+        6, output=False, optional=True,
         doc="maximum advection distance (millimetres)")
     domain_type = Enum(
         "interpolated", values=("boolean", "interpolated"), output=False,
