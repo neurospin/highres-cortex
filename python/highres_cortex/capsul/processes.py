@@ -133,7 +133,7 @@ class RemoveNaN(capsul.api.Process):
             "AimsRemoveNaN",
             "-i", self.input_image
         ] + np_option + [
-            "--value", self.value,
+            "--value", repr(self.value),
             "-o", self.output_image,
             "--verbose", str(self.verbosity)]
 
