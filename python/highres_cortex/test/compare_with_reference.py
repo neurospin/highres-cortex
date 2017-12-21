@@ -125,6 +125,7 @@ class ResultComparator:
         os.path.join("laplace-euclidean", "total-length.nii.gz"): "mm",
         os.path.join("laplace-euclidean", "pial-fraction.nii.gz"): "%",
         os.path.join("isovolume", "pial-volume-fraction.nii.gz"): "%",
+        os.path.join("isovolume", "equivolumic_depth.nii.gz"): "%",
         os.path.join("upwind-euclidean", "total-length.nii.gz"): "mm",
         os.path.join("upwind-euclidean", "pial-fraction.nii.gz"): "%",
         os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"): "%",
@@ -200,7 +201,7 @@ class ResultComparator:
                                value_range=(0, 1), ax=ax)
 
         ax = fig.add_subplot(num_lines, 4, 4)
-        self.scatter_plot_file(os.path.join("isovolume", "pial-volume-fraction.nii.gz"),
+        self.scatter_plot_file(os.path.join("isovolume", "equivolumic_depth.nii.gz"),
                                value_range=(0, 1), ax=ax)
 
         ax = fig.add_subplot(num_lines, 4, 8)
