@@ -217,7 +217,7 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         desc="output volume containing the tubes' end surface")
 
     def get_commandline(self):
-        command_step_size = ((-self.step_size) if self. upfield
+        command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
         args = [
             "ylAdvectTubes",
@@ -230,6 +230,48 @@ class AdvectTubesAlongGradient(capsul.api.Process):
             "--verbose", str(self.verbosity),
             "--output-volumes", self.output_volumes,
             "--output-surfaces", self.output_surfaces]
+        return args
+
+
+class EuclideanAdvectionAlongGradient(capsul.api.Process):
+    """Measure the Euclidean length of an advection path."""
+
+    domain = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="mask of the calculation domain: one inside, zero outside")
+    grad_field = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is to be advected along")
+    step_size = Float(
+        Undefined, output=False, default=0.03,
+        doc="size of the advection step (millimetres)")
+    upfield = Bool(
+        False, optional=True,
+        desc="Direction of advection (upfield if True, downfield if False)")
+    max_dist = Float(
+        Undefined, output=False, default=6,
+        doc="maximum advection distance (millimetres)")
+    domain_type = Enum(
+        "interpolated", values=("boolean", "interpolated"), output=False,
+        doc="interpolation type for the domain")
+    verbosity = Int(1, output=False, optional=True, doc="Verbosity level")
+
+    output_length = File(
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="output volume containing the length of the advection path")
+
+    def get_commandline(self):
+        command_step_size = ((-self.step_size) if self.upfield
+                             else self.step_size)
+        args = [
+            "ylAdvectEuclidean",
+            "--domain", self.domain,
+            "--grad-field", self.grad_field,
+            "--step-size", repr(command_step_size),
+            "--max-dist", repr(self.max_dist),
+            "--domain-type", self.domain_type,
+            "--verbose", str(self.verbosity),
+            "--output-length", self.output_length]
         return args
 
 
