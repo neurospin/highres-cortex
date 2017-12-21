@@ -24,12 +24,12 @@
     <process name="advect_toward_pial"
              module="highres_cortex.capsul.processes.AdvectTubesAlongGradient">
       <set name="domain_type" value="'interpolated'"/>
-      <set name="upfield" value="False"/>
+      <set name="upfield" value="True"/>
     </process>
     <process name="advect_toward_white"
              module="highres_cortex.capsul.processes.AdvectTubesAlongGradient">
       <set name="domain_type" value="'interpolated'"/>
-      <set name="upfield" value="True"/>
+      <set name="upfield" value="False"/>
     </process>
     <process name="sink1" module="highres_cortex.capsul.processes.VolumeSink"/>
     <process name="sink2" module="highres_cortex.capsul.processes.VolumeSink"/>
