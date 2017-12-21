@@ -4,20 +4,8 @@
     </doc>
     <process name="laplace"
              module="highres_cortex.capsul.processes.Laplacian"/>
-    <process name="sumcurvs"
-             module="highres_cortex.capsul.processes.IsoCurvature">
-      <set name="mode" value="'sum'"/>
-    </process>
-    <process name="sumcurvs_remove_nan"
-             module="highres_cortex.capsul.processes.RemoveNaN">
-      <set name="value" value="0"/>
-      <set name="percentage" value="False"/>
-    </process>
-    <process name="sumcurvs_medfilt"
-             module="highres_cortex.capsul.processes.MedianFilter">
-      <set name="x_size" value="3"/>
-      <set name="y_size" value="3"/>
-      <set name="z_size" value="3"/>
+    <process name="filtered_sumcurvs"
+             module="highres_cortex.capsul.filtered_sumcurvs">
     </process>
     <process name="binarize_cortex"
              module="highres_cortex.capsul.processes.BinarizeCortex"/>
@@ -53,20 +41,14 @@
     <link source="laplace_typical_cortical_thickness"
           dest="laplace.typical_cortical_thickness"/>
 
-    <link source="laplace.laplace_field" dest="sumcurvs.input_image"/>
-    <link source="verbosity" dest="sumcurvs.verbosity"/>
-
-    <link source="sumcurvs.output_image"
-          dest="sumcurvs_remove_nan.input_image"/>
-
-    <link source="sumcurvs_remove_nan.output_image"
-          dest="sumcurvs_medfilt.input_image"/>
+    <link source="laplace.laplace_field" dest="filtered_sumcurvs.input"/>
+    <link source="verbosity" dest="filtered_sumcurvs.verbosity"/>
 
     <link source="classif" dest="binarize_cortex.classif"/>
 
     <link source="binarize_cortex.output_image" dest="advect_toward_pial.domain"/>
     <link source="laplace.laplace_field" dest="advect_toward_pial.grad_field"/>
-    <link source="sumcurvs_medfilt.output_image" dest="advect_toward_pial.divergence"/>
+    <link source="filtered_sumcurvs.output" dest="advect_toward_pial.divergence"/>
     <link source="advection_step_size" dest="advect_toward_pial.step_size"/>
     <link source="advection_max_dist" dest="advect_toward_pial.max_dist"/>
     <link source="verbosity" dest="advect_toward_pial.verbosity"/>
@@ -75,7 +57,8 @@
 
     <link source="binarize_cortex.output_image" dest="advect_toward_white.domain"/>
     <link source="laplace.laplace_field" dest="advect_toward_white.grad_field"/>
-    <link source="sumcurvs_medfilt.output_image" dest="advect_toward_white.divergence"/>
+    <link source="filtered_sumcurvs.output"
+          dest="advect_toward_white.divergence"/>
     <link source="advection_step_size" dest="advect_toward_white.step_size"/>
     <link source="advection_max_dist" dest="advect_toward_white.max_dist"/>
     <link source="verbosity" dest="advect_toward_white.verbosity"/>
@@ -98,10 +81,8 @@
 
     <gui>
       <position name="inputs" x="-196" y="459"/>
-      <position name="laplace" x="-195" y="146"/>
-      <position name="sumcurvs" x="53" y="145"/>
-      <position name="sumcurvs_remove_nan" x="232" y="155"/>
-      <position name="sumcurvs_medfilt" x="465" y="155"/>
+      <position name="laplace" x="-84" y="275"/>
+      <position name="filtered_sumcurvs" x="158" y="274"/>
       <position name="binarize_cortex" x="-30" y="715"/>
       <position name="advect_toward_pial" x="392" y="343"/>
       <position name="advect_toward_white" x="392" y="650"/>

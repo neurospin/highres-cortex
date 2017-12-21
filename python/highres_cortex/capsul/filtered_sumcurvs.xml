@@ -1,0 +1,39 @@
+<pipeline>
+    <doc>
+        Compute the filtered sum of principal curvatures of isophote surfaces
+    </doc>
+    <process name="sumcurvs"
+             module="highres_cortex.capsul.processes.IsoCurvature">
+      <set name="mode" value="'sum'"/>
+    </process>
+    <process name="remove_nan"
+             module="highres_cortex.capsul.processes.RemoveNaN">
+      <set name="value" value="0"/>
+      <set name="percentage" value="False"/>
+    </process>
+    <process name="medfilt"
+             module="highres_cortex.capsul.processes.MedianFilter">
+      <set name="x_size" value="3"/>
+      <set name="y_size" value="3"/>
+      <set name="z_size" value="3"/>
+    </process>
+
+
+    <link source="input" dest="sumcurvs.input_image"/>
+    <link source="verbosity" dest="sumcurvs.verbosity"/>
+
+    <link source="sumcurvs.output_image" dest="remove_nan.input_image"/>
+
+    <link source="remove_nan.output_image" dest="medfilt.input_image"/>
+
+    <link source="medfilt.output_image" dest="output"/>
+
+
+    <gui>
+      <position name="inputs" x="-185" y="426"/>
+      <position name="sumcurvs" x="-6" y="426"/>
+      <position name="remove_nan" x="188" y="424"/>
+      <position name="medfilt" x="439" y="424"/>
+      <position name="outputs" x="631" y="532"/>
+    </gui>
+</pipeline>
