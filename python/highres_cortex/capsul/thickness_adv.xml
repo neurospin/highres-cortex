@@ -20,6 +20,10 @@
              module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
       <set name="formula" value="'I1 + I2'"/>
     </process>
+    <process name="equidistant_depth"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 / I2'"/>
+    </process>
 
     <link source="classif" dest="laplace.classif"/>
     <link source="verbosity" dest="laplace.verbosity"/>
@@ -46,16 +50,32 @@
     <link source="advect_toward_white.output_length"
           dest="total_length.input_image_2"/>
 
+    <link source="advect_toward_pial.output_length"
+          dest="equidistant_depth.input_image_1"/>
+    <link source="total_length.output_image"
+          dest="equidistant_depth.input_image_2"/>
+
+    <optional_output_switch name="equidistant_depth_switch">
+      <input name="input"/>
+      <output name="output"/>
+    </optional_output_switch>
+    <link source="equidistant_depth.output_image"
+          dest="equidistant_depth_switch.input_switch_output"/>
+    <link source="equidistant_depth_switch.output"
+          dest="equidistant_depth"/>
+
     <link source="total_length.output_image"
           dest="thickness_image"/>
 
     <gui>
-      <position name="inputs" x="-272" y="252"/>
-      <position name="laplace" x="122" y="197"/>
-      <position name="binarize_cortex" x="-30" y="715"/>
-      <position name="advect_toward_pial" x="392" y="343"/>
+      <position name="inputs" x="-134" y="553"/>
+      <position name="laplace" x="154" y="370"/>
+      <position name="binarize_cortex" x="-7" y="317"/>
+      <position name="advect_toward_pial" x="392" y="370"/>
       <position name="advect_toward_white" x="392" y="627"/>
       <position name="total_length" x="621" y="505"/>
-      <position name="outputs" x="807" y="586"/>
+      <position name="equidistant_depth" x="604" y="672"/>
+      <position name="equidistant_depth_switch" x="814" y="690"/>
+      <position name="outputs" x="891" y="561"/>
     </gui>
 </pipeline>

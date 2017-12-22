@@ -159,11 +159,17 @@ class SphereTestCase(unittest.TestCase):
         p.verbosity = 0
         p.thickness_image = os.path.join(
             self.test_dir, "thickness_adv.nii.gz")
+        p.equidistant_depth = os.path.join(
+            self.test_dir, "equidistant_depth_adv.nii.gz")
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
+        self.assertTrue(res, msg="RMS error is too high")
+        res = self.result_comp.ensure_max_rms_error(
+            "equidistant_depth_adv.nii.gz", 0.017,
+            reference_file="reference_euclidean.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_thickness_upw_pipeline(self):
@@ -173,11 +179,17 @@ class SphereTestCase(unittest.TestCase):
         p.verbosity = 0
         p.thickness_image = os.path.join(
             self.test_dir, "thickness_upw.nii.gz")
+        p.equidistant_depth = os.path.join(
+            self.test_dir, "equidistant_depth_upw.nii.gz")
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")
+        self.assertTrue(res, msg="RMS error is too high")
+        res = self.result_comp.ensure_max_rms_error(
+            "equidistant_depth_upw.nii.gz", 0.024,
+            reference_file="reference_euclidean.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
 
