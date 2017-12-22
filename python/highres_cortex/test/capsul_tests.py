@@ -166,6 +166,20 @@ class SphereTestCase(unittest.TestCase):
             reference_file="reference_thickness.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
+    def test_thickness_upw_pipeline(self):
+        p = capsul.api.get_process_instance(
+            "highres_cortex.capsul.thickness_upw")
+        p.classif = os.path.join(self.test_dir, "classif.nii.gz")
+        p.verbosity = 0
+        p.thickness_image = os.path.join(
+            self.test_dir, "thickness_upw.nii.gz")
+        p()
+        c = compare_with_reference.ResultComparator(self.test_dir)
+        res = self.result_comp.ensure_max_rms_error(
+            "thickness_upw.nii.gz", 0.18,
+            reference_file="reference_thickness.nii.gz")
+        self.assertTrue(res, msg="RMS error is too high")
+
 
 if __name__ == "__main__":
     unittest.main(buffer=True)
