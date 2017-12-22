@@ -129,8 +129,23 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "equivolumetric_depth.nii.gz", 0.02,
+            "equivolumetric_depth.nii.gz", 0.020,
             reference_file="reference_equivolumic.nii.gz")
+        self.assertTrue(res, msg="RMS error is too high")
+
+    def test_thickness_adv_pipeline(self):
+        p = capsul.api.get_process_instance(
+            "highres_cortex.capsul.thickness_adv")
+        p.classif = os.path.join(self.test_dir, "classif.nii.gz")
+        p.advection_step_size = 0.05
+        p.verbosity = 0
+        p.thickness_image = os.path.join(
+            self.test_dir, "thickness_adv.nii.gz")
+        p()
+        c = compare_with_reference.ResultComparator(self.test_dir)
+        res = self.result_comp.ensure_max_rms_error(
+            "thickness_adv.nii.gz", 0.14,
+            reference_file="reference_thickness.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
 
