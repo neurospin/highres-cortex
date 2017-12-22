@@ -92,7 +92,8 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
                     const int16_t domain_label,
                     const int16_t origin_label,
                     const int16_t done_label,
-                    const int16_t front_label)
+                    const int16_t front_label,
+                    const int verbosity)
 {
   assert(domain_label != origin_label);
   assert(domain_label != front_label);
@@ -120,7 +121,9 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
   // Also fill the border
   solution->refVolume()->fill(std::numeric_limits<float>::quiet_NaN());
 
-  std::clog << "initializing front..." << std::endl;
+  if(verbosity != 0) {
+    std::clog << "initializing front..." << std::endl;
+  }
   // TODO better initialization (based on level set / halfway beween classes)
   SortedFront front(domain, front_label, done_label);
   {
@@ -163,7 +166,9 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
   unsigned int iter = 0;
   unsigned int num_nans = 0;
 
-  std::clog << "upwinding..." << std::endl;
+  if(verbosity != 0) {
+    std::clog << "upwinding..." << std::endl;
+  }
 
   while(!front.empty()) {
     ++iter;
@@ -175,7 +180,7 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
     const int y = point[1];
     const int z = point[2];
 
-    if(iter % 10000 == 0) { // verbose
+    if(verbosity != 0 && iter % 10000 == 0) {
       std::clog << "\r  iteration " << iter
                 << ", current field " << upwind_field(x, y, z);
       if(front.constant_time_size)
@@ -252,9 +257,10 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
     }
   } // end of iteration on front
 
-  // verbose
-  std::clog << "\nfinished after " << iter << " iterations ("
-            << num_nans << " NaN results)." << std::endl;
+  if(verbosity != 0) {
+    std::clog << "\nfinished after " << iter << " iterations ("
+              << num_nans << " NaN results)." << std::endl;
+  }
 
   return solution;
 }
