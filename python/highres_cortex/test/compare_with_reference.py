@@ -122,7 +122,7 @@ class ResultComparator:
         "reference_distwhite.nii.gz": "mm",
         "reference_distCSF.nii.gz": "mm",
         "reference_thickness.nii.gz": "mm",
-        "reference_euclidean.nii.gz": "mm",
+        "reference_euclidean.nii.gz": "%",
         "reference_equivolumic.nii.gz": "%",
     }
 
