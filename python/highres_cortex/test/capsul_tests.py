@@ -118,6 +118,24 @@ class SphereTestCase(unittest.TestCase):
             reference_file="reference_distwhite.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
+    def test_upwind_euclidean(self):
+        p = capsul.api.get_process_instance(
+            "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient")
+        p.domain = os.path.join(self.test_dir, "classif.nii.gz")
+        p.field = os.path.join(
+            self.test_dir, "reference_laplacian.nii.gz")
+        p.downfield = True
+        p.origin_label = 200
+        p.verbosity = 0
+        p.output = os.path.join(
+            self.test_dir, "euclidean_upw_toward_white.nii.gz")
+        p()
+        c = compare_with_reference.ResultComparator(self.test_dir)
+        res = self.result_comp.ensure_max_rms_error(
+            "euclidean_upw_toward_white.nii.gz", 0.13,
+            reference_file="reference_distwhite.nii.gz")
+        self.assertTrue(res, msg="RMS error is too high")
+
     def test_equivolumetric_pipeline(self):
         p = capsul.api.get_process_instance(
             "highres_cortex.capsul.isovolume")

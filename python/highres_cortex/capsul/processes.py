@@ -347,3 +347,38 @@ class VolumeSink(capsul.api.Process):
 
     def _run_process(self):
         pass
+
+class EuclideanUpwindingAlongGradient(capsul.api.Process):
+    """Compute distance to a boundary along the gradient of a scalar field."""
+
+    domain = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="label image defining the computation domain")
+    field = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is used as the integration direction")
+    downfield = Bool(
+        False, optional=True,
+        desc="work on inverted field (downfield instead of upfield)")
+    domain_label = Int(
+        100, optional=True,
+        desc="label of the propagation domain")
+    origin_label = Int(
+        0, optional=True,
+        desc="label of the origin object")
+    verbosity = Int(1, output=False, optional=True, doc="Verbosity level")
+
+    output = File(
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        doc="output volume containing the distance")
+
+    def get_commandline(self):
+        return [
+            "ylUpwindDistance",
+            "--domain", self.domain,
+            "--field", self.field,
+            "--invert", str(self.downfield),
+            "--domain-label", str(self.domain_label),
+            "--origin-label", str(self.origin_label),
+            "--verbose", str(self.verbosity),
+            "--output", self.output]
