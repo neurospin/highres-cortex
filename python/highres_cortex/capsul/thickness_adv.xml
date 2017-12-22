@@ -1,6 +1,6 @@
 <pipeline>
     <doc>
-        Compute the cortical thickness along Laplace field lines from a classification volume, using Eulerian advection
+        Compute the cortical thickness along Laplace field lines from a classification volume, using Eulerian advection (slightly more precise than upwinding, but much slower)
     </doc>
     <process name="laplace"
              module="highres_cortex.capsul.processes.Laplacian"/>
