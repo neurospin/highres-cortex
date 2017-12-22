@@ -128,11 +128,10 @@ class RemoveNaN(capsul.api.Process):
     )
 
     def get_commandline(self):
-        np_option = [] if self.percentage else ["-np"]
         return [
             "AimsRemoveNaN",
-            "-i", self.input_image
-        ] + np_option + [
+            "-i", self.input_image,
+            "-np", str(self.percentage),
             "--value", repr(self.value),
             "-o", self.output_image,
             "--verbose", str(self.verbosity)]
