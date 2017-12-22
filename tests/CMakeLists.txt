@@ -14,6 +14,11 @@ brainvisa_add_test(
   NAME highres_cortex_all_scripts
   COMMAND /bin/sh -e "${TEST_ENV}" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
   )
+
+if(NOT DEFINED PYTHON_HOST_EXECUTABLE)
+  # Compatibility with BrainVISA <= 4.5
+  set(PYTHON_HOST_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
 brainvisa_add_test(
   NAME highres_cortex_capsul
   COMMAND "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.capsul_tests
