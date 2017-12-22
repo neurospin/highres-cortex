@@ -120,7 +120,6 @@ class RemoveNaN(capsul.api.Process):
     percentage = Bool(
         True, output=False, optional=True,
         desc="interpret value as a percentage of the image intensity range")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     output_image = File(
         Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
@@ -130,11 +129,11 @@ class RemoveNaN(capsul.api.Process):
     def get_commandline(self):
         return [
             "AimsRemoveNaN",
+            "--verbose", "0",
             "-i", self.input_image,
             "-np", str(self.percentage),
             "--value", repr(self.value),
-            "-o", self.output_image,
-            "--verbose", str(self.verbosity)]
+            "-o", self.output_image]
 
 
 class MedianFilter(capsul.api.Process):
