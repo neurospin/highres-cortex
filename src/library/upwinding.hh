@@ -74,7 +74,8 @@ upwind_distance(const carto::VolumeRef<float>& upwind_field,
                 int16_t domain_label,
                 int16_t origin_label,
                 int16_t done_label = DEFAULT_DONE_LABEL,
-                int16_t front_label = DEFAULT_FRONT_LABEL);
+                int16_t front_label = DEFAULT_FRONT_LABEL,
+                int verbosity = 0);
 
 } // namespace yl
 

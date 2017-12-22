@@ -213,7 +213,10 @@ int main(const int argc, const char **argv)
   } else {
     result_distance =
       yl::upwind_distance(upwind_field.volume(),
-                          domain_volume.volume(), domain_label, origin_label);
+                          domain_volume.volume(),
+                          domain_label, origin_label,
+                          yl::DEFAULT_DONE_LABEL, yl::DEFAULT_FRONT_LABEL,
+                          verbose);
   }
 
 
