@@ -52,7 +52,7 @@ class SphereTestCase(unittest.TestCase):
             cls.test_dir = tempfile.mkdtemp(
                 prefix="highres-cortex-capsul-tests")
             synthetic_data.write_sphere_and_reference_result(
-                5, 8, 0.3, dir=cls.test_dir)
+                1, 4, 0.3, dir=cls.test_dir)
 
             cls.result_comp = compare_with_reference.ResultComparator(
                 cls.test_dir)
@@ -82,7 +82,7 @@ class SphereTestCase(unittest.TestCase):
         ret = p()
         print("ret:", repr(ret))
         res = self.result_comp.ensure_max_rms_error(
-            "laplacian.nii.gz", 0.021,
+            "laplacian.nii.gz", 0.017,
             reference_file="reference_laplacian.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
@@ -96,7 +96,7 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "curvature.nii.gz", 0.062,
+            "curvature.nii.gz", 0.067,
             reference_file="reference_curvature.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
@@ -132,7 +132,7 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "euclidean_upw_toward_white.nii.gz", 0.13,
+            "euclidean_upw_toward_white.nii.gz", 0.22,
             reference_file="reference_distwhite.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
@@ -147,7 +147,7 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "equivolumetric_depth.nii.gz", 0.020,
+            "equivolumetric_depth.nii.gz", 0.028,
             reference_file="reference_equivolumic.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
@@ -162,7 +162,7 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "thickness_adv.nii.gz", 0.14,
+            "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
@@ -176,7 +176,7 @@ class SphereTestCase(unittest.TestCase):
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
-            "thickness_upw.nii.gz", 0.18,
+            "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
