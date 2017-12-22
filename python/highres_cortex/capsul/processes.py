@@ -156,6 +156,7 @@ class MedianFilter(capsul.api.Process):
     def get_commandline(self):
         return [
             "AimsMedianSmoothing",
+            "--verbose", "0",
             "--input", self.input_image,
             "--dx", str(self.x_size),
             "--dy", str(self.y_size),
@@ -178,7 +179,12 @@ class BinarizeCortex(capsul.api.Process):
 
     def get_commandline(self):
         return [
-            "AimsThreshold", "-b", "--fg", "1", "-m", "eq", "-t", "100",
+            "AimsThreshold",
+            "--verbose", "0",
+            "-b",
+            "--fg", "1",
+            "-m", "eq",
+            "-t", "100",
             "--input", self.classif,
             "--output", self.output_image]
 
@@ -295,7 +301,8 @@ class ImageArithmetic2Inputs(capsul.api.Process):
 
     def get_commandline(self):
         return [
-            "cartoLinearComb.py", "-f", self.formula,
+            "cartoLinearComb.py",
+            "-f", self.formula,
             "-i", self.input_image_1,
             "-i", self.input_image_2,
             "-o", self.output_image]
@@ -324,7 +331,9 @@ class MergeImagesOneToOne(capsul.api.Process):
 
     def get_commandline(self):
         return [
-            "AimsMerge", "-m", "oo",
+            "AimsMerge",
+            "--verbose", "0",
+            "-m", "oo",
             "-l", str(self.label),
             "-v", repr(self.value),
             "-i", self.input_image,
