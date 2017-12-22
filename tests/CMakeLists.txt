@@ -13,4 +13,8 @@ set(TEST_ENV "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
 brainvisa_add_test(
   NAME highres_cortex_all_scripts
   COMMAND /bin/sh -e "${TEST_ENV}" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
+  )
+brainvisa_add_test(
+  NAME highres_cortex_capsul
+  COMMAND "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.capsul_tests
 )
