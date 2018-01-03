@@ -21,5 +21,5 @@ if(NOT DEFINED PYTHON_HOST_EXECUTABLE)
 endif()
 brainvisa_add_test(
   NAME highres_cortex_capsul
-  COMMAND "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.capsul_tests
+  COMMAND "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.test_capsul
 )
