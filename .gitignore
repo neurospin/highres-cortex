@@ -14,3 +14,9 @@ install_manifest.txt
 # Python
 __pycache__/
 *.py[cod]
+
+# pytest
+.cache/
+.coverage
+coverage.xml
+python_coverage_html_report/
