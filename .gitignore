@@ -17,3 +17,6 @@ __pycache__/
 
 # pytest
 .cache/
+.coverage
+coverage.xml
+python_coverage_html_report/
