@@ -77,7 +77,6 @@ class SphereTestCase(unittest.TestCase):
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.precision = 0.001
         p.typical_cortical_thickness = 3
-        p.verbosity = 0
         p.laplace_field = os.path.join(self.test_dir, "laplacian.nii.gz")
         ret = p()
         print("ret:", repr(ret))
@@ -91,7 +90,6 @@ class SphereTestCase(unittest.TestCase):
             "highres_cortex.capsul.filtered_sumcurvs")
         p.input = os.path.join(self.test_dir, "reference_laplacian.nii.gz")
         p.mode = "sum"
-        p.verbosity = 0
         p.output = os.path.join(self.test_dir, "curvature.nii.gz")
         p()
         c = compare_with_reference.ResultComparator(self.test_dir)
@@ -108,7 +106,6 @@ class SphereTestCase(unittest.TestCase):
             self.test_dir, "reference_laplacian.nii.gz")
         p.step_size = 0.05
         p.upfield = False
-        p.verbosity = 0
         p.output_length = os.path.join(
             self.test_dir, "euclidean_adv_toward_white.nii.gz")
         p()
@@ -126,7 +123,6 @@ class SphereTestCase(unittest.TestCase):
             self.test_dir, "reference_laplacian.nii.gz")
         p.downfield = True
         p.origin_label = 200
-        p.verbosity = 0
         p.output = os.path.join(
             self.test_dir, "euclidean_upw_toward_white.nii.gz")
         p()
@@ -141,7 +137,6 @@ class SphereTestCase(unittest.TestCase):
             "highres_cortex.capsul.isovolume")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.advection_step_size = 0.05
-        p.verbosity = 0
         p.equivolumetric_depth = os.path.join(
             self.test_dir, "equivolumetric_depth.nii.gz")
         p()
@@ -156,7 +151,6 @@ class SphereTestCase(unittest.TestCase):
             "highres_cortex.capsul.thickness_adv")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.advection_step_size = 0.05
-        p.verbosity = 0
         p.thickness_image = os.path.join(
             self.test_dir, "thickness_adv.nii.gz")
         p.equidistant_depth = os.path.join(
@@ -176,7 +170,6 @@ class SphereTestCase(unittest.TestCase):
         p = capsul.api.get_process_instance(
             "highres_cortex.capsul.thickness_upw")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
-        p.verbosity = 0
         p.thickness_image = os.path.join(
             self.test_dir, "thickness_upw.nii.gz")
         p.equidistant_depth = os.path.join(
