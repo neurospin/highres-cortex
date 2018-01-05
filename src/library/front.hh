@@ -39,6 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <utility>
 
+#include <boost/functional/hash.hpp>
 #include <boost/heap/priority_queue.hpp>
 
 #include <cartodata/volume/volume.h>
