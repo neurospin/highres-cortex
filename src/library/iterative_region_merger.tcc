@@ -269,9 +269,7 @@ merge_worst_regions_iteratively()
 
   typedef typename RegionQualityCriterion::Cache CacheType;
   typedef RegionInQueue<Tlabel, CacheType> RegionType;
-  typedef boost::heap::d_ary_heap<RegionType,
-                                  boost::heap::arity<8>,
-                                  boost::heap::mutable_<true> > RegionQueue;
+  typedef typename RegionType::RegionQueue RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
 
   // Hold the labels to retrieve them in order of increasing region fusion_ordering
