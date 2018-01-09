@@ -325,21 +325,25 @@ merge_worst_regions_iteratively()
         const Tlabel yplus_label = m_label_volume.volume().at(x, y + 1, z);
         const Tlabel zplus_label = m_label_volume.volume().at(x, y, z + 1);
 
-        if(label_to_handle.count(xplus_label) != 0
+        typename std::map<Tlabel, Handle>::const_iterator it;
+        it = label_to_handle.find(xplus_label);
+        if(it != label_to_handle.end()
            && xplus_label != background_label && self_label != xplus_label) {
-          Region<Tlabel>& xplus_region = *label_to_handle[xplus_label];
+          Region<Tlabel>& xplus_region = *(it->second);
           self_region.add_neighbour(xplus_region);
         }
 
-        if(label_to_handle.count(yplus_label) != 0
+        it = label_to_handle.find(yplus_label);
+        if(it != label_to_handle.end()
            && yplus_label != background_label && self_label != yplus_label) {
-          Region<Tlabel>& yplus_region = *label_to_handle[yplus_label];
+          Region<Tlabel>& yplus_region = *(it->second);
           self_region.add_neighbour(yplus_region);
         }
 
-        if(label_to_handle.count(zplus_label) != 0
+        it = label_to_handle.find(zplus_label);
+        if(it != label_to_handle.end()
            && zplus_label != background_label && self_label != zplus_label) {
-          Region<Tlabel>& zplus_region = *label_to_handle[zplus_label];
+          Region<Tlabel>& zplus_region = *(it->second);
           self_region.add_neighbour(zplus_region);
         }
       }
