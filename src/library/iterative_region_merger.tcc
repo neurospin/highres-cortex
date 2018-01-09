@@ -43,7 +43,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <iterator>
 #include <set>
 
-#include <boost/heap/d_ary_heap.hpp>
+#include <boost/heap/binomial_heap.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 
 namespace
@@ -189,9 +189,8 @@ template <typename Tlabel, typename CacheType>
 class RegionInQueue : public CachingRegion<Tlabel, CacheType>
 {
 public:
-  typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel, CacheType>,
-                                  boost::heap::arity<8>,
-                                  boost::heap::mutable_<true> > RegionQueue;
+  typedef boost::heap::binomial_heap<RegionInQueue<Tlabel, CacheType> > RegionQueue;
+
   typedef typename RegionQueue::handle_type Handle;
 
   RegionInQueue(const Tlabel region_label, const float initial_fusion_ordering,
