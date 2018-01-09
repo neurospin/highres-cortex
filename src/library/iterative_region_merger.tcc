@@ -50,11 +50,6 @@ namespace
 
 const int debug_output = 0;
 
-inline bool approx_equal(float x, float y)
-{
-  return std::abs(x - y) < 0.1f;
-}
-
 template <typename Tlabel> class Region;
 template <typename Tlabel>
 std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region);
