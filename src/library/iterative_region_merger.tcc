@@ -181,7 +181,7 @@ std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region)
 {
   stream << "Region@" << &region << " (" << "label=" << region.label()
          << ", fusion_ordering=" << region.fusion_ordering()  << ", #neighbours="
-         << region.m_neighbours.size();
+         << region.m_neighbours.size() << ")";
   return stream;
 }
 
