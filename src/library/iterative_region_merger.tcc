@@ -43,6 +43,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <iterator>
 #include <set>
 
+#include <boost/heap/d_ary_heap.hpp>
 #include <boost/heap/binomial_heap.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 
@@ -189,7 +190,15 @@ template <typename Tlabel, typename CacheType>
 class RegionInQueue : public CachingRegion<Tlabel, CacheType>
 {
 public:
+#if defined(__APPLE__) && !defined(__clang__)
+  // d_ary_heap fails to compile on Apple GCC 4.0.1 (Mac OS 10.5), use
+  // binomial_heap instead
   typedef boost::heap::binomial_heap<RegionInQueue<Tlabel, CacheType> > RegionQueue;
+#else
+  typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel, CacheType>,
+                                  boost::heap::arity<8>,
+                                  boost::heap::mutable_<true> > RegionQueue;
+#endif
 
   typedef typename RegionQueue::handle_type Handle;
 
