@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2018).
 Copyright CEA (2014).
 Copyright Université Paris XI (2014).
 
@@ -443,9 +444,11 @@ merge_worst_regions_iteratively()
         // heap!
         queue.pop();
 
-        const float new_fusion_ordering = m_criterion.fusion_ordering(best_neighbour_region.cache());
+        const float new_fusion_ordering
+          = m_criterion.fusion_ordering(best_neighbour_region.cache());
+        assert(best_neighbour_region.fusion_ordering() < new_fusion_ordering);
         best_neighbour_region.update_fusion_ordering(new_fusion_ordering);
-        queue.update(best_neighbour_region.handle());
+        queue.decrease(best_neighbour_region.handle());
       }
     } else {
       // This case can only be reached when worst_region.traversing() is true
