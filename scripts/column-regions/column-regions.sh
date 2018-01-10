@@ -181,4 +181,4 @@ ylMergeCortexColumnRegions --verbose 2 \
     --goal-diameter 1
 
 ylRelabel merged.nii merged_relabelled.nii
-ylRandomizeLabels  merged_relabelled.nii merged_randomized.nii.gz
+ylRandomizeLabels merged_relabelled.nii merged_randomized.nii.gz

@@ -259,6 +259,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     array_cortex[array_pial_surface != 0] = 0
     return cortex
 
+
 def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     array_classif = np.asarray(classif)
 
