@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -37,10 +38,11 @@
 # knowledge of the CeCILL licence and that you accept its terms.
 
 import sys
-import numpy as np
+
 from soma import aims
 
-def relabel_conjunctions(labels1, labels2):
+
+def relabel_conjunction(labels1, labels2):
     output = aims.Volume(labels1)
     output.fill(0)
     size_x = output.getSizeX()
@@ -72,59 +74,36 @@ def relabel_conjunctions(labels1, labels2):
                      .format(sys.argv[0], next_label - 1))
     return output
 
-    
-if __name__ == '__main__':
-    CSF_labelsFile = None
-    white_labelsFile = None
-    resultDir = None
-    keyWord = None
 
-    parser = OptionParser('Get exchanged propagation volume -YL')
-    parser.add_option('-s', dest='CSF_labelsFile', help='heat_CSF_labels_on_white')   
-    parser.add_option('-w', dest='white_labelsFile', help='heat_white_labels_on_CSF') 
-    parser.add_option('-d', dest='resultDir', help='directory for results')
-    parser.add_option('-k', dest='keyWord', help='keyword for results')
+def relabel_conjunction_files(labels1_filename, labels2_filename,
+                              output_filename):
+    labels1_vol = aims.read(labels1_filename)
+    labels2_vol = aims.read(labels2_filename)
+    output_vol = relabel_conjunction(labels1_vol, labels2_vol)
+    aims.write(output_vol, output_filename)
 
-    options, args = parser.parse_args(sys.argv)
-    print options
-    print args
 
-    if options.CSF_labelsFile is None:
-        print >> sys.stderr, 'New: exit. no heat_CSF_labels_on_white given'
-        sys.exit(1)
-    else:
-        CSF_labelsFile = options.CSF_labelsFile
-            
-    if options.white_labelsFile is None:
-        print >> sys.stderr, 'New: exit. no heat_white_labels_on_CSF given'
-        sys.exit(1)
-    else:
-        white_labelsFile = options.white_labelsFile     
- 
-    if options.resultDir is None:
-        print >> sys.stderr, 'New: exit. no directory for results given'
-        sys.exit(1)
-    else:
-        resultDir = options.resultDir    
-        
-    if options.keyWord is None:
-        print >> sys.stderr, 'New: exit. no keyWord given'
-        sys.exit(1)
-    else:
-        keyWord = options.keyWord      
-     
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Assign new labels to voxels that have the same pair of labels in both input images.
+""")
+    parser.add_argument("labels1")
+    parser.add_argument("labels2")
+    parser.add_argument("output")
 
-     
-     
-    CSF_labels = aims.read(CSF_labelsFile)
-    white_labels = aims.read(white_labelsFile)
-    output = relabel_conjunctions(CSF_labels, white_labels)
-    aims.write(output, resultDir + 'conjunction_%s.nii.gz' %(keyWord))
-    
-    
-    
-    
-    
-    
-    
-    
+    args = parser.parse_args(argv[1:])
+    return args
+
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return relabel_conjunction_files(
+        args.labels1,
+        args.labels2,
+        args.output) or 0
+
+if __name__ == "__main__":
+    sys.exit(main())

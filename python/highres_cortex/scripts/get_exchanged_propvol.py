@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -36,12 +37,45 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+import os.path
+import shutil
+import subprocess
+import sys
+import tempfile
+
 import numpy as np
 from soma import aims
-import subprocess
 
-def getExchangedPropagationVolume(CSF_labels_on_white, white_labels_on_CSF, classif, resultDir, keyWord):
+
+def relabel_positive_labels(volume):
+    size_x = volume.getSizeX()
+    size_y = volume.getSizeY()
+    size_z = volume.getSizeZ()
+    old_to_new_labels = {}
+    next_label = 1
+    for z in xrange(size_z):
+        for y in xrange(size_y):
+            for x in xrange(size_x):
+                old_label = volume.at(x, y, z)
+                if old_label > 0:
+                    try:
+                        new_label = old_to_new_labels[old_label]
+                    except KeyError:
+                        new_label = next_label
+                        old_to_new_labels[old_label] = new_label
+                        next_label += 1
+                    volume.setValue(new_label, x, y, z)
+
+
+def get_exchanged_propvol_files(classif_filename,
+                                CSF_labels_on_white_filename,
+                                white_labels_on_CSF_filename,
+                                output_filename):
+    classif = aims.read(classif_filename)
+    CSF_labels_on_white = aims.read(CSF_labels_on_white_filename)
+    white_labels_on_CSF = aims.read(white_labels_on_CSF_filename)
     output = aims.Volume(CSF_labels_on_white)
+
     np_CSF_labels_on_white = np.asarray(CSF_labels_on_white)
     np_white_labels_on_CSF = np.asarray(white_labels_on_CSF)
     np_classif = np.asarray(classif)
@@ -53,104 +87,60 @@ def getExchangedPropagationVolume(CSF_labels_on_white, white_labels_on_CSF, clas
     np_output[white_mask] = np_CSF_labels_on_white[white_mask]
     np_output[CSF_mask] = np_white_labels_on_CSF[CSF_mask]
 
-    aims.write(output, resultDir + 'raw_exchanged_labels_%s.nii' %(keyWord))
+    temp_dir = None
+    try:
+        temp_dir = tempfile.mkdtemp(prefix="hcortex")
+        temp_filename = os.path.join(temp_dir, 'raw_exchanged_labels.nii')
+        aims.write(output, temp_filename)
 
+        # These “failed components” will probably be separated by connexity
+        #AimsReplaceLevel -i raw_exchanged_labels.nii.gz -o exchanged_labels.nii.gz -g 100000000 -n 0 -g 200000000 -n 0
 
-    # These “failed components” will probably be separated by connexity
-    #AimsReplaceLevel -i raw_exchanged_labels.nii.gz -o exchanged_labels.nii.gz -g 100000000 -n 0 -g 200000000 -n 0
+        subprocess.check_call(["AimsConnectComp",
+                               "-i", "raw_exchanged_labels.nii",
+                               "-o", "connected_exchanged_labels.nii"],
+                              cwd=temp_dir)
 
-    subprocess.check_call(["AimsConnectComp",
-                        "-i", resultDir + 'raw_exchanged_labels_%s.nii' %(keyWord),
-                        "-o", resultDir + 'connected_exchanged_labels_%s.nii' %(keyWord)])
-
-
-    # The background is cut in one big region + many small, restore it then relabel
-    propvol = aims.read(resultDir + 'connected_exchanged_labels_%s.nii' %(keyWord))
+        # The background is cut in one big region + many small, restore it then
+        # relabel
+        propvol = aims.read(
+            os.path.join(temp_dir, "connected_exchanged_labels.nii"))
+    finally:
+        if temp_dir:
+            shutil.rmtree(temp_dir)
     np_propvol = np.asarray(propvol)
     exclusion_mask = (np_CSF_labels_on_white == -1)
     bulk_mask = (np_CSF_labels_on_white == 0)
     np_propvol[bulk_mask] = 0
     np_propvol[exclusion_mask] = -1
 
-    def relabel_positive_labels(volume):
-        size_x = volume.getSizeX()
-        size_y = volume.getSizeY()
-        size_z = volume.getSizeZ()
-        old_to_new_labels = {}
-        next_label = 1
-        for z in xrange(size_z):
-            for y in xrange(size_y):
-                for x in xrange(size_x):
-                    old_label = volume.at(x, y, z)
-                    if old_label > 0:
-                        try:
-                            new_label = old_to_new_labels[old_label]
-                        except KeyError:
-                            new_label = next_label
-                            old_to_new_labels[old_label] = new_label
-                            next_label += 1
-                        volume.setValue(new_label, x, y, z)
-
     relabel_positive_labels(propvol)
-    return(propvol)
+    aims.write(propvol, output_filename)
 
 
-if __name__ == '__main__':
-    heat_CSF = None
-    heat_white = None
-    classifFile = None
-    resultDir = None
-    keyWord = None
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Get exchanged propagation volume
+""")
+    parser.add_argument("classif_with_outer_boundaries")
+    parser.add_argument("CSF_labels_on_white")
+    parser.add_argument("white_labels_on_CSF")
+    parser.add_argument("output")
 
-    parser = OptionParser('Get exchanged propagation volume -YL')
-    parser.add_option('-s', dest='heat_CSF', help='heat_CSF_labels_on_white')   
-    parser.add_option('-w', dest='heat_white', help='heat_white_labels_on_CSF') 
-    parser.add_option('-c', dest='classifFile', help='classif_with_outer_boundaries')
-    parser.add_option('-d', dest='resultDir', help='directory for results')
-    parser.add_option('-k', dest='keyWord', help='keyword for results')
+    args = parser.parse_args(argv[1:])
+    return args
 
-    options, args = parser.parse_args(sys.argv)
-    print options
-    print args
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return get_exchanged_propvol_files(
+        args.classif_with_outer_boundaries,
+        args.CSF_labels_on_white,
+        args.white_labels_on_CSF,
+        args.output) or 0
 
-    if options.heat_CSF is None:
-        print >> sys.stderr, 'New: exit. no heat_CSF_labels_on_white given'
-        sys.exit(1)
-    else:
-        heat_CSF = options.heat_CSF
-            
-    if options.heat_white is None:
-        print >> sys.stderr, 'New: exit. no heat_white_labels_on_CSF given'
-        sys.exit(1)
-    else:
-        heat_white = options.heat_white
-        
-    if options.classifFile is None:
-        print >> sys.stderr, 'New: exit. no classification file given'
-        sys.exit(1)
-    else:
-        classifFile = options.classifFile      
- 
-    if options.resultDir is None:
-        print >> sys.stderr, 'New: exit. no directory for results given'
-        sys.exit(1)
-    else:
-        resultDir = options.resultDir    
-        
-    if options.keyWord is None:
-        print >> sys.stderr, 'New: exit. no keyWord given'
-        sys.exit(1)
-    else:
-        keyWord = options.keyWord      
-     
-      
-    CSF_labels_on_white = aims.read(heat_CSF)
-    white_labels_on_CSF = aims.read(heat_white)    
-    classif = aims.read(classifFile)
-    output = aims.Volume(CSF_labels_on_white)
-
-    exchangedPropVol = getExchangedPropagationVolume(CSF_labels_on_white, white_labels_on_CSF, classif, resultDir, keyWord)
-    aims.write(exchangedPropVol, resultDir + "exchanged_propvol_%s.nii.gz" %(keyWord))
-    
-    
-    
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -37,9 +38,12 @@
 # knowledge of the CeCILL licence and that you accept its terms.
 
 import random
+import sys
+
 from soma import aims
 
-def relabel(labels):
+
+def randomize_labels(labels):
     import numpy as np
     np_input_labels = np.asarray(labels)
     max_label = np.max(np_input_labels)
@@ -64,41 +68,32 @@ def relabel(labels):
                 output.setValue(new_label, x, y, z)
     return output
 
-    
-if __name__ == '__main__':
-    
-    mergedFile = None
-    resultDir = None
-    keyWord = None
 
-    parser = OptionParser('Get the randomized relabeled volume -YL')
-    parser.add_option('-m', dest='mergedFile', help='mergedFile')   
-    parser.add_option('-d', dest='resultDir', help='directory for results')
-    parser.add_option('-k', dest='keyWord', help='keyword for results')
+def randomize_labels_files(input_filename, output_filename):
+    input_vol = aims.read(input_filename)
+    output_vol = randomize_labels(input_vol)
+    aims.write(output_vol, output_filename)
 
-    options, args = parser.parse_args(sys.argv)
-    print options
-    print args
 
-    if options.mergedFile is None:
-        print >> sys.stderr, 'New: exit. no mergedFile given'
-        sys.exit(1)
-    else:
-        mergedFile = options.mergedFile
-             
-    if options.resultDir is None:
-        print >> sys.stderr, 'New: exit. no directory for results given'
-        sys.exit(1)
-    else:
-        resultDir = options.resultDir    
-        
-    if options.keyWord is None:
-        print >> sys.stderr, 'New: exit. no keyWord given'
-        sys.exit(1)
-    else:
-        keyWord = options.keyWord      
-    
-    
-    input_labels = aims.read(mergedFile)        
-    output = relabel(input_labels)
-    aims.write(output, resultDir + "merged_randomized_%s.nii.gz" %(keyWord))
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Randomize the labels of an image with contiguous labels
+""")
+    parser.add_argument("input")
+    parser.add_argument("output")
+
+    args = parser.parse_args(argv[1:])
+    return args
+
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return randomize_labels_files(
+        args.input,
+        args.output) or 0
+
+if __name__ == "__main__":
+    sys.exit(main())

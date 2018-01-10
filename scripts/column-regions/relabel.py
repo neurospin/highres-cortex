@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -37,10 +36,10 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-import sys
-
+import numpy as np
 from soma import aims
 
+input_labels = aims.read("./merged.nii")
 
 def relabel(labels):
     output = aims.Volume(labels)
@@ -65,32 +64,5 @@ def relabel(labels):
                 output.setValue(new_label, x, y, z)
     return output
 
-
-def relabel_files(input_filename, output_filename):
-    input_vol = aims.read(input_filename)
-    output_vol = relabel(input_vol)
-    aims.write(output_vol, output_filename)
-
-
-def parse_command_line(argv=sys.argv):
-    """Parse the script's command line."""
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="""\
-Assign new contiguous labels to an existing label image
-""")
-    parser.add_argument("input")
-    parser.add_argument("output")
-
-    args = parser.parse_args(argv[1:])
-    return args
-
-def main(argv=sys.argv):
-    """The script's entry point."""
-    args = parse_command_line(argv)
-    return relabel_files(
-        args.input,
-        args.output) or 0
-
-if __name__ == "__main__":
-    sys.exit(main())
+output = relabel(input_labels)
+aims.write(output, "merged_relabelled.nii")

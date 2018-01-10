@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -37,60 +36,64 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-import sys
-
+import numpy as np
 from soma import aims
 
+CSF_labels_on_white = aims.read("heat_CSF_labels_on_white.nii.gz")
+white_labels_on_CSF = aims.read("heat_white_labels_on_CSF.nii.gz")
+classif = aims.read("../classif_with_outer_boundaries.nii.gz")
+output = aims.Volume(CSF_labels_on_white)
 
-def relabel(labels):
-    output = aims.Volume(labels)
-    size_x = output.getSizeX()
-    size_y = output.getSizeY()
-    size_z = output.getSizeZ()
+np_CSF_labels_on_white = np.asarray(CSF_labels_on_white)
+np_white_labels_on_CSF = np.asarray(white_labels_on_CSF)
+np_classif = np.asarray(classif)
+np_output = np.asarray(output)
+
+white_mask = (np_classif == 150)
+CSF_mask = (np_classif == 50)
+
+np_output[white_mask] = np_CSF_labels_on_white[white_mask]
+np_output[CSF_mask] = np_white_labels_on_CSF[CSF_mask]
+
+aims.write(output, "raw_exchanged_labels.nii")
+
+
+# These “failed components” will probably be separated by connexity
+#AimsReplaceLevel -i raw_exchanged_labels.nii.gz -o exchanged_labels.nii.gz -g 100000000 -n 0 -g 200000000 -n 0
+
+
+import subprocess
+subprocess.check_call(["AimsConnectComp",
+                       "-i", "raw_exchanged_labels.nii",
+                       "-o", "connected_exchanged_labels.nii"])
+
+
+# The background is cut in one big region + many small, restore it then relabel
+propvol = aims.read("connected_exchanged_labels.nii")
+np_propvol = np.asarray(propvol)
+exclusion_mask = (np_CSF_labels_on_white == -1)
+bulk_mask = (np_CSF_labels_on_white == 0)
+np_propvol[bulk_mask] = 0
+np_propvol[exclusion_mask] = -1
+
+def relabel_positive_labels(volume):
+    size_x = volume.getSizeX()
+    size_y = volume.getSizeY()
+    size_z = volume.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
     for z in xrange(size_z):
         for y in xrange(size_y):
             for x in xrange(size_x):
-                label = labels.at(x, y, z)
-                if label == 0:
-                    new_label = 0
-                else:
+                old_label = volume.at(x, y, z)
+                if old_label > 0:
                     try:
-                        new_label = old_to_new_labels[label]
+                        new_label = old_to_new_labels[old_label]
                     except KeyError:
                         new_label = next_label
-                        old_to_new_labels[label] = new_label
+                        old_to_new_labels[old_label] = new_label
                         next_label += 1
-                output.setValue(new_label, x, y, z)
-    return output
+                    volume.setValue(new_label, x, y, z)
 
-
-def relabel_files(input_filename, output_filename):
-    input_vol = aims.read(input_filename)
-    output_vol = relabel(input_vol)
-    aims.write(output_vol, output_filename)
-
-
-def parse_command_line(argv=sys.argv):
-    """Parse the script's command line."""
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="""\
-Assign new contiguous labels to an existing label image
-""")
-    parser.add_argument("input")
-    parser.add_argument("output")
-
-    args = parser.parse_args(argv[1:])
-    return args
-
-def main(argv=sys.argv):
-    """The script's entry point."""
-    args = parse_command_line(argv)
-    return relabel_files(
-        args.input,
-        args.output) or 0
-
-if __name__ == "__main__":
-    sys.exit(main())
+relabel_positive_labels(propvol)
+aims.write(propvol, "exchanged_propvol.nii.gz")

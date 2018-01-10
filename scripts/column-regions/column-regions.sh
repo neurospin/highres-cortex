@@ -89,7 +89,11 @@ ylPropagateAlongField --verbose \
     --target-label 100000000 \
     --output heat_white_labels_on_CSF.nii.gz
 
-python "$(dirname -- "$0")"/get_exchanged_propvol.py  # -> exchanged_propvol.nii.gz
+ylGetExchangedPropvol \
+    ../classif_with_outer_boundaries.nii.gz \
+    heat_CSF_labels_on_white.nii.gz \
+    heat_white_labels_on_CSF.nii.gz \
+    exchanged_propvol.nii.gz
 
 # Why is the previous step necessary?
 #
@@ -159,7 +163,10 @@ ylPropagateAlongField --verbose \
     --output heat_white_on_bulk.nii.gz \
     --dest-points heat_white_points_on_bulk.nii.gz
 
-python "$(dirname -- "$0")"/relabel_conjunction.py  # -> ./conjunction.nii.gz
+ylRelabelConjunction \
+    heat_CSF_on_bulk.nii.gz \
+    heat_white_on_bulk.nii.gz \
+    conjunction.nii.gz
 
 AimsConnectComp -c 26 \
     -i conjunction.nii.gz \
@@ -172,5 +179,6 @@ ylMergeCortexColumnRegions --verbose 2 \
     --proj-white heat_white_points_on_bulk.nii.gz \
     --classif ../classif.nii.gz \
     --goal-diameter 1
-python "$(dirname -- "$0")"/relabel.py
-python "$(dirname -- "$0")"/randomize_labels.py
+
+ylRelabel merged.nii merged_relabelled.nii
+ylRandomizeLabels  merged_relabelled.nii merged_randomized.nii.gz
