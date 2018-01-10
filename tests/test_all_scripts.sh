@@ -25,7 +25,7 @@ trap 'cleanup; trap - HUP EXIT; kill -HUP $$' HUP
 trap 'cleanup; trap - INT EXIT; kill -INT $$' INT
 trap 'cleanup; trap - TERM EXIT; kill -TERM $$' TERM
 trap 'trap - QUIT EXIT; kill -QUIT $$' QUIT
-tmpdir=$(mktemp -d)
+tmpdir=$(mktemp -d -t hrcortex_XXXX)
 
 
 cd -- "$tmpdir"

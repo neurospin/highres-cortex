@@ -55,12 +55,12 @@ CSF_LABEL = 0
 CORTEX_LABEL = 100
 WHITE_LABEL = 200
 
-# TODO rename to signed_distance
-def fastmarching_negative(classif_vol,
-                          propagation_labels=[1],
-                          seed_labels=[0],
-                          border_label=5,
-                          verbose=True):
+
+def signed_distance(classif_vol,
+                    propagation_labels=[1],
+                    seed_labels=[0],
+                    border_label=5,
+                    verbose=True):
     """Distance to the seed as well as negative distance within the seed.
 
     Caution: the input volume classif_vol is modified: the value border_label
@@ -202,8 +202,9 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     tmp_classif = _prepare_classif_for_VipHomotopic_Cortical(classif,
                                                              filling_size)
 
-    tmp_dir = tempfile.mkdtemp(prefix="highres-cortex.")
+    tmp_dir = None
     try:
+        tmp_dir = tempfile.mkdtemp(prefix="highres-cortex.")
         aims.write(tmp_classif, os.path.join(tmp_dir, "tmp_classif.nii.gz"))
         del tmp_classif
         with open(os.path.join(tmp_dir, "fake.han"), "w") as f:
@@ -258,6 +259,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     array_cortex[array_cortex == 255] = 100
     array_cortex[array_pial_surface != 0] = 0
     return cortex
+
 
 def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     array_classif = np.asarray(classif)

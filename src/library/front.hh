@@ -39,9 +39,8 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include <utility>
 
+#include <boost/functional/hash.hpp>
 #include <boost/heap/priority_queue.hpp>
-#include <boost/heap/d_ary_heap.hpp>
-#include <boost/unordered_map.hpp>
 
 #include <cartodata/volume/volume.h>
 #include <aims/vector/vector.h>
@@ -66,68 +65,6 @@ struct PointHasher : std::unary_function<Point, std::size_t>
 enum {
   DEFAULT_FRONT_LABEL = -123,
   DEFAULT_DONE_LABEL = -10
-};
-
-class VariablePrioritySortedFront
-{
-public:
-  VariablePrioritySortedFront(carto::VolumeRef<int16_t>& domain,
-                              int16_t front_label,
-                              int16_t done_label);
-
-  const Point3d& get() const
-  {
-    return m_queue.top().second;
-  };
-  Point3d pop();
-
-  void add(const Point3d& /*point*/, float priority);
-  void update_priority(const Point3d& /*point*/, float new_priority);
-  void increase_priority(const Point3d& /*point*/, float new_priority);
-  void decrease_priority(const Point3d& /*point*/, float new_priority);
-  void add_or_update(const Point3d& /*point*/, float priority);
-
-  bool empty() const
-  {
-    return m_queue.empty();
-  };
-
-  std::size_t size() const
-  {
-    return m_queue.size();
-  };
-
-private:
-  struct VoxelOrdering {
-    bool operator() (const std::pair<float, Point3d>& left,
-                     const std::pair<float, Point3d>& right) const
-    {
-      return left.first > right.first;
-    };
-  };
-#if 0 // lower asymptotic complexity, but slower in our tests
-  typedef boost::heap::fibonacci_heap<std::pair<float, Point3d>,
-                                      boost::heap::compare<VoxelOrdering> >
-    FrontQueue;
-#else
-  typedef boost::heap::d_ary_heap<std::pair<float, Point3d>,
-                                  boost::heap::arity<8>,
-                                  boost::heap::mutable_<true>,
-                                  boost::heap::compare<VoxelOrdering> >
-    FrontQueue;
-#endif
-  typedef FrontQueue::handle_type QueueHandle;
-  FrontQueue m_queue;
-
-  boost::unordered_map<Point3d, QueueHandle, PointHasher<Point3d> >
-    m_handle_map;
-
-  carto::VolumeRef<int16_t> m_domain;
-  const int16_t m_front_label;
-  const int16_t m_done_label;
-
-public:
-  static const bool constant_time_size = FrontQueue::constant_time_size;
 };
 
 

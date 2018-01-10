@@ -1,15 +1,36 @@
 # CMake build files
 /CMakeCache.txt
+/Testing/
 CMakeFiles/
 Makefile
 cmake_install.cmake
 install_manifest.txt
 
 # brainvisa-cmake files
+/CMakeDoxyfile.in
+/CMakeDoxygenDefaults.cmake
+/DartConfiguration.tcl
+/include/
+/lib/
 /python/brainvisa/compilation_info.py
 /src/library/Doxyfile
 /CPackConfig.cmake
 /CPackSourceConfig.cmake
+CTestTestfile.cmake
+
+# generated files
+/bin/ylAdvectEuclidean
+/bin/ylAdvectPath
+/bin/ylAdvectTubes
+/bin/ylAdvectValues
+/bin/ylIsoCurvature
+/bin/ylLabelEachVoxel
+/bin/ylLaplacian
+/bin/ylMakeTraversePseudoAreaMap
+/bin/ylMergeCortexColumnRegions
+/bin/ylPropagateAlongField
+/bin/ylUpwindDistance
+/tests/test_env.sh
 
 # Python
 __pycache__/

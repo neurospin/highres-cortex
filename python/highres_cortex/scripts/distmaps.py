@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -36,33 +37,57 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+import sys
+
 import numpy as np
-from soma import aims
+from soma import aims, aimsalgo
 
-input_labels = aims.read("./merged.nii")
+import highres_cortex.cortex_topo
 
-def relabel(labels):
-    output = aims.Volume(labels)
-    size_x = output.getSizeX()
-    size_y = output.getSizeY()
-    size_z = output.getSizeZ()
-    old_to_new_labels = {}
-    next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
-                label = labels.at(x, y, z)
-                if label == 0:
-                    new_label = 0
-                else:
-                    try:
-                        new_label = old_to_new_labels[label]
-                    except KeyError:
-                        new_label = next_label
-                        old_to_new_labels[label] = new_label
-                        next_label += 1
-                output.setValue(new_label, x, y, z)
-    return output
 
-output = relabel(input_labels)
-aims.write(output, "merged_relabelled.nii")
+
+
+
+def compute_distmaps_files(classif_filename, output_distwhite_filename,
+                           output_distCSF_filename, output_classif_filename):
+    classif = aims.read(classif_filename)
+
+    dist_from_white = highres_cortex.cortex_topo.signed_distance(
+        classif, [100], [200], 150)
+    aims.write(dist_from_white, output_distwhite_filename)
+
+    dist_from_CSF = highres_cortex.cortex_topo.signed_distance(
+        classif, [100], [0], 50)
+    aims.write(dist_from_CSF, output_distCSF_filename)
+
+    aims.write(classif, output_classif_filename)
+
+
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Compute the signed distance to white matter and to CSF
+""")
+    parser.add_argument("classif")
+    parser.add_argument("output_distwhite")
+    parser.add_argument("output_distCSF")
+    parser.add_argument("output_classif_with_boundaries")
+
+    args = parser.parse_args(argv[1:])
+    return args
+
+
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return compute_distmaps_files(
+        args.classif,
+        args.output_distwhite,
+        args.output_distCSF,
+        args.output_classif_with_boundaries) or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
