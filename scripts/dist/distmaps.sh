@@ -35,7 +35,11 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-python "$(dirname -- "$0")"/distmaps.py
+ylDistmaps \
+    ../classif.nii.gz \
+    distwhite.nii.gz \
+    distCSF.nii.gz \
+    classif_with_outer_boundaries.nii.gz
 
 AimsThreshold -m di -t -1 \
     -i ./classif_with_outer_boundaries.nii \

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -36,19 +37,57 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+import sys
+
 import numpy as np
 from soma import aims, aimsalgo
 
 import highres_cortex.cortex_topo
 
-classif = aims.read("../classif.nii.gz")
 
-dist_from_white = highres_cortex.cortex_topo.fastmarching_negative(
-    classif, [100], [200], 150)
-aims.write(dist_from_white, "./distwhite.nii.gz")
 
-dist_from_CSF = highres_cortex.cortex_topo.fastmarching_negative(
-    classif, [100], [0], 50)
-aims.write(dist_from_CSF, "./distCSF.nii.gz")
 
-aims.write(classif, "./classif_with_outer_boundaries.nii.gz")
+
+def compute_distmaps_files(classif_filename, output_distwhite_filename,
+                           output_distCSF_filename, output_classif_filename):
+    classif = aims.read(classif_filename)
+
+    dist_from_white = highres_cortex.cortex_topo.signed_distance(
+        classif, [100], [200], 150)
+    aims.write(dist_from_white, output_distwhite_filename)
+
+    dist_from_CSF = highres_cortex.cortex_topo.signed_distance(
+        classif, [100], [0], 50)
+    aims.write(dist_from_CSF, output_distCSF_filename)
+
+    aims.write(classif, output_classif_filename)
+
+
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Compute the signed distance to white matter and to CSF
+""")
+    parser.add_argument("classif")
+    parser.add_argument("output_distwhite")
+    parser.add_argument("output_distCSF")
+    parser.add_argument("output_classif_with_boundaries")
+
+    args = parser.parse_args(argv[1:])
+    return args
+
+
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return compute_distmaps_files(
+        args.classif,
+        args.output_distwhite,
+        args.output_distCSF,
+        args.output_classif_with_boundaries) or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

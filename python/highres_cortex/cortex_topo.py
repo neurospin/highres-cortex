@@ -55,12 +55,12 @@ CSF_LABEL = 0
 CORTEX_LABEL = 100
 WHITE_LABEL = 200
 
-# TODO rename to signed_distance
-def fastmarching_negative(classif_vol,
-                          propagation_labels=[1],
-                          seed_labels=[0],
-                          border_label=5,
-                          verbose=True):
+
+def signed_distance(classif_vol,
+                    propagation_labels=[1],
+                    seed_labels=[0],
+                    border_label=5,
+                    verbose=True):
     """Distance to the seed as well as negative distance within the seed.
 
     Caution: the input volume classif_vol is modified: the value border_label
