@@ -36,12 +36,17 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-import numpy as np
+import random
 from soma import aims
 
-input_labels = aims.read("./merged.nii")
-
 def relabel(labels):
+    import numpy as np
+    np_input_labels = np.asarray(labels)
+    max_label = np.max(np_input_labels)
+    nonzero_labels = list(range(1, max_label + 1))
+    random.shuffle(nonzero_labels)
+    new_labels = [0] + nonzero_labels
+
     output = aims.Volume(labels)
     size_x = output.getSizeX()
     size_y = output.getSizeY()
@@ -51,18 +56,49 @@ def relabel(labels):
     for z in xrange(size_z):
         for y in xrange(size_y):
             for x in xrange(size_x):
-                label = labels.at(x, y, z)
-                if label == 0:
-                    new_label = 0
+                old_label = labels.at(x, y, z)
+                if old_label >= 0:
+                    new_label = new_labels[old_label]
                 else:
-                    try:
-                        new_label = old_to_new_labels[label]
-                    except KeyError:
-                        new_label = next_label
-                        old_to_new_labels[label] = new_label
-                        next_label += 1
+                    new_label = 0
                 output.setValue(new_label, x, y, z)
     return output
 
-output = relabel(input_labels)
-aims.write(output, "merged_relabelled.nii")
+    
+if __name__ == '__main__':
+    
+    mergedFile = None
+    resultDir = None
+    keyWord = None
+
+    parser = OptionParser('Get the randomized relabeled volume -YL')
+    parser.add_option('-m', dest='mergedFile', help='mergedFile')   
+    parser.add_option('-d', dest='resultDir', help='directory for results')
+    parser.add_option('-k', dest='keyWord', help='keyword for results')
+
+    options, args = parser.parse_args(sys.argv)
+    print options
+    print args
+
+    if options.mergedFile is None:
+        print >> sys.stderr, 'New: exit. no mergedFile given'
+        sys.exit(1)
+    else:
+        mergedFile = options.mergedFile
+             
+    if options.resultDir is None:
+        print >> sys.stderr, 'New: exit. no directory for results given'
+        sys.exit(1)
+    else:
+        resultDir = options.resultDir    
+        
+    if options.keyWord is None:
+        print >> sys.stderr, 'New: exit. no keyWord given'
+        sys.exit(1)
+    else:
+        keyWord = options.keyWord      
+    
+    
+    input_labels = aims.read(mergedFile)        
+    output = relabel(input_labels)
+    aims.write(output, resultDir + "merged_randomized_%s.nii.gz" %(keyWord))

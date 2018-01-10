@@ -40,9 +40,6 @@ import sys
 import numpy as np
 from soma import aims
 
-CSF_labels = aims.read("./heat_CSF_on_bulk.nii.gz")
-white_labels = aims.read("./heat_white_on_bulk.nii.gz")
-
 def relabel_conjunctions(labels1, labels2):
     output = aims.Volume(labels1)
     output.fill(0)
@@ -75,5 +72,59 @@ def relabel_conjunctions(labels1, labels2):
                      .format(sys.argv[0], next_label - 1))
     return output
 
-output = relabel_conjunctions(CSF_labels, white_labels)
-aims.write(output, "conjunction.nii.gz")
+    
+if __name__ == '__main__':
+    CSF_labelsFile = None
+    white_labelsFile = None
+    resultDir = None
+    keyWord = None
+
+    parser = OptionParser('Get exchanged propagation volume -YL')
+    parser.add_option('-s', dest='CSF_labelsFile', help='heat_CSF_labels_on_white')   
+    parser.add_option('-w', dest='white_labelsFile', help='heat_white_labels_on_CSF') 
+    parser.add_option('-d', dest='resultDir', help='directory for results')
+    parser.add_option('-k', dest='keyWord', help='keyword for results')
+
+    options, args = parser.parse_args(sys.argv)
+    print options
+    print args
+
+    if options.CSF_labelsFile is None:
+        print >> sys.stderr, 'New: exit. no heat_CSF_labels_on_white given'
+        sys.exit(1)
+    else:
+        CSF_labelsFile = options.CSF_labelsFile
+            
+    if options.white_labelsFile is None:
+        print >> sys.stderr, 'New: exit. no heat_white_labels_on_CSF given'
+        sys.exit(1)
+    else:
+        white_labelsFile = options.white_labelsFile     
+ 
+    if options.resultDir is None:
+        print >> sys.stderr, 'New: exit. no directory for results given'
+        sys.exit(1)
+    else:
+        resultDir = options.resultDir    
+        
+    if options.keyWord is None:
+        print >> sys.stderr, 'New: exit. no keyWord given'
+        sys.exit(1)
+    else:
+        keyWord = options.keyWord      
+     
+
+     
+     
+    CSF_labels = aims.read(CSF_labelsFile)
+    white_labels = aims.read(white_labelsFile)
+    output = relabel_conjunctions(CSF_labels, white_labels)
+    aims.write(output, resultDir + 'conjunction_%s.nii.gz' %(keyWord))
+    
+    
+    
+    
+    
+    
+    
+    
