@@ -89,7 +89,7 @@ class IsoCurvature(capsul.api.Process):
         desc="input image volume (scalar field)")
     # modes mean, geom, pri1, pri2 are currently unimplemented
     mode = Enum(
-        "sum", values=("sum",), output=False, optional=True,
+        "sum", output=False, optional=True,
         desc="type of curvature to compute")
     verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
@@ -209,7 +209,7 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         6, output=False, optional=True,
         desc="maximum advection distance (millimetres)")
     domain_type = Enum(
-        "interpolated", values=("boolean", "interpolated"), output=False,
+        "interpolated", "boolean", output=False, optional=True,
         desc="interpolation type for the domain")
     verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
@@ -256,7 +256,7 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         6, output=False, optional=True,
         desc="maximum advection distance (millimetres)")
     domain_type = Enum(
-        "interpolated", values=("boolean", "interpolated"), output=False,
+        "interpolated", "boolean", output=False, optional=True,
         desc="interpolation type for the domain")
     verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
