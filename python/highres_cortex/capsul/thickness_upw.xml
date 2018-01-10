@@ -1,0 +1,74 @@
+<pipeline>
+    <doc>
+        Compute the cortical thickness along Laplace field lines from a classification volume, using upwinding (much faster than advection, but slightly less precise)
+    </doc>
+    <process name="laplace"
+             module="highres_cortex.capsul.processes.Laplacian"/>
+    <process name="upwind_from_pial"
+             module="highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient">
+      <set name="downfield" value="False"/>
+      <set name="domain_label" value="100"/>
+      <set name="origin_label" value="0"/>
+    </process>
+    <process name="upwind_from_white"
+             module="highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient">
+      <set name="downfield" value="True"/>
+      <set name="domain_label" value="100"/>
+      <set name="origin_label" value="200"/>
+    </process>
+    <process name="total_length"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 + I2'"/>
+    </process>
+    <process name="equidistant_depth"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 / I2'"/>
+    </process>
+
+    <link source="classif" dest="laplace.classif"/>
+    <link source="verbosity" dest="laplace.verbosity"/>
+    <link source="laplace_precision" dest="laplace.precision"/>
+    <link source="laplace_typical_cortical_thickness"
+          dest="laplace.typical_cortical_thickness"/>
+
+    <link source="classif" dest="upwind_from_pial.domain"/>
+    <link source="laplace.laplace_field" dest="upwind_from_pial.field"/>
+    <link source="verbosity" dest="upwind_from_pial.verbosity"/>
+
+    <link source="classif" dest="upwind_from_white.domain"/>
+    <link source="laplace.laplace_field" dest="upwind_from_white.field"/>
+    <link source="verbosity" dest="upwind_from_white.verbosity"/>
+
+    <link source="upwind_from_pial.output"
+          dest="total_length.input_image_1"/>
+    <link source="upwind_from_white.output"
+          dest="total_length.input_image_2"/>
+
+    <link source="upwind_from_pial.output"
+          dest="equidistant_depth.input_image_1"/>
+    <link source="total_length.output_image"
+          dest="equidistant_depth.input_image_2"/>
+
+    <optional_output_switch name="equidistant_depth_switch">
+      <input name="input"/>
+      <output name="output"/>
+    </optional_output_switch>
+    <link source="equidistant_depth.output_image"
+          dest="equidistant_depth_switch.input_switch_output"/>
+    <link source="equidistant_depth_switch.output"
+          dest="equidistant_depth"/>
+
+    <link source="total_length.output_image"
+          dest="thickness_image"/>
+
+    <gui>
+      <position name="inputs" x="-134" y="553"/>
+      <position name="laplace" x="154" y="370"/>
+      <position name="upwind_from_pial" x="392" y="398"/>
+      <position name="upwind_from_white" x="392" y="627"/>
+      <position name="total_length" x="621" y="505"/>
+      <position name="equidistant_depth" x="604" y="672"/>
+      <position name="equidistant_depth_switch" x="814" y="690"/>
+      <position name="outputs" x="891" y="561"/>
+    </gui>
+</pipeline>

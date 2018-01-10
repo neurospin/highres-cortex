@@ -10,8 +10,16 @@
 configure_file(test_env.sh.in test_env.sh @ONLY)
 set(TEST_ENV "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
 
-add_test(
+brainvisa_add_test(
   NAME highres_cortex_all_scripts
-  COMMAND /bin/sh -e "${TEST_ENV}" ./test_all_scripts.sh
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+  COMMAND /bin/sh -e "${TEST_ENV}" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
+  )
+
+if(NOT DEFINED PYTHON_HOST_EXECUTABLE)
+  # Compatibility with BrainVISA <= 4.5
+  set(PYTHON_HOST_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+brainvisa_add_test(
+  NAME highres_cortex_capsul
+  COMMAND "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.test_capsul
 )

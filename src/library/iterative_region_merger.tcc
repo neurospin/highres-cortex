@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2018).
 Copyright CEA (2014).
 Copyright Université Paris XI (2014).
 
@@ -43,17 +44,13 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <set>
 
 #include <boost/heap/d_ary_heap.hpp>
+#include <boost/heap/binomial_heap.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 
 namespace
 {
 
 const int debug_output = 0;
-
-inline bool approx_equal(float x, float y)
-{
-  return std::abs(x - y) < 0.1f;
-}
 
 template <typename Tlabel> class Region;
 template <typename Tlabel>
@@ -185,7 +182,7 @@ std::ostream& operator << (std::ostream& stream, const Region<Tlabel>& region)
 {
   stream << "Region@" << &region << " (" << "label=" << region.label()
          << ", fusion_ordering=" << region.fusion_ordering()  << ", #neighbours="
-         << region.m_neighbours.size();
+         << region.m_neighbours.size() << ")";
   return stream;
 }
 
@@ -193,9 +190,16 @@ template <typename Tlabel, typename CacheType>
 class RegionInQueue : public CachingRegion<Tlabel, CacheType>
 {
 public:
+#if defined(__APPLE__) && !defined(__clang__)
+  // d_ary_heap fails to compile on Apple GCC 4.0.1 (Mac OS 10.5), use
+  // binomial_heap instead
+  typedef boost::heap::binomial_heap<RegionInQueue<Tlabel, CacheType> > RegionQueue;
+#else
   typedef boost::heap::d_ary_heap<RegionInQueue<Tlabel, CacheType>,
                                   boost::heap::arity<8>,
                                   boost::heap::mutable_<true> > RegionQueue;
+#endif
+
   typedef typename RegionQueue::handle_type Handle;
 
   RegionInQueue(const Tlabel region_label, const float initial_fusion_ordering,
@@ -273,9 +277,7 @@ merge_worst_regions_iteratively()
 
   typedef typename RegionQualityCriterion::Cache CacheType;
   typedef RegionInQueue<Tlabel, CacheType> RegionType;
-  typedef boost::heap::d_ary_heap<RegionType,
-                                  boost::heap::arity<8>,
-                                  boost::heap::mutable_<true> > RegionQueue;
+  typedef typename RegionType::RegionQueue RegionQueue;
   typedef typename RegionQueue::handle_type Handle;
 
   // Hold the labels to retrieve them in order of increasing region fusion_ordering
@@ -325,21 +327,25 @@ merge_worst_regions_iteratively()
         const Tlabel yplus_label = m_label_volume.volume().at(x, y + 1, z);
         const Tlabel zplus_label = m_label_volume.volume().at(x, y, z + 1);
 
-        if(label_to_handle.count(xplus_label) != 0
+        typename std::map<Tlabel, Handle>::const_iterator it;
+        it = label_to_handle.find(xplus_label);
+        if(it != label_to_handle.end()
            && xplus_label != background_label && self_label != xplus_label) {
-          Region<Tlabel>& xplus_region = *label_to_handle[xplus_label];
+          Region<Tlabel>& xplus_region = *(it->second);
           self_region.add_neighbour(xplus_region);
         }
 
-        if(label_to_handle.count(yplus_label) != 0
+        it = label_to_handle.find(yplus_label);
+        if(it != label_to_handle.end()
            && yplus_label != background_label && self_label != yplus_label) {
-          Region<Tlabel>& yplus_region = *label_to_handle[yplus_label];
+          Region<Tlabel>& yplus_region = *(it->second);
           self_region.add_neighbour(yplus_region);
         }
 
-        if(label_to_handle.count(zplus_label) != 0
+        it = label_to_handle.find(zplus_label);
+        if(it != label_to_handle.end()
            && zplus_label != background_label && self_label != zplus_label) {
-          Region<Tlabel>& zplus_region = *label_to_handle[zplus_label];
+          Region<Tlabel>& zplus_region = *(it->second);
           self_region.add_neighbour(zplus_region);
         }
       }
@@ -444,9 +450,11 @@ merge_worst_regions_iteratively()
         // heap!
         queue.pop();
 
-        const float new_fusion_ordering = m_criterion.fusion_ordering(best_neighbour_region.cache());
+        const float new_fusion_ordering
+          = m_criterion.fusion_ordering(best_neighbour_region.cache());
+        assert(best_neighbour_region.fusion_ordering() < new_fusion_ordering);
         best_neighbour_region.update_fusion_ordering(new_fusion_ordering);
-        queue.update(best_neighbour_region.handle());
+        queue.decrease(best_neighbour_region.handle());
       }
     } else {
       // This case can only be reached when worst_region.traversing() is true

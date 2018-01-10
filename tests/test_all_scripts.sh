@@ -9,8 +9,11 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# This script must be run from inside the tests/ directory
-test_dir=$PWD
+test_dir=$(dirname -- "$0")
+[ -f "$test_dir/run_all_scripts.sh" ] || {
+    echo "$0: cannot find the directory containing run_all_scripts.sh" >&2
+    exit 1
+}
 
 # Create a temporary directory, make sure that it will be deleted on exit
 tmpdir=
@@ -22,10 +25,8 @@ trap 'cleanup; trap - HUP EXIT; kill -HUP $$' HUP
 trap 'cleanup; trap - INT EXIT; kill -INT $$' INT
 trap 'cleanup; trap - TERM EXIT; kill -TERM $$' TERM
 trap 'trap - QUIT EXIT; kill -QUIT $$' QUIT
-tmpdir=$(mktemp -d)
+tmpdir=$(mktemp -d -t hrcortex_XXXX)
 
-
-export PYTHONPATH="$test_dir/../python:$PYTHONPATH"
 
 cd -- "$tmpdir"
 python -m highres_cortex.test.synthetic_data 5 3 0.3
@@ -36,12 +37,12 @@ import sys
 from highres_cortex.test.compare_with_reference import *
 c = ResultComparator(".")
 success = c.ensure_max_rms_errors([
-    ("heat/heat.nii.gz", 0.03),
-    ("isovolume/pial-volume-fraction.nii.gz", 0.03),
-    ("laplace-euclidean/pial-fraction.nii.gz", 0.03),
-    ("laplace-euclidean/total-length.nii.gz", 0.15),
-    ("upwind-euclidean/pial-fraction.nii.gz", 0.03),
-    ("upwind-euclidean/total-length.nii.gz", 0.3),
+    ("heat/heat.nii.gz", 0.021),
+    ("isovolume/equivolumic_depth.nii.gz", 0.020),
+    ("laplace-euclidean/pial-fraction.nii.gz", 0.017),
+    ("laplace-euclidean/total-length.nii.gz", 0.150),
+    ("upwind-euclidean/pial-fraction.nii.gz", 0.023),
+    ("upwind-euclidean/total-length.nii.gz", 0.190),
 ])
 sys.exit(0 if success else 1)
 EOF

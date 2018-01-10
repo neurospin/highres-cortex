@@ -1,4 +1,5 @@
 /*
+Copyright Forschungszentrum Jülich GmbH (2017).
 Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
@@ -73,36 +74,36 @@ std::string program_name;
 } // end of anonymous namespace
 
 
-class AdvectValues : public Process
+class AdvectValuesProcess : public Process
 {
 public:
-  AdvectValues();
-  virtual ~AdvectValues() {}
+  AdvectValuesProcess();
+  virtual ~AdvectValuesProcess() {}
   template <typename T>
   static bool doit(Process & p, const string & filename, Finder & finder);
 
   boost::shared_ptr<yl::VectorField3d> advection_field;
   VolumeRef<int16_t> domain_volume;
-  VolumeRef<int16_t> advection_domain_volume;
-  float step;
+  VolumeRef<int16_t> seeds_volume;
+  float step_size;
   float max_advection_distance;
   string domain_type;
   string values_output_fname;
 };
 
 
-AdvectValues::AdvectValues()
-  : Process(), step(0.03f), max_advection_distance(6.f)
+AdvectValuesProcess::AdvectValuesProcess()
+  : Process(), step_size(0.03f), max_advection_distance(6.f)
 {
-  registerProcessType( "Volume", "S16", &AdvectValues::doit<int16_t> );
-  registerProcessType( "Volume", "FLOAT", &AdvectValues::doit<float> );
+  registerProcessType( "Volume", "S16", &AdvectValuesProcess::doit<int16_t> );
+  registerProcessType( "Volume", "FLOAT", &AdvectValuesProcess::doit<float> );
 }
 
 
 template <typename T>
-bool AdvectValues::doit(Process & p, const string & filename, Finder& /*unused*/)
+bool AdvectValuesProcess::doit(Process & p, const string & filename, Finder& /*unused*/)
 {
-  AdvectValues & advect = dynamic_cast<AdvectValues&>(p);
+  AdvectValuesProcess & advect = dynamic_cast<AdvectValuesProcess&>(p);
 
   if(verbose) clog << program_name << ": reading seed values volume..."
     << endl;
@@ -129,13 +130,10 @@ bool AdvectValues::doit(Process & p, const string & filename, Finder& /*unused*/
         advect.domain_volume));
   }
 
-  VolumeRef<float> result_values =
-    yl::advect_value(*advect.advection_field, values_seeds,
-                     advect.domain_volume,
-                     advect.max_advection_distance, advect.step,
-                     *domain_field,
-                     verbose,
-                     advect.advection_domain_volume);
+  VolumeRef<T> result_values =
+    yl::advect_value(advect.seeds_volume, *domain_field,
+                     *advect.advection_field, values_seeds,
+                     advect.max_advection_distance, advect.step_size, verbose);
 
   aims::Writer<VolumeRef<T> > values_output_writer(advect.values_output_fname);
   bool success;
@@ -151,12 +149,12 @@ bool AdvectValues::doit(Process & p, const string & filename, Finder& /*unused*/
 int main(const int argc, const char **argv)
 {
   // Initialize command-line option parsing
-  AdvectValues advect;
-  aims::ProcessInput values_seeds_pi(advect);
+  AdvectValuesProcess advect_process;
+  aims::ProcessInput values_seeds_pi(advect_process);
   aims::Reader<VolumeRef<float> > fieldx_reader, fieldy_reader, fieldz_reader;
   aims::Reader<VolumeRef<float> > grad_field_reader;
   aims::Reader<VolumeRef<int16_t> > domain_reader;
-  aims::Reader<VolumeRef<int16_t> > advection_domain_reader;
+  aims::Reader<VolumeRef<int16_t> > seeds_reader;
 
   std::set<string> allowed_domain_types;
   allowed_domain_types.insert(""); // default
@@ -169,34 +167,36 @@ int main(const int argc, const char **argv)
 "origin voxel."
 );
   app.addOption(domain_reader, "--domain",
-                "mask of the calculation domain: one inside, zero outside");
-  app.addOption(advection_domain_reader, "--advect-domain",
-                "mask of the advection seeds domain: one inside, zero "
-                "outside - default: same as domain", true);
+                "mask of the advection domain: one inside, zero outside");
+  app.addOption(seeds_reader, "--seeds",
+                "mask of the advection seeds - default: same as domain", true);
+  app.alias("--advect-domain", "--seeds"); // backward compatibility
   app.addOption(grad_field_reader, "--grad-field",
-                "use the gradient of this scalar field", true);
+                "scalar field whose gradient is to be advected along", true);
   app.addOption(fieldx_reader, "--fieldx",
-                "x component of vector field", true);
+                "x component of vector field to advect along", true);
   app.addOption(fieldy_reader, "--fieldy",
-                "y component of vector field", true);
+                "y component of vector field to advect along", true);
   app.addOption(fieldz_reader, "--fieldz",
-                "z component of vector field", true);
+                "z component of vector field to advect along", true);
   app.addOption(values_seeds_pi, "--seed-values",
                 "volume containing the values to be advected");
-  app.addOption(advect.values_output_fname, "--output-values",
+  app.addOption(advect_process.values_output_fname, "--output-values",
                 "output volume containing the advected values");
   {
     std::ostringstream help_str;
     help_str << "size of the advection step (millimetres) [default: "
-             << advect.step << "]";
-    app.addOption(advect.step, "--step", help_str.str(), true);
+             << advect_process.step_size << "]";
+    app.addOption(advect_process.step_size, "--step-size",
+                  help_str.str(), true);
   }
+  app.alias("--step", "--step-size"); // backward compatibility
   {
     std::ostringstream help_str;
     help_str << "maximum advection distance (millimetres) [default: "
-             << advect.max_advection_distance << "]";
-    app.addOption(advect.max_advection_distance, "--max-dist", help_str.str(),
-                  true);
+             << advect_process.max_advection_distance << "]";
+    app.addOption(advect_process.max_advection_distance, "--max-dist",
+                  help_str.str(), true);
   }
   {
     std::ostringstream help_str;
@@ -206,7 +206,8 @@ int main(const int argc, const char **argv)
       if(!i->empty())
         help_str << *i << ", ";
     help_str << "[default: interpolated]";
-    app.addOption(advect.domain_type, "--domain-type", help_str.str(), true);
+    app.addOption(advect_process.domain_type, "--domain-type",
+                  help_str.str(), true);
   }
 
 
@@ -229,7 +230,7 @@ int main(const int argc, const char **argv)
 
   bool success = true;
 
-  if(allowed_domain_types.find(advect.domain_type)
+  if(allowed_domain_types.find(advect_process.domain_type)
      == allowed_domain_types.end())
   {
     clog << program_name << ": unknown domain-type";
@@ -272,7 +273,7 @@ int main(const int argc, const char **argv)
            << "'specified as --grad-field, aborting" << endl;
       return EXIT_FAILURE;
     }
-    advect.advection_field
+    advect_process.advection_field
       = boost::make_shared<yl::LinearlyInterpolatedScalarFieldGradient>
         (grad_field);
   } else {
@@ -316,34 +317,38 @@ int main(const int argc, const char **argv)
            << endl;
       return EXIT_FAILURE;
     }
-    advect.advection_field
+    advect_process.advection_field
       = boost::make_shared<yl::LinearlyInterpolatedVectorField3d>
         (fieldx, fieldy, fieldz);
   }
 
-  if(verbose != 0) clog << program_name << ": reading domain volume..." << endl;
+  if(verbose != 0) {
+    clog << program_name << ": reading domain volume..." << endl;
+  }
   domain_reader.setAllocatorContext(
     AllocatorContext(AllocatorStrategy::ReadOnly));
-  if(!domain_reader.read(advect.domain_volume))
+  if(!domain_reader.read(advect_process.domain_volume))
   {
     clog << program_name << ": cannot read domain volume" << endl;
     return EXIT_FAILURE;
   }
 
-  if( !advection_domain_reader.fileName().empty() )
+  if( !seeds_reader.fileName().empty() )
   {
-    if(verbose != 0) clog << program_name << ": reading advection domain volume..."
+    if(verbose != 0) clog << program_name << ": reading seeds volume..."
       << endl;
-    advection_domain_reader.setAllocatorContext(
+    seeds_reader.setAllocatorContext(
       AllocatorContext(AllocatorStrategy::ReadOnly));
-    if(!advection_domain_reader.read(advect.advection_domain_volume))
+    if(!seeds_reader.read(advect_process.seeds_volume))
     {
-      clog << program_name << ": cannot read advection domain volume" << endl;
+      clog << program_name << ": cannot read seeds volume" << endl;
       return EXIT_FAILURE;
     }
+  } else {
+    advect_process.seeds_volume = advect_process.domain_volume;
   }
 
-  success = advect.execute( values_seeds_pi.filename );
+  success = advect_process.execute( values_seeds_pi.filename );
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

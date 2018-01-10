@@ -1,0 +1,81 @@
+<pipeline>
+    <doc>
+        Compute the cortical thickness along Laplace field lines from a classification volume, using Eulerian advection (slightly more precise than upwinding, but much slower)
+    </doc>
+    <process name="laplace"
+             module="highres_cortex.capsul.processes.Laplacian"/>
+    <process name="binarize_cortex"
+             module="highres_cortex.capsul.processes.BinarizeCortex"/>
+    <process name="advect_toward_pial"
+             module="highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient">
+      <set name="domain_type" value="'interpolated'"/>
+      <set name="upfield" value="True"/>
+    </process>
+    <process name="advect_toward_white"
+             module="highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient">
+      <set name="domain_type" value="'interpolated'"/>
+      <set name="upfield" value="False"/>
+    </process>
+    <process name="total_length"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 + I2'"/>
+    </process>
+    <process name="equidistant_depth"
+             module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
+      <set name="formula" value="'I1 / I2'"/>
+    </process>
+
+    <link source="classif" dest="laplace.classif"/>
+    <link source="verbosity" dest="laplace.verbosity"/>
+    <link source="laplace_precision" dest="laplace.precision"/>
+    <link source="laplace_typical_cortical_thickness"
+          dest="laplace.typical_cortical_thickness"/>
+
+    <link source="classif" dest="binarize_cortex.classif"/>
+
+    <link source="binarize_cortex.output_image" dest="advect_toward_pial.domain"/>
+    <link source="laplace.laplace_field" dest="advect_toward_pial.grad_field"/>
+    <link source="advection_step_size" dest="advect_toward_pial.step_size"/>
+    <link source="advection_max_dist" dest="advect_toward_pial.max_dist"/>
+    <link source="verbosity" dest="advect_toward_pial.verbosity"/>
+
+    <link source="binarize_cortex.output_image" dest="advect_toward_white.domain"/>
+    <link source="laplace.laplace_field" dest="advect_toward_white.grad_field"/>
+    <link source="advection_step_size" dest="advect_toward_white.step_size"/>
+    <link source="advection_max_dist" dest="advect_toward_white.max_dist"/>
+    <link source="verbosity" dest="advect_toward_white.verbosity"/>
+
+    <link source="advect_toward_pial.output_length"
+          dest="total_length.input_image_1"/>
+    <link source="advect_toward_white.output_length"
+          dest="total_length.input_image_2"/>
+
+    <link source="advect_toward_pial.output_length"
+          dest="equidistant_depth.input_image_1"/>
+    <link source="total_length.output_image"
+          dest="equidistant_depth.input_image_2"/>
+
+    <optional_output_switch name="equidistant_depth_switch">
+      <input name="input"/>
+      <output name="output"/>
+    </optional_output_switch>
+    <link source="equidistant_depth.output_image"
+          dest="equidistant_depth_switch.input_switch_output"/>
+    <link source="equidistant_depth_switch.output"
+          dest="equidistant_depth"/>
+
+    <link source="total_length.output_image"
+          dest="thickness_image"/>
+
+    <gui>
+      <position name="inputs" x="-134" y="553"/>
+      <position name="laplace" x="154" y="370"/>
+      <position name="binarize_cortex" x="-7" y="317"/>
+      <position name="advect_toward_pial" x="392" y="370"/>
+      <position name="advect_toward_white" x="392" y="627"/>
+      <position name="total_length" x="621" y="505"/>
+      <position name="equidistant_depth" x="604" y="672"/>
+      <position name="equidistant_depth_switch" x="814" y="690"/>
+      <position name="outputs" x="891" y="561"/>
+    </gui>
+</pipeline>
