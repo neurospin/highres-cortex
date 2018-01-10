@@ -202,8 +202,9 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
     tmp_classif = _prepare_classif_for_VipHomotopic_Cortical(classif,
                                                              filling_size)
 
-    tmp_dir = tempfile.mkdtemp(prefix="highres-cortex.")
+    tmp_dir = None
     try:
+        tmp_dir = tempfile.mkdtemp(prefix="highres-cortex.")
         aims.write(tmp_classif, os.path.join(tmp_dir, "tmp_classif.nii.gz"))
         del tmp_classif
         with open(os.path.join(tmp_dir, "fake.han"), "w") as f:
