@@ -185,6 +185,14 @@ class SphereTestCase(unittest.TestCase):
             reference_file="reference_euclidean.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
+    def test_traverses_pipeline(self):
+        p = capsul.api.get_process_instance(
+            "highres_cortex.capsul.traverses")
+        p.classif = os.path.join(self.test_dir, "classif.nii.gz")
+        p.cortical_traverses = os.path.join(
+            self.test_dir, "traverses.nii.gz")
+        p()
+
 
 if __name__ == "__main__":
     unittest.main(buffer=True)

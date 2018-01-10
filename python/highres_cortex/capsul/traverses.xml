@@ -1,0 +1,253 @@
+<pipeline>
+    <doc>
+        Create cortical traverses
+    </doc>
+    <process name="laplace"
+             module="highres_cortex.capsul.processes.Laplacian"/>
+    <process name="distmaps"
+             module="highres_cortex.capsul.processes.Distmaps"/>
+    <process name="sink1" module="highres_cortex.capsul.processes.VolumeSink"/>
+    <process name="sink2" module="highres_cortex.capsul.processes.VolumeSink"/>
+    <process name="threshold_CSF_interface"
+             module="highres_cortex.capsul.processes.ImageSingleThreshold">
+      <set name="binary" value="True"/>
+      <set name="mode" value="'eq'"/>
+      <set name="threshold" value="50"/>
+    </process>
+    <process name="threshold_white_interface"
+             module="highres_cortex.capsul.processes.ImageSingleThreshold">
+      <set name="binary" value="True"/>
+      <set name="mode" value="'eq'"/>
+      <set name="threshold" value="150"/>
+    </process>
+    <process name="label_CSF_interface"
+             module="highres_cortex.capsul.processes.LabelEachVoxel">
+      <set name="first_label" value="100000001"/>
+    </process>
+    <process name="label_white_interface"
+             module="highres_cortex.capsul.processes.LabelEachVoxel">
+      <set name="first_label" value="200000001"/>
+    </process>
+    <process name="negative_cortex"
+             module="highres_cortex.capsul.processes.ImageSingleThreshold">
+      <set name="binary" value="True"/>
+      <set name="mode" value="'di'"/>
+      <set name="threshold" value="100"/>
+      <set name="fg" value="-1"/>
+    </process>
+    <process name="negative_cortex_converter"
+             module="highres_cortex.capsul.processes.ConvertDataType">
+      <set name="data_type" value="'S32'"/>
+    </process>
+    <process name="CSF_negative_cortex_merger"
+             module="highres_cortex.capsul.processes.MergeImagesSameValues"/>
+    <process name="CSF_labelled_interface_merger"
+             module="highres_cortex.capsul.processes.MergeImagesAllToOne">
+      <set name="value" value="200000000"/>
+    </process>
+    <process name="white_negative_cortex_merger"
+             module="highres_cortex.capsul.processes.MergeImagesSameValues"/>
+    <process name="white_labelled_interface_merger"
+             module="highres_cortex.capsul.processes.MergeImagesAllToOne">
+      <set name="value" value="100000000"/>
+    </process>
+    <process name="CSF_to_white_propagation"
+             module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
+      <set name="target_label" value="200000000"/>
+    </process>
+    <process name="white_to_CSF_propagation"
+             module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
+      <set name="target_label" value="100000000"/>
+    </process>
+    <process name="get_exchanged_propvol"
+             module="highres_cortex.capsul.processes.GetExchangedPropagationVolume"/>
+    <process name="merge_exchanged_on_CSF"
+             module="highres_cortex.capsul.processes.MergeImagesOneToOne">
+      <set name="label" value="150"/>
+      <set name="value" value="0"/>
+    </process>
+    <process name="merge_exchanged_on_white"
+             module="highres_cortex.capsul.processes.MergeImagesOneToOne">
+      <set name="label" value="50"/>
+      <set name="value" value="0"/>
+    </process>
+    <process name="CSF_on_bulk_propagation"
+             module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
+      <set name="target_label" value="0"/>
+    </process>
+    <process name="white_on_bulk_propagation"
+             module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
+      <set name="target_label" value="0"/>
+    </process>
+    <process name="relabel_conjunction"
+             module="highres_cortex.capsul.processes.RelabelConjunction"/>
+    <process name="connected_conjunction"
+             module="highres_cortex.capsul.processes.ConnectedComponents">
+      <set name="connectivity" value="'26'"/>
+    </process>
+    <process name="merge_regions"
+             module="highres_cortex.capsul.processes.MergeCortexColumnRegions"/>
+    <process name="relabel"
+             module="highres_cortex.capsul.processes.Relabel"/>
+    <process name="randomize_labels"
+             module="highres_cortex.capsul.processes.RandomizeLabels"/>
+
+    <link source="classif" dest="laplace.classif"/>
+    <link source="verbosity" dest="laplace.verbosity"/>
+    <link source="laplace_precision" dest="laplace.precision"/>
+    <link source="laplace_typical_cortical_thickness"
+          dest="laplace.typical_cortical_thickness"/>
+
+    <link source="classif" dest="distmaps.classif"/>
+    <link source="distmaps.distwhite" dest="sink1.file"/>
+    <link source="distmaps.distCSF" dest="sink2.file"/>
+
+    <link source="distmaps.classif_with_outer_boundaries"
+          dest="threshold_CSF_interface.input_image"/>
+
+    <link source="distmaps.classif_with_outer_boundaries"
+          dest="threshold_white_interface.input_image"/>
+
+    <link source="threshold_CSF_interface.output_image"
+          dest="label_CSF_interface.input_image"/>
+
+    <link source="threshold_white_interface.output_image"
+          dest="label_white_interface.input_image"/>
+
+    <link source="classif" dest="negative_cortex.input_image"/>
+
+    <link source="negative_cortex.output_image"
+          dest="negative_cortex_converter.input_image"/>
+
+    <link source="negative_cortex_converter.output_image"
+          dest="CSF_negative_cortex_merger.input_image"/>
+    <link source="label_CSF_interface.output_image"
+          dest="CSF_negative_cortex_merger.mask_image"/>
+
+    <link source="CSF_negative_cortex_merger.output_image"
+          dest="CSF_labelled_interface_merger.input_image"/>
+    <link source="label_white_interface.output_image"
+          dest="CSF_labelled_interface_merger.mask_image"/>
+
+    <link source="negative_cortex_converter.output_image"
+          dest="white_negative_cortex_merger.input_image"/>
+    <link source="label_white_interface.output_image"
+          dest="white_negative_cortex_merger.mask_image"/>
+
+    <link source="white_negative_cortex_merger.output_image"
+          dest="white_labelled_interface_merger.input_image"/>
+    <link source="label_CSF_interface.output_image"
+          dest="white_labelled_interface_merger.mask_image"/>
+
+    <link source="verbosity"
+          dest="CSF_to_white_propagation.verbosity"/>
+    <link source="laplace.laplace_field"
+          dest="CSF_to_white_propagation.grad_field"/>
+    <link source="CSF_labelled_interface_merger.output_image"
+          dest="CSF_to_white_propagation.seeds"/>
+    <link source="advection_step_size"
+          dest="CSF_to_white_propagation.step_size"/>
+
+    <link source="verbosity"
+          dest="white_to_CSF_propagation.verbosity"/>
+    <link source="laplace.laplace_field"
+          dest="white_to_CSF_propagation.grad_field"/>
+    <link source="white_labelled_interface_merger.output_image"
+          dest="white_to_CSF_propagation.seeds"/>
+    <link source="advection_step_size"
+          dest="white_to_CSF_propagation.step_size"/>
+
+    <link source="distmaps.classif_with_outer_boundaries"
+          dest="get_exchanged_propvol.classif_with_outer_boundaries"/>
+    <link source="CSF_to_white_propagation.output_labels"
+          dest="get_exchanged_propvol.CSF_labels_on_white"/>
+    <link source="white_to_CSF_propagation.output_labels"
+          dest="get_exchanged_propvol.white_labels_on_CSF"/>
+
+    <link source="get_exchanged_propvol.output"
+          dest="merge_exchanged_on_CSF.input_image"/>
+    <link source="distmaps.classif_with_outer_boundaries"
+          dest="merge_exchanged_on_CSF.mask_image"/>
+
+    <link source="get_exchanged_propvol.output"
+          dest="merge_exchanged_on_white.input_image"/>
+    <link source="distmaps.classif_with_outer_boundaries"
+          dest="merge_exchanged_on_white.mask_image"/>
+
+    <link source="verbosity"
+          dest="CSF_on_bulk_propagation.verbosity"/>
+    <link source="laplace.laplace_field"
+          dest="CSF_on_bulk_propagation.grad_field"/>
+    <link source="merge_exchanged_on_CSF.output_image"
+          dest="CSF_on_bulk_propagation.seeds"/>
+    <link source="advection_step_size"
+          dest="CSF_on_bulk_propagation.step_size"/>
+
+    <link source="verbosity"
+          dest="white_on_bulk_propagation.verbosity"/>
+    <link source="laplace.laplace_field"
+          dest="white_on_bulk_propagation.grad_field"/>
+    <link source="merge_exchanged_on_white.output_image"
+          dest="white_on_bulk_propagation.seeds"/>
+    <link source="advection_step_size"
+          dest="white_on_bulk_propagation.step_size"/>
+
+    <link source="CSF_on_bulk_propagation.output_labels"
+          dest="relabel_conjunction.labels1"/>
+    <link source="white_on_bulk_propagation.output_labels"
+          dest="relabel_conjunction.labels2"/>
+
+    <link source="relabel_conjunction.output"
+          dest="connected_conjunction.input_image"/>
+
+    <link source="connected_conjunction.output"
+          dest="merge_regions.input_traverses"/>
+    <link source="CSF_on_bulk_propagation.dest_points"
+          dest="merge_regions.proj_csf"/>
+    <link source="white_on_bulk_propagation.dest_points"
+          dest="merge_regions.proj_white"/>
+    <link source="classif"
+          dest="merge_regions.classif"/>
+    <link source="goal_traverse_diameter"
+          dest="merge_regions.goal_diameter"/>
+    <link source="verbosity"
+          dest="merge_regions.verbosity"/>
+
+    <link source="merge_regions.output" dest="relabel.input"/>
+
+    <link source="relabel.output" dest="randomize_labels.input"/>
+
+    <!-- TODO add a boolean option and switch for randomizing labels -->
+    <link source="randomize_labels.output" dest="cortical_traverses"/>
+
+    <gui>
+        <position name="threshold_white_interface" x="464.4251" y="189.8626"/>
+        <position name="sink2" x="327.378225" y="127.063"/>
+        <position name="sink1" x="327.378225" y="188.6689"/>
+        <position name="relabel" x="3592.39335" y="294.75"/>
+        <position name="negative_cortex" x="371.278025" y="453.6565"/>
+        <position name="CSF_negative_cortex_merger" x="1036.9639125" y="62.6689"/>
+        <position name="CSF_labelled_interface_merger" x="1383.0806" y="41.3063"/>
+        <position name="white_to_CSF_propagation" x="1754.5755375" y="249.1937"/>
+        <position name="merge_exchanged_on_CSF" x="2340.782975" y="76.25"/>
+        <position name="label_white_interface" x="743.941725" y="212.3626"/>
+        <position name="white_negative_cortex_merger" x="1038.9795375" y="205.3187"/>
+        <position name="white_on_bulk_propagation" x="2636.8331" y="358.625"/>
+        <position name="CSF_to_white_propagation" x="1756.5755375" y="-39.0"/>
+        <position name="threshold_CSF_interface" x="463.409475" y="-18.5248"/>
+        <position name="randomize_labels" x="3737.035225" y="283.75"/>
+        <position name="inputs" x="0.0" y="211.7252"/>
+        <position name="outputs" x="3929.0564125" y="297.25"/>
+        <position name="merge_exchanged_on_white" x="2336.7986" y="293.625"/>
+        <position name="merge_regions" x="3420.4634125" y="219.25"/>
+        <position name="get_exchanged_propvol" x="2042.4780375" y="210.75"/>
+        <position name="white_labelled_interface_merger" x="1386.096225" y="203.7376"/>
+        <position name="relabel_conjunction" x="2942.376225" y="324.1937"/>
+        <position name="label_CSF_interface" x="745.9261" y="51.7691"/>
+        <position name="connected_conjunction" x="3149.17685" y="324.1937"/>
+        <position name="distmaps" x="89.4733375" y="42.6002"/>
+        <position name="CSF_on_bulk_propagation" x="2636.817475" y="71.375"/>
+        <position name="negative_cortex_converter" x="596.9964125" y="517.4189"/>
+        <position name="laplace" x="1378.6509125" y="557.9876"/>
+    </gui>
+</pipeline>
