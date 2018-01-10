@@ -94,7 +94,9 @@ def get_exchanged_propvol_files(classif_filename,
         aims.write(output, temp_filename)
 
         # These “failed components” will probably be separated by connexity
-        #AimsReplaceLevel -i raw_exchanged_labels.nii.gz -o exchanged_labels.nii.gz -g 100000000 -n 0 -g 200000000 -n 0
+        # AimsReplaceLevel -i raw_exchanged_labels.nii.gz \
+        # -o exchanged_labels.nii.gz \
+        # -g 100000000 -n 0 -g 200000000 -n 0
 
         subprocess.check_call(["AimsConnectComp",
                                "-i", "raw_exchanged_labels.nii",
@@ -133,6 +135,7 @@ Get exchanged propagation volume
     args = parser.parse_args(argv[1:])
     return args
 
+
 def main(argv=sys.argv):
     """The script's entry point."""
     args = parse_command_line(argv)
@@ -141,6 +144,7 @@ def main(argv=sys.argv):
         args.CSF_labels_on_white,
         args.white_labels_on_CSF,
         args.output) or 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

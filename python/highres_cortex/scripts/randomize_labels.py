@@ -88,12 +88,14 @@ Randomize the labels of an image with contiguous labels
     args = parser.parse_args(argv[1:])
     return args
 
+
 def main(argv=sys.argv):
     """The script's entry point."""
     args = parse_command_line(argv)
     return randomize_labels_files(
         args.input,
         args.output) or 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -97,6 +97,7 @@ Assign new labels to voxels that have the same pair of labels in both input imag
     args = parser.parse_args(argv[1:])
     return args
 
+
 def main(argv=sys.argv):
     """The script's entry point."""
     args = parse_command_line(argv)
@@ -104,6 +105,7 @@ def main(argv=sys.argv):
         args.labels1,
         args.labels2,
         args.output) or 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
