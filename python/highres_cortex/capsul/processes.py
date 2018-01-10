@@ -242,27 +242,27 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
 
     domain = File(
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="mask of the calculation domain: one inside, zero outside")
+        desc="mask of the calculation domain: one inside, zero outside")
     grad_field = File(
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="scalar field whose gradient is to be advected along")
+        desc="scalar field whose gradient is to be advected along")
     step_size = Float(
         0.03, output=False, optional=True,
-        doc="size of the advection step (millimetres)")
+        desc="size of the advection step (millimetres)")
     upfield = Bool(
         False, optional=True,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
         6, output=False, optional=True,
-        doc="maximum advection distance (millimetres)")
+        desc="maximum advection distance (millimetres)")
     domain_type = Enum(
         "interpolated", values=("boolean", "interpolated"), output=False,
-        doc="interpolation type for the domain")
-    verbosity = Int(1, output=False, optional=True, doc="Verbosity level")
+        desc="interpolation type for the domain")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     output_length = File(
         Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="output volume containing the length of the advection path")
+        desc="output volume containing the length of the advection path")
 
     def get_commandline(self):
         command_step_size = ((-self.step_size) if self.upfield
@@ -352,10 +352,10 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
 
     domain = File(
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="label image defining the computation domain")
+        desc="label image defining the computation domain")
     field = File(
         Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="scalar field whose gradient is used as the integration direction")
+        desc="scalar field whose gradient is used as the integration direction")
     downfield = Bool(
         False, optional=True,
         desc="work on inverted field (downfield instead of upfield)")
@@ -365,11 +365,11 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
     origin_label = Int(
         0, optional=True,
         desc="label of the origin object")
-    verbosity = Int(1, output=False, optional=True, doc="Verbosity level")
+    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
 
     output = File(
         Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        doc="output volume containing the distance")
+        desc="output volume containing the distance")
 
     def get_commandline(self):
         return [
