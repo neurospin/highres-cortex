@@ -207,7 +207,7 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         0.03, output=False, optional=True,
         desc="size of the advection step (millimetres)")
     upfield = Bool(
-        False, optional=True,
+        False, optional=False,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
         6, output=False, optional=True,
@@ -254,7 +254,7 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         0.03, output=False, optional=True,
         desc="size of the advection step (millimetres)")
     upfield = Bool(
-        False, optional=True,
+        False, optional=False,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
         6, output=False, optional=True,
@@ -364,7 +364,7 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
         desc="scalar field whose gradient is used as the integration "
         "direction")
     downfield = Bool(
-        False, optional=True,
+        False, optional=False,
         desc="work on inverted field (downfield instead of upfield)")
     domain_label = Int(
         100, optional=True,
@@ -587,7 +587,7 @@ volume of labels (either S16 or S32):
         0.03, output=False, optional=True,
         desc="size of the advection step (millimetres)")
     upfield = Bool(
-        False, optional=True,
+        False, optional=False,
         desc="Direction of advection (upfield if True, downfield if False)")
     max_dist = Float(
         6, output=False, optional=True,

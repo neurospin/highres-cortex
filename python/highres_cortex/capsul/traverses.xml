@@ -54,10 +54,12 @@
     <process name="CSF_to_white_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="200000000"/>
+      <set name="upfield" value="True"/>
     </process>
     <process name="white_to_CSF_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="100000000"/>
+      <set name="upfield" value="False"/>
     </process>
     <process name="get_exchanged_propvol"
              module="highres_cortex.capsul.processes.GetExchangedPropagationVolume"/>
@@ -74,10 +76,12 @@
     <process name="CSF_on_bulk_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="0"/>
+      <set name="upfield" value="True"/>
     </process>
     <process name="white_on_bulk_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="0"/>
+      <set name="upfield" value="False"/>
     </process>
     <process name="relabel_conjunction"
              module="highres_cortex.capsul.processes.RelabelConjunction"/>
