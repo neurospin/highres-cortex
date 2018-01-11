@@ -10,7 +10,10 @@
 configure_file(test_env.sh.in test_env.sh @ONLY)
 set(TEST_ENV "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
 
-brainvisa_add_test(
-  NAME highres_cortex_all_scripts
-  COMMAND /bin/sh -e "${TEST_ENV}" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
-)
+# These tests need /bin/bash, exclude them from Windows cross-builds
+if(NOT WIN32)
+  brainvisa_add_test(
+    NAME highres_cortex_all_scripts
+    COMMAND /bin/sh -e "${TEST_ENV}" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
+    )
+endif()
