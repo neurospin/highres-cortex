@@ -453,7 +453,7 @@ thresholding type
         desc="thresholded image")
 
     def get_commandline(self):
-        return [
+        cmd = [
             "AimsThreshold",
             "--verbose", "0",
             "-b", str(self.binary),
@@ -462,6 +462,9 @@ thresholding type
             "--input", self.input_image,
             "--output", self.output_image
         ]
+        if self.binary:
+            cmd += ["--fg", str(self.fg)]
+        return cmd
 
 
 class LabelEachVoxel(capsul.api.Process):
