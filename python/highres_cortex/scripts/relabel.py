@@ -77,10 +77,10 @@ def parse_command_line(argv=sys.argv):
     import argparse
     parser = argparse.ArgumentParser(
         description="""\
-Assign new contiguous labels to an existing label image
+Assign new consecutive labels to an existing label image
 """)
-    parser.add_argument("input")
-    parser.add_argument("output")
+    parser.add_argument("input", help="input label image")
+    parser.add_argument("output", help="output label image")
 
     args = parser.parse_args(argv[1:])
     return args

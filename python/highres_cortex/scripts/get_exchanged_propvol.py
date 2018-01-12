@@ -127,10 +127,17 @@ def parse_command_line(argv=sys.argv):
         description="""\
 Get exchanged propagation volume
 """)
-    parser.add_argument("classif_with_outer_boundaries")
-    parser.add_argument("CSF_labels_on_white")
-    parser.add_argument("white_labels_on_CSF")
-    parser.add_argument("output")
+    parser.add_argument("classif_with_outer_boundaries", help="classification "
+                        "image of the cortex (100 inside, 0 in CSF, 200 in "
+                        "white matter, 50 on the CSF border, 150 on the white "
+                        "matter border)")
+    parser.add_argument("CSF_labels_on_white", help="labels of the CSF "
+                        "projected onto the white matter boundary")
+    parser.add_argument("white_labels_on_CSF", help="labels of the white "
+                        "matter projected onto the CSF boundary")
+    parser.add_argument("output", help="volume where each interface is "
+                        "labelled with connected components facing the same "
+                        "voxels of the other interface")
 
     args = parser.parse_args(argv[1:])
     return args

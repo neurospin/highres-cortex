@@ -90,9 +90,9 @@ def parse_command_line(argv=sys.argv):
         description="""\
 Assign new labels to voxels that have the same pair of labels in both input images.
 """)
-    parser.add_argument("labels1")
-    parser.add_argument("labels2")
-    parser.add_argument("output")
+    parser.add_argument("labels1", help="input label image")
+    parser.add_argument("labels2", help="input label image")
+    parser.add_argument("output", help="output label image")
 
     args = parser.parse_args(argv[1:])
     return args

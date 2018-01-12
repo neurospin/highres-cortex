@@ -20,7 +20,7 @@ option(BUILD_SHARED_LIBS "Build highres-cortex as a shared library" ON)
 # numbers, so requesting version 4.5 explicitly in the find_package command
 # will reject versions 4.6 and later, which we do not want.
 BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
-if(${aims-free_VERSION} VERSION_LESS 4.5)
+if("${aims-free_VERSION}" VERSION_LESS 4.5)
 message(FATAL_ERROR "Required dependency aims-free should be at least version 4.5")
 endif()
 include("${AIMS-FREE_USE_FILE}")

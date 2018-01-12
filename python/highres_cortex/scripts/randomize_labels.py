@@ -80,10 +80,10 @@ def parse_command_line(argv=sys.argv):
     import argparse
     parser = argparse.ArgumentParser(
         description="""\
-Randomize the labels of an image with contiguous labels
+Randomize the labels of an image with consecutive labels
 """)
-    parser.add_argument("input")
-    parser.add_argument("output")
+    parser.add_argument("input", help="input label image")
+    parser.add_argument("output", help="output label image")
 
     args = parser.parse_args(argv[1:])
     return args

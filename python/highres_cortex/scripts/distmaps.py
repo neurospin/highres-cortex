@@ -70,10 +70,16 @@ def parse_command_line(argv=sys.argv):
         description="""\
 Compute the signed distance to white matter and to CSF
 """)
-    parser.add_argument("classif")
-    parser.add_argument("output_distwhite")
-    parser.add_argument("output_distCSF")
-    parser.add_argument("output_classif_with_boundaries")
+    parser.add_argument("classif", help="classification image of the cortex "
+                        "(100 inside, 0 in CSF, 200 in white matter)")
+    parser.add_argument("output_distwhite", help="signed Euclidean distance "
+                        "to the white matter boundary")
+    parser.add_argument("output_distCSF", help="signed Euclidean distance "
+                        "to the CSF boundary")
+    parser.add_argument("output_classif_with_boundaries",
+                        help="classification image of the cortex (100 inside, "
+                        "0 in CSF, 200 in white matter, 50 on the CSF "
+                        "boundary, 150 on the white matter boundary)")
 
     args = parser.parse_args(argv[1:])
     return args
