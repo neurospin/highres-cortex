@@ -10,33 +10,31 @@ If you use this work in an academic publication, **please cite** the relevant re
 Basic usage
 ===========
 
-TODO: update this section with instructions for Capsul.
-
-This package can be used on the command line, the main interface is through shell scripts. Here is a short introduction. See below for installation instructions.
+This package can be used on the command line, here is a short introduction. See below for installation instructions.
 
 1. Set up the necessary environment using ``bv_env.sh``::
 
-     . </path/to/installation>/bin/bv_env.sh </path/to/installation>
+     . </path/to/installation>/bin/bv_env.sh
 
-2. Create a directory to process your data, and copy the contents of the `<scripts/>`_ sub-directory thereunder::
+2. Prepare your input data: the input that is common to to all processes is ``classif``: a voxel-wise tissue classification image in signed 16-bit pixel type, with 0 for exterior voxels (CSF), 100 for cortical gray matter, and 200 for subcortical white matter.
 
-     cp -R </path/to>/scripts/* .
+3. Run the process that you are interested in. The common interface to all processes is the Capsul command-line, which you can call with ``python -m capsul``. Use ``python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``python -m capsul <process_name> [parameter=value ...]`` to run a process.
 
-3. Put your input data into place. The only input is ``classif.nii.gz``, which should contain a voxel-wise tissue classification in signed 16-bit pixel type, with 0 for exterior voxels, 100 for cortical gray matter, and 200 for subcortical white matter.
+   The most important processes are described below:
 
-4. Run the scripts that correspond to the output that you need. Each script should be run from within its own sub-directory (first ``cd`` to this directory, then run ``./script.sh``).
+   - Equivolumetric depth according to Bok’s model can be computed with ``highres_cortex.capsul.isovolume``. The only mandatory input is ``classif``, the output is ``equivolumetric_depth``. You can fine-tune the process with optional parameters, most importantly ``advection_step_size`` can be adapted to the spatial resolution and required accuracy. For example::
 
-   - For the Laplace model, you need to run `heat.sh <scripts/heat/heat.sh>`_. This should work out of the box, without the need for tuning any parameter. Outputs are the Laplace field under ``heat/heat.nii.gz``, and the curvature field under ``heat_div_gradn.nii.gz``.
+         python -m capsul highres_cortex.capsul.isovolume classif=classif.nii.gz advection_step_size=0.03 equivolumetric_depth=equivolumetric_depth.nii.gz
 
-   - For Bok’s equivolumetric depth, you need to run `heat.sh <scripts/heat/heat.sh>`_, then `isovolume.sh <scripts/isovolume/isovolume.sh>`_. The result is output in ``isovolume/pial-volume-fraction.nii.gz``. You can tune parameters in ``isovolume.sh``, most importantly the step size (``--step``) can be adapted to the spatial resolution and required accuracy.
+   - Cortical thickness, according to the Laplace model, can be calculated with two different methods:
 
-   - For calculating the Euclidian depth along Laplace traverses, you first need to run `heat.sh <scripts/heat/heat.sh>`_. Then, you have two choices:
+     - The upwinding method is very fast, and already has sub-pixel accurracy: ``highres_cortex.capsul.thickness_upw``. The only mandatory input is ``classif``, the output is ``thickness_image``.
 
-     - Using the fast upwinding method in `upwind-euclidean.sh <scripts/upwind-euclidean/upwind-euclidean.sh>`_.
+     - The advection method is slower, but ``advection_step_size`` can be tuned for greater accuracy: ``highres_cortex.capsul.thickness_adv``.
 
-     - Using the slower advection method in `laplace-euclidean.sh <scripts/laplace-euclidean/laplace-euclidean.sh>`_.
+   - For parcellating the cortex into volumetric traverses, ``highres_cortex.capsul.traverses`` can be used. The only mandatory input is ``classif``, the output is ``cortical_traverses``. The ``goal_diameter`` parameter controls the target diameter of merged regions (in millimetres). The ``advection_step_size`` parameter is also relevant for this process.
 
-   - For parcellating the cortex into volumetric traverses, you need to run `distmaps.sh <scripts/dist/distmaps.sh>`_, then `heat.sh <scripts/heat/heat.sh>`_, and finally `column-regions.sh <scripts/column-regions/column-regions.sh>`_. The main parameter is ``--goal-diameter`` at the end of the script, it controls the target diameter of merged regions (in millimetres). The ``--step`` parameter is also relevant here.
+If you have used highres-cortex before the Capsul interface was introduced (beginning of 2018), you may be using the old shell scripts. See `<examples/scripts/>`_ for equivalent scripts that make use of the Capsul processes.
 
 
 Installation
