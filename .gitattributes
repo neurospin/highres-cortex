@@ -10,3 +10,4 @@
 *.bib text diff=bibtex
 *.txt text
 *.rst text
+*.xml text
