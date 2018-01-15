@@ -1,6 +1,6 @@
 #! /bin/sh -e
 
-: ${SCRIPTS_DIR:=$(dirname -- "$0")/../scripts}
+: ${SCRIPTS_DIR:=$(dirname -- "$0")/../examples/scripts}
 [ -d "$SCRIPTS_DIR" ] || {
     echo "$0: cannot find the directory containing the scripts" >&2
     exit 1

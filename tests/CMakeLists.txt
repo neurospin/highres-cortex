@@ -25,7 +25,7 @@ endif()
 # These tests need /bin/bash, exclude them from Windows cross-builds
 if(NOT WIN32)
   brainvisa_add_test(
-    NAME highres_cortex_all_scripts
+    NAME highres_cortex_example_scripts
     COMMAND ${TEST_ENV} "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
     )
 endif()
