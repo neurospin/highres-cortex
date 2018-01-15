@@ -1,6 +1,16 @@
 <pipeline>
     <doc>
-        Compute the filtered sum of principal curvatures of isophote surfaces
+      Compute the filtered sum of principal curvatures of isophote surfaces
+
+      This is equivalent to computing the divergence of the normalized gradient
+      of the input scalar field.
+
+      .. note::
+
+         A median filter is used to exclude strong values at the border of the
+         cortex, which are due to the discontinuity of the second-order
+         derivative. This significantly improves the precision (RMS error) of
+         the curvature map, and of the derived equivolumetric depth map.
     </doc>
     <process name="sumcurvs"
              module="highres_cortex.capsul.processes.IsoCurvature">

@@ -1,53 +1,15 @@
-#!/bin/sh -e
+#! /bin/sh -e
 #
-# Copyright Forschungszentrum Jülich GmbH (2016).
-# Copyright Télécom ParisTech (2015).
-# Copyright CEA (2014).
-# Copyright Université Paris XI (2014).
+# Copyright Forschungszentrum Jülich GmbH (2018).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 #
-# This file is part of highres-cortex, a collection of software designed
-# to process high-resolution magnetic resonance images of the cerebral
-# cortex.
-#
-# This software is governed by the CeCILL licence under French law and
-# abiding by the rules of distribution of free software. You can use,
-# modify and/or redistribute the software under the terms of the CeCILL
-# licence as circulated by CEA, CNRS and INRIA at the following URL:
-# <http://www.cecill.info/>.
-#
-# As a counterpart to the access to the source code and rights to copy,
-# modify and redistribute granted by the licence, users are provided only
-# with a limited warranty and the software's author, the holder of the
-# economic rights, and the successive licensors have only limited
-# liability.
-#
-# In this respect, the user's attention is drawn to the risks associated
-# with loading, using, modifying and/or developing or reproducing the
-# software by the user in light of its specific status of scientific
-# software, that may mean that it is complicated to manipulate, and that
-# also therefore means that it is reserved for developers and experienced
-# professionals having in-depth computer knowledge. Users are therefore
-# encouraged to load and test the software's suitability as regards their
-# requirements in conditions enabling the security of their systems and/or
-# data to be ensured and, more generally, to use and operate it in the
-# same conditions as regards security.
-#
-# The fact that you are presently reading this means that you have had
-# knowledge of the CeCILL licence and that you accept its terms.
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
 
-ylLaplacian --classif ../classif.nii.gz --output heat.nii.gz
-
-# Normalized gradient's divergence (equivalent to the sum of the two principal
-# curvatures of isosurfaces)
-ylIsoCurvature --verbose --mode sum \
-    -i heat.nii.gz \
-    -o sumcurvs.nii.gz
-
-# Use a median filter to exclude strong values at the border of the cortex,
-# which are due to the discontinuity of the second-order derivative. This
-# significantly improves the precision (RMS error) of the curvature map, and of
-# the derived equivolumetric depth map.
-AimsRemoveNaN -np --value 0 -i sumcurvs.nii.gz -o sumcurvs_nonan.nii.gz
-AimsMedianSmoothing -i sumcurvs_nonan.nii.gz -o heat_div_gradn.nii.gz
+python -m capsul highres_cortex.capsul.processes.Laplacian \
+    classif=../classif.nii.gz \
+    verbosity=1 \
+    laplace_field=heat.nii.gz

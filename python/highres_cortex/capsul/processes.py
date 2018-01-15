@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright Forschungszentrum Jülich GmbH (2017).
+# Copyright Forschungszentrum Jülich GmbH (2017, 2018).
 #
 # Author: Yann Leprince <yann.leprince@ylep.fr>.
 #
