@@ -51,7 +51,7 @@ Automated compilation
 
 The script ``bootstrap_compile.sh`` can be used to download, configure, and build highres-cortex::
 
-    wget https://github.com/ylep/highres-cortex/raw/master/bootstrap_compile.sh
+    wget https://github.com/neurospin/highres-cortex/raw/master/bootstrap_compile.sh
     chmod +x bootstrap_compile.sh
     ./bootstrap_compile.sh
 
@@ -83,11 +83,10 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
 3. Create the configuration file for ``bv_maker`` at ``$HOME/.brainvisa/bv_maker.cfg``. Here is a minimal version of this file::
 
      [ source $HOME/brainvisa/source ]
-       + brainvisa-cmake bug_fix
-       + brainvisa-share bug_fix
-       + soma-base bug_fix
-       + soma-io bug_fix
-       + aims-free bug_fix
+       brainvisa brainvisa-cmake bug_fix
+       brainvisa soma-base bug_fix
+       brainvisa soma-io bug_fix
+       brainvisa aims-free bug_fix
        git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
      [ build $HOME/brainvisa/build ]
@@ -128,12 +127,12 @@ Dependencies
 Licence
 =======
 
-The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). This library contains code that is under the GNU LGPL licence (see `src/library/iterative_region_merger.tcc`_), as a result, compiled code must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
+The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). This library contains code that is under the GNU LGPL licence (see `<src/library/cortex_column_region_quality.tcc>`_), as a result, compiled code must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
 
 External code used in this repository
 -------------------------------------
 
-- Code for numerical diagonalization of 3×3 matrices (`src/library/cortex_column_region_quality.tcc`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`.
+- Code for numerical diagonalization of 3×3 matrices (`<src/library/cortex_column_region_quality.tcc>`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`_.
 
 
 .. _BrainVISA: http://brainvisa.info/
@@ -143,7 +142,7 @@ External code used in this repository
 .. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
 .. _BrainVISA download page: http://brainvisa.info/web/download.html
 
-.. Copyright Forschungszentrum Jülich GmbH (2016, 2017).
+.. Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
    Copyright Télécom ParisTech (2015, 2016).
    Copyright CEA (2014, 2015).
    Copyright Université Paris XI (2014).
