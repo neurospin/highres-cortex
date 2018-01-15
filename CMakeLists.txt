@@ -1,4 +1,4 @@
-# Copyright Forschungszentrum Jülich GmbH (2016, 2017).
+# Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -25,7 +25,9 @@ message(FATAL_ERROR "Required dependency aims-free should be at least version 4.
 endif()
 include("${AIMS-FREE_USE_FILE}")
 BRAINVISA_DEPENDENCY(DEV DEPENDS aims-free DEV ">= 4.5")
-BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= 4.5")
+BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= ${aims-free_VERSION}")
+
+BRAINVISA_DEPENDENCY(RUN DEPENDS "capsul" RUN ">= 2.0")
 
 
 if( NOT Boost_FOUND )

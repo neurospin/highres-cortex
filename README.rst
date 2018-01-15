@@ -10,6 +10,8 @@ If you use this work in an academic publication, **please cite** the relevant re
 Basic usage
 ===========
 
+TODO: update this section with instructions for Capsul.
+
 This package can be used on the command line, the main interface is through shell scripts. Here is a short introduction. See below for installation instructions.
 
 1. Set up the necessary environment using ``bv_env.sh``::
@@ -83,11 +85,12 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
 3. Create the configuration file for ``bv_maker`` at ``$HOME/.brainvisa/bv_maker.cfg``. Here is a minimal version of this file::
 
      [ source $HOME/brainvisa/source ]
-       + brainvisa-cmake bug_fix
-       + brainvisa-share bug_fix
-       + soma-base bug_fix
-       + soma-io bug_fix
-       + aims-free bug_fix
+       brainvisa brainvisa-cmake bug_fix
+       brainvisa soma-base bug_fix
+       brainvisa soma-io bug_fix
+       brainvisa aims-free bug_fix
+       brainvisa soma-workflow $CASA_BRANCH
+       brainvisa capsul $CASA_BRANCH
        git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
      [ build $HOME/brainvisa/build ]
@@ -122,6 +125,7 @@ Dependencies
 - Boost_ version 1.49 or later.
 - Python_ version 2.6 or later.
 - CMake_ version 2.6 or later, with its extension ``brainvisa-cmake`` (distributed with BrainVISA_).
+- Recommended: Capsul_ version 2 or later, used to combine the low-level building blocks into useful processing pipelines.
 - Optional: the ``VipHomotopic`` command-line tool from the Morphologist image segmentation pipeline, distributed as a binary only tool with the BrainVISA_ installer.
 
 
@@ -139,6 +143,7 @@ External code used in this repository
 .. _BrainVISA: http://brainvisa.info/
 .. _Boost: http://www.boost.org/
 .. _CMake: http://www.cmake.org/
+.. _Capsul: http://neurospin.github.io/capsul/
 .. _Python: https://www.python.org/
 .. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
 .. _BrainVISA download page: http://brainvisa.info/web/download.html
