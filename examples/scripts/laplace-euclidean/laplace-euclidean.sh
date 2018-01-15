@@ -11,7 +11,7 @@
 
 python -m capsul highres_cortex.capsul.thickness_adv \
     classif=../classif.nii.gz \
-    step_size=0.05 \
+    advection_step_size=0.05 \
     verbosity=1 \
     thickness_image=total-length.nii.gz \
     equidistant_depth=pial-fraction.nii.gz
