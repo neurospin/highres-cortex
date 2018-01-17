@@ -195,4 +195,4 @@ class SphereTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(buffer=True)
+    unittest.main()
