@@ -24,9 +24,13 @@ endif()
 
 # These tests need /bin/bash, exclude them from Windows cross-builds
 if(NOT WIN32)
+  # We use an extra "sh -e" prefix here, because the test is called through
+  # bv_env_test, which calls the *basename* of the first argument as the
+  # command. Without this trick, the basename is "test_all_scripts.sh", which
+  # cannot be found on the PATH.
   brainvisa_add_test(
     NAME highres_cortex_example_scripts
-    COMMAND ${TEST_ENV} "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
+    COMMAND ${TEST_ENV} "sh" "-e" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
     )
 endif()
 
