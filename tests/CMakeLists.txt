@@ -18,8 +18,13 @@ file(RELATIVE_PATH
 if(PATH_TO_BRAINVISA_TREE STREQUAL "")
   set(TEST_ENV "")
 else()
-  configure_file(test_env.sh.in test_env.sh @ONLY)
-  set(TEST_ENV "sh" "-e" "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
+  message(STATUS "Detected a build outside of the BrainVISA tree (PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}). Activating the test_env.sh wrapper.")
+  if(WIN32)
+    message(WARNING "Tests for ${PROJECT_NAME} will fail on Windows when building outside of the BrainVISA tree. You are welcome to contribute a test_env.bat wrapper.")
+  else()
+    configure_file(test_env.sh.in test_env.sh @ONLY)
+    set(TEST_ENV "sh" "-e" "${CMAKE_CURRENT_BINARY_DIR}/test_env.sh")
+  endif()
 endif()
 
 # These tests need /bin/bash, exclude them from Windows cross-builds
