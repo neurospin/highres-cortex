@@ -46,7 +46,7 @@ set(_sources
 
 BRAINVISA_COPY_AND_INSTALL_HEADERS(_headers ${PROJECT_NAME} headersTarget)
 
-include_directories(${GSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} ${_sources})
 add_dependencies(${PROJECT_NAME} ${headersTarget})
@@ -60,7 +60,7 @@ if(OPENMP_FOUND)
 endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${${PROJECT_NAME}_VERSION})
-target_link_libraries(${PROJECT_NAME} ${AIMS-FREE_LIBRARIES} ${GSL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${AIMS-FREE_LIBRARIES})
 BRAINVISA_INSTALL(TARGETS ${PROJECT_NAME}
                   DESTINATION lib
                   COMPONENT ${PROJECT_NAME})
