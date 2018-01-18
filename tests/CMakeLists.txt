@@ -1,5 +1,4 @@
-# Copyright Forschungszentrum Jülich GmbH (2018).
-# Copyright Forschungszentrum Jülich GmbH (2017).
+# Copyright Forschungszentrum Jülich GmbH (2017, 2018).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 #
@@ -39,12 +38,7 @@ if(NOT WIN32)
     )
 endif()
 
-if(NOT DEFINED PYTHON_HOST_EXECUTABLE)
-  # Compatibility with BrainVISA <= 4.5
-  set(PYTHON_HOST_EXECUTABLE "${PYTHON_EXECUTABLE}")
-endif()
-
 brainvisa_add_test(
   NAME highres_cortex_capsul
-  COMMAND ${TEST_ENV} "${PYTHON_HOST_EXECUTABLE}" -m highres_cortex.test.test_capsul
+  COMMAND ${TEST_ENV} python -m highres_cortex.test.test_capsul
   )
