@@ -11,12 +11,12 @@
 # TEST_ENV to point to a wrapper script which sets the environment.
 file(RELATIVE_PATH
   PATH_TO_BRAINVISA_TREE
-  "${CMAKE_BINARY_DIR}"
-  "${brainvisa-cmake_DIR}/../../.."
+  "${PROJECT_BINARY_DIR}"
+  "${AIMS-FREE_BINARY_DIR}"
   )
-if(PATH_TO_BRAINVISA_TREE STREQUAL "")
-  set(TEST_ENV "")
-else()
+
+set(TEST_ENV "")
+if(NOT PATH_TO_BRAINVISA_TREE STREQUAL "")
   message(STATUS "Detected a build outside of the BrainVISA tree (PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}). Activating the test_env.sh wrapper.")
   if(WIN32)
     message(WARNING "Tests for ${PROJECT_NAME} will fail on Windows when building outside of the BrainVISA tree. You are welcome to contribute a test_env.bat wrapper.")
