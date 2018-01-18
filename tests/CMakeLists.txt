@@ -11,10 +11,11 @@
 # TEST_ENV to point to a wrapper script which sets the environment.
 file(RELATIVE_PATH
   PATH_TO_BRAINVISA_TREE
-  "${PROJECT_BINARY_DIR}"
+  "${CMAKE_BINARY_DIR}"
   "${AIMS-FREE_BINARY_DIR}"
   )
 
+message(STATUS "highres-cortex: PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}")
 set(TEST_ENV "")
 if(NOT PATH_TO_BRAINVISA_TREE STREQUAL "")
   message(STATUS "Detected a build outside of the BrainVISA tree (PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}). Activating the test_env.sh wrapper.")
