@@ -15,7 +15,6 @@ file(RELATIVE_PATH
   "${AIMS-FREE_BINARY_DIR}"
   )
 
-message(STATUS "highres-cortex: PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}")
 set(TEST_ENV "")
 if(NOT PATH_TO_BRAINVISA_TREE STREQUAL "")
   message(STATUS "Detected a build outside of the BrainVISA tree (PATH_TO_BRAINVISA_TREE=${PATH_TO_BRAINVISA_TREE}). Activating the test_env.sh wrapper.")
