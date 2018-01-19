@@ -1,5 +1,5 @@
-test:ubuntu12.04-bug_fix:
-  image: casa-highres-cortex-test:ubuntu-12.04-bug_fix
+test:bug_fix_ubuntu-12.04:
+  image: casa_highres-cortex_test_bug_fix_ubuntu-12.04:latest
   script:
     - cmake -DCMAKE_BUILD_TYPE=Release .
     - make
