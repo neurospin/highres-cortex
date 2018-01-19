@@ -46,30 +46,28 @@ from . import compare_with_reference
 
 
 class SphereTestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         try:
-            cls.test_dir = tempfile.mkdtemp(
+            self.test_dir = tempfile.mkdtemp(
                 prefix="highres-cortex-capsul-tests")
             synthetic_data.write_sphere_and_reference_result(
-                1, 4, 0.3, dir=cls.test_dir)
+                1, 4, 0.3, dir=self.test_dir)
 
-            cls.result_comp = compare_with_reference.ResultComparator(
-                cls.test_dir)
+            self.result_comp = compare_with_reference.ResultComparator(
+                self.test_dir)
 
             p1 = capsul.api.get_process_instance(
                 "highres_cortex.capsul.processes.BinarizeCortex")
-            p1.classif = os.path.join(cls.test_dir, "classif.nii.gz")
-            p1.output_image = os.path.join(cls.test_dir, "cortex_mask.nii.gz")
+            p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
+            p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
             p1()
         except:
-            if hasattr(cls, "test_dir"):
-                shutil.rmtree(cls.test_dir)
+            if hasattr(self, "test_dir"):
+                shutil.rmtree(self.test_dir)
             raise
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.test_dir)
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
 
     def test_laplacian(self):
         p = capsul.api.get_process_instance(
