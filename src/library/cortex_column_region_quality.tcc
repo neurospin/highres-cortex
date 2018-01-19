@@ -41,9 +41,6 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <limits>
 #include <algorithm>
 
-#include <aims/data/fastAllocationData.h>
-#include <aims/math/eigen.h>
-
 #include "cortex.hh"
 
 namespace
