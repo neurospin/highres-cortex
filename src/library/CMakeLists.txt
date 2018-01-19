@@ -54,9 +54,14 @@ add_dependencies(${PROJECT_NAME} ${headersTarget})
 if(OPENMP_FOUND)
   set_source_files_properties(${_sources} PROPERTIES
     COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
-  # This is needed for GCC, untested with any other compiler.
-  set_target_properties(${PROJECT_NAME} PROPERTIES
-    LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  if(OpenMP_CXX_LIBRARIES)
+    target_link_libraries(${PROJECT_NAME} ${OpenMP_CXX_LIBRARIES})
+  else()
+    # Old versions of FindOpenMP.cmake (before CMake 3.9) do not define
+    # _LIBRARIES. This works with GCC and clang.
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+      LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  endif()
 endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${${PROJECT_NAME}_VERSION})

@@ -64,8 +64,7 @@ BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
 
 # OpenMP is optional
 find_package(OpenMP)
-# OPENMP_FOUND is never set ! Have to test something else
-if( OpenMP_C_FLAGS )
+if(OPENMP_FOUND)
   BRAINVISA_DEPENDENCY(RUN DEPENDS openmp RUN)
 endif()
 
