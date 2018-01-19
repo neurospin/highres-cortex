@@ -302,7 +302,9 @@ class ImageArithmetic2Inputs(capsul.api.Process):
     )
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "cartoLinearComb.py",
             "-f", self.formula,
             "-i", self.input_image_1,
@@ -412,7 +414,9 @@ class Distmaps(capsul.api.Process):
         "(50 on the CSF, 150 on the white matter)")
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "ylDistmaps",
             self.classif,
             self.distwhite,
@@ -644,7 +648,9 @@ class GetExchangedPropagationVolume(capsul.api.Process):
         "components facing the same voxels of the other interface")
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "ylGetExchangedPropvol",
             self.classif_with_outer_boundaries,
             self.CSF_labels_on_white,
@@ -668,7 +674,9 @@ class RelabelConjunction(capsul.api.Process):
         desc="output label image")
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "ylRelabelConjunction",
             self.labels1,
             self.labels2,
@@ -753,7 +761,9 @@ class Relabel(capsul.api.Process):
         desc="output label image")
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "ylRelabel",
             self.input,
             self.output
@@ -772,7 +782,9 @@ class RandomizeLabels(capsul.api.Process):
         desc="output label image")
 
     def get_commandline(self):
+        # bv_env automatically launches the command through Python on Windows
         return [
+            "bv_env",
             "ylRandomizeLabels",
             self.input,
             self.output
