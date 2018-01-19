@@ -11,7 +11,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-python -m capsul highres_cortex.capsul.processes.Distmaps \
+python -m capsul.run highres_cortex.capsul.processes.Distmaps \
     classif=../classif.nii.gz \
     distwhite=distwhite.nii.gz \
     distCSF=distCSF.nii.gz \

@@ -18,7 +18,7 @@ This package can be used on the command line, here is a short introduction. See 
 
 2. Prepare your input data: the input that is common to to all processes is ``classif``: a voxel-wise tissue classification image in signed 16-bit pixel type, with 0 for exterior voxels (CSF), 100 for cortical gray matter, and 200 for subcortical white matter.
 
-3. Run the process that you are interested in. The common interface to all processes is the Capsul command-line, which you can call with ``python -m capsul``. Use ``python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``python -m capsul <process_name> [parameter=value ...]`` to run a process.
+3. Run the process that you are interested in. The common interface to all processes is the Capsul command-line, which you can call with ``python -m capsul`` (or ``python -m capsul.run`` for Capsul >= 2.1.3). Use ``python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``python -m capsul <process_name> [parameter=value ...]`` to run a process.
 
    The most important processes are described below:
 
