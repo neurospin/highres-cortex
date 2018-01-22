@@ -100,6 +100,8 @@ class ResultComparator:
             "reference_euclidean.nii.gz",
         os.path.join("isovolume", "pial-volume-fraction.nii.gz"):
             "reference_equivolumic.nii.gz",
+        os.path.join("isovolume", "equivolumic_depth.nii.gz"):
+            "reference_equivolumic.nii.gz",
         os.path.join("upwind-euclidean", "total-length.nii.gz"):
             "reference_thickness.nii.gz",
         os.path.join("upwind-euclidean", "pial-fraction.nii.gz"):
@@ -115,20 +117,13 @@ class ResultComparator:
     }
 
     dimension = {
-        os.path.join("heat", "heat.nii.gz"): "%",
-        os.path.join("heat", "heat_div_gradn.nii.gz"): "mm^{-1}",
-        os.path.join("dist", "distwhite.nii.gz"): "mm",
-        os.path.join("dist", "distCSF.nii.gz"): "mm",
-        os.path.join("dist", "dist_sum.nii.gz"): "mm",
-        os.path.join("laplace-euclidean", "total-length.nii.gz"): "mm",
-        os.path.join("laplace-euclidean", "pial-fraction.nii.gz"): "%",
-        os.path.join("isovolume", "pial-volume-fraction.nii.gz"): "%",
-        os.path.join("upwind-euclidean", "total-length.nii.gz"): "mm",
-        os.path.join("upwind-euclidean", "pial-fraction.nii.gz"): "%",
-        os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"): "%",
-        os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"): "mm",
-        os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"): "%",
-        os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"): "%",
+        "reference_laplacian.nii.gz": "%",
+        "reference_curvature.nii.gz": "mm^{-1}",
+        "reference_distwhite.nii.gz": "mm",
+        "reference_distCSF.nii.gz": "mm",
+        "reference_thickness.nii.gz": "mm",
+        "reference_euclidean.nii.gz": "%",
+        "reference_equivolumic.nii.gz": "%",
     }
 
     def __init__(self, dir):
@@ -198,7 +193,7 @@ class ResultComparator:
                                value_range=(0, 1), ax=ax)
 
         ax = fig.add_subplot(num_lines, 4, 4)
-        self.scatter_plot_file(os.path.join("isovolume", "pial-volume-fraction.nii.gz"),
+        self.scatter_plot_file(os.path.join("isovolume", "equivolumic_depth.nii.gz"),
                                value_range=(0, 1), ax=ax)
 
         ax = fig.add_subplot(num_lines, 4, 8)
@@ -229,24 +224,22 @@ class ResultComparator:
                 pass
 
 
-    def compare_files(self, result_file, reference_file=None):
+    def compare_files(self, result_file, reference_file):
         path = self._make_subpath
 
-        if reference_file is None:
-            reference_file = self.reference_file[os.path.normpath(result_file)]
         diff = difference_from_files(
             path(result_file), path(reference_file),
             self._classif)
 
-        rms_error = math.sqrt((diff ** 2).mean())
+        rms_error = math.sqrt(numpy.square(diff).mean())
         bias = diff.mean()
 
         return (rms_error, bias)
 
     @classmethod
-    def comparison_to_text(self, rms_error, bias, result_file=None):
+    def comparison_to_text(cls, rms_error, bias, reference_file=None):
         try:
-            dimension = self.dimension[result_file]
+            dimension = cls.dimension[reference_file]
         except KeyError:
             dimension = ""
         if dimension == "%":
@@ -260,15 +253,19 @@ class ResultComparator:
                     .format(rms_error, bias))
 
     def text_compare_files(self, result_file, reference_file=None):
+        if reference_file is None:
+            reference_file = self.reference_file[os.path.normpath(result_file)]
         rms_error, bias = self.compare_files(result_file, reference_file)
-        return self.comparison_to_text(rms_error, bias, result_file)
+        return self.comparison_to_text(rms_error, bias, reference_file)
 
     def ensure_max_rms_error(self, result_file, max_rms_error,
                              reference_file=None):
+        if reference_file is None:
+            reference_file = self.reference_file[os.path.normpath(result_file)]
         rms_error, bias = self.compare_files(result_file, reference_file)
         text = "{0}: {1}".format(
             result_file,
-            self.comparison_to_text(rms_error, bias, result_file))
+            self.comparison_to_text(rms_error, bias, reference_file))
 
         if rms_error <= max_rms_error:
             text += " (RMS error <= {0})".format(max_rms_error)

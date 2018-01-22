@@ -67,6 +67,7 @@ def fix_cortex_topology_files(input_filename, output_filename,
     # successfully even if writing fails
     aims.write(output, output_filename)
 
+
 def parse_command_line(argv=sys.argv):
     """Parse the script's command line."""
     parser = argparse.ArgumentParser(
@@ -98,11 +99,13 @@ value, 10 mm, is appropriate for a human brain.""")
         parser.error("fclosing must be a non-negative number")
     return args
 
+
 def main(argv=sys.argv):
     """The script's entry point."""
     args = parse_command_line(argv)
     return fix_cortex_topology_files(
         args.input, args.output, args.filling_size, args.fclosing) or 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,5 +1,7 @@
-#! /bin/sh -e
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 #
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -35,27 +37,62 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
-AimsThreshold -b --fg 1 -m eq -t 100 \
-    -i ../classif.nii.gz \
-    -o ./domain.nii.gz
+import sys
 
-ylAdvectEuclidean --verbose \
-    --step 0.05 \
-    --domain ./domain.nii.gz \
-    --grad-field ../heat/heat.nii.gz \
-    --output-length white-length.nii.gz
+from soma import aims
 
-ylAdvectEuclidean --verbose \
-    --step -0.05 \
-    --domain ./domain.nii.gz \
-    --grad-field ../heat/heat.nii.gz \
-    --output-length pial-length.nii.gz
 
-cartoLinearComb.py -f 'I1+I2' \
-    -i pial-length.nii.gz \
-    -i white-length.nii.gz \
-    -o total-length.nii.gz
-cartoLinearComb.py -f 'I1/I2' \
-    -i pial-length.nii.gz \
-    -i total-length.nii.gz \
-    -o pial-fraction.nii.gz
+def relabel(labels):
+    output = aims.Volume(labels)
+    size_x = output.getSizeX()
+    size_y = output.getSizeY()
+    size_z = output.getSizeZ()
+    old_to_new_labels = {}
+    next_label = 1
+    for z in xrange(size_z):
+        for y in xrange(size_y):
+            for x in xrange(size_x):
+                label = labels.at(x, y, z)
+                if label == 0:
+                    new_label = 0
+                else:
+                    try:
+                        new_label = old_to_new_labels[label]
+                    except KeyError:
+                        new_label = next_label
+                        old_to_new_labels[label] = new_label
+                        next_label += 1
+                output.setValue(new_label, x, y, z)
+    return output
+
+
+def relabel_files(input_filename, output_filename):
+    input_vol = aims.read(input_filename)
+    output_vol = relabel(input_vol)
+    aims.write(output_vol, output_filename)
+
+
+def parse_command_line(argv=sys.argv):
+    """Parse the script's command line."""
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="""\
+Assign new consecutive labels to an existing label image
+""")
+    parser.add_argument("input", help="input label image")
+    parser.add_argument("output", help="output label image")
+
+    args = parser.parse_args(argv[1:])
+    return args
+
+
+def main(argv=sys.argv):
+    """The script's entry point."""
+    args = parse_command_line(argv)
+    return relabel_files(
+        args.input,
+        args.output) or 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

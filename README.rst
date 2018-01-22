@@ -10,31 +10,31 @@ If you use this work in an academic publication, **please cite** the relevant re
 Basic usage
 ===========
 
-This package can be used on the command line, the main interface is through shell scripts. Here is a short introduction. See below for installation instructions.
+This package can be used on the command line, here is a short introduction. See below for installation instructions.
 
 1. Set up the necessary environment using ``bv_env.sh``::
 
-     . </path/to/installation>/bin/bv_env.sh </path/to/installation>
+     . </path/to/installation>/bin/bv_env.sh
 
-2. Create a directory to process your data, and copy the contents of the `<scripts/>`_ sub-directory thereunder::
+2. Prepare your input data: the input that is common to to all processes is ``classif``: a voxel-wise tissue classification image in signed 16-bit pixel type, with 0 for exterior voxels (CSF), 100 for cortical gray matter, and 200 for subcortical white matter.
 
-     cp -R </path/to>/scripts/* .
+3. Run the process that you are interested in. The common interface to all processes is the Capsul command-line, which you can call with ``python -m capsul`` (or ``python -m capsul.run`` for Capsul >= 2.1.3). Use ``python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``python -m capsul <process_name> [parameter=value ...]`` to run a process.
 
-3. Put your input data into place. The only input is ``classif.nii.gz``, which should contain a voxel-wise tissue classification in signed 16-bit pixel type, with 0 for exterior voxels, 100 for cortical gray matter, and 200 for subcortical white matter.
+   The most important processes are described below:
 
-4. Run the scripts that correspond to the output that you need. Each script should be run from within its own sub-directory (first ``cd`` to this directory, then run ``./script.sh``).
+   - Equivolumetric depth according to Bok’s model can be computed with ``highres_cortex.capsul.isovolume``. The only mandatory input is ``classif``, the output is ``equivolumetric_depth``. You can fine-tune the process with optional parameters, most importantly ``advection_step_size`` can be adapted to the spatial resolution and required accuracy. For example::
 
-   - For the Laplace model, you need to run `heat.sh <scripts/heat/heat.sh>`_. This should work out of the box, without the need for tuning any parameter. Outputs are the Laplace field under ``heat/heat.nii.gz``, and the curvature field under ``heat_div_gradn.nii.gz``.
+         python -m capsul highres_cortex.capsul.isovolume classif=classif.nii.gz advection_step_size=0.03 equivolumetric_depth=equivolumetric_depth.nii.gz
 
-   - For Bok’s equivolumetric depth, you need to run `heat.sh <scripts/heat/heat.sh>`_, then `isovolume.sh <scripts/isovolume/isovolume.sh>`_. The result is output in ``isovolume/pial-volume-fraction.nii.gz``. You can tune parameters in ``isovolume.sh``, most importantly the step size (``--step``) can be adapted to the spatial resolution and required accuracy.
+   - Cortical thickness, according to the Laplace model, can be calculated with two different methods:
 
-   - For calculating the Euclidian depth along Laplace traverses, you first need to run `heat.sh <scripts/heat/heat.sh>`_. Then, you have two choices:
+     - The upwinding method is very fast, and already has sub-pixel accurracy: ``highres_cortex.capsul.thickness_upw``. The only mandatory input is ``classif``, the output is ``thickness_image``.
 
-     - Using the fast upwinding method in `upwind-euclidean.sh <scripts/upwind-euclidean/upwind-euclidean.sh>`_.
+     - The advection method is slower, but ``advection_step_size`` can be tuned for greater accuracy: ``highres_cortex.capsul.thickness_adv``.
 
-     - Using the slower advection method in `laplace-euclidean.sh <scripts/laplace-euclidean/laplace-euclidean.sh>`_.
+   - For parcellating the cortex into volumetric traverses, ``highres_cortex.capsul.traverses`` can be used. The only mandatory input is ``classif``, the output is ``cortical_traverses``. The ``goal_diameter`` parameter controls the target diameter of merged regions (in millimetres). The ``advection_step_size`` parameter is also relevant for this process.
 
-   - For parcellating the cortex into volumetric traverses, you need to run `distmaps.sh <scripts/dist/distmaps.sh>`_, then `heat.sh <scripts/heat/heat.sh>`_, and finally `column-regions.sh <scripts/column-regions/column-regions.sh>`_. The main parameter is ``--goal-diameter`` at the end of the script, it controls the target diameter of merged regions (in millimetres). The ``--step`` parameter is also relevant here.
+If you have used highres-cortex before the Capsul interface was introduced (beginning of 2018), you may be using the old shell scripts. See `<examples/scripts/>`_ for equivalent scripts that make use of the Capsul processes.
 
 
 Installation
@@ -51,7 +51,7 @@ Automated compilation
 
 The script ``bootstrap_compile.sh`` can be used to download, configure, and build highres-cortex::
 
-    wget https://github.com/ylep/highres-cortex/raw/master/bootstrap_compile.sh
+    wget https://github.com/neurospin/highres-cortex/raw/master/bootstrap_compile.sh
     chmod +x bootstrap_compile.sh
     ./bootstrap_compile.sh
 
@@ -83,11 +83,12 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
 3. Create the configuration file for ``bv_maker`` at ``$HOME/.brainvisa/bv_maker.cfg``. Here is a minimal version of this file::
 
      [ source $HOME/brainvisa/source ]
-       + brainvisa-cmake bug_fix
-       + brainvisa-share bug_fix
-       + soma-base bug_fix
-       + soma-io bug_fix
-       + aims-free bug_fix
+       brainvisa brainvisa-cmake bug_fix
+       brainvisa soma-base bug_fix
+       brainvisa soma-io bug_fix
+       brainvisa aims-free bug_fix
+       brainvisa soma-workflow $CASA_BRANCH
+       brainvisa capsul $CASA_BRANCH
        git https://github.com/neurospin/highres-cortex.git master highres-cortex
 
      [ build $HOME/brainvisa/build ]
@@ -122,28 +123,30 @@ Dependencies
 - Boost_ version 1.49 or later.
 - Python_ version 2.6 or later.
 - CMake_ version 2.6 or later, with its extension ``brainvisa-cmake`` (distributed with BrainVISA_).
+- Recommended: Capsul_ version 2 or later, used to combine the low-level building blocks into useful processing pipelines.
 - Optional: the ``VipHomotopic`` command-line tool from the Morphologist image segmentation pipeline, distributed as a binary only tool with the BrainVISA_ installer.
 
 
 Licence
 =======
 
-The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). This library contains code that is under the GNU LGPL licence (see `src/library/iterative_region_merger.tcc`_), as a result, compiled code must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
+The source code of this work is placed under the CeCILL licence (see `<LICENCE.CeCILL.txt>`_). This library contains code that is under the GNU LGPL licence (see `<src/library/cortex_column_region_quality.tcc>`_), as a result, compiled code must be redistributed under the GNU General Public Licence (see `<LICENCE.GPLv3.txt>`_).
 
 External code used in this repository
 -------------------------------------
 
-- Code for numerical diagonalization of 3×3 matrices (`src/library/cortex_column_region_quality.tcc`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`.
+- Code for numerical diagonalization of 3×3 matrices (`<src/library/cortex_column_region_quality.tcc>`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`_.
 
 
 .. _BrainVISA: http://brainvisa.info/
 .. _Boost: http://www.boost.org/
 .. _CMake: http://www.cmake.org/
+.. _Capsul: http://neurospin.github.io/capsul/
 .. _Python: https://www.python.org/
 .. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
 .. _BrainVISA download page: http://brainvisa.info/web/download.html
 
-.. Copyright Forschungszentrum Jülich GmbH (2016, 2017).
+.. Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
    Copyright Télécom ParisTech (2015, 2016).
    Copyright CEA (2014, 2015).
    Copyright Université Paris XI (2014).
