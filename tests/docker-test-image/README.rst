@@ -6,9 +6,9 @@ Such an image can be used to run tests in a controlled environment, or to create
 
 1. Download and install ``casa-distro`` according to its `documentation <http://brainvisa.info/casa-distro/>`.
 
-2. Run ``casa_distro create_build_workflow distro=highres-cortex-test base_distro=opensource branch=bug_fix system=ubuntu-12.04``
+2. Run ``casa_distro create_build_workflow distro=highres-cortex-test base_distro=opensource branch=latest_release system=ubuntu-12.04``
 
-3. Optionally, customize configuration files in ``$HOME/casa_distro/highres-cortex-test/bug_fix_ubuntu-12.04/conf``. Use the following ``bv_maker.cfg`` to include only minimal dependencies, which allows a faster build and a smaller resulting image::
+3. Optionally, customize configuration files in ``$HOME/casa_distro/highres-cortex-test/latest_release_ubuntu-12.04/conf``. Use the following ``bv_maker.cfg`` to include only minimal dependencies, which allows a faster build and a smaller resulting image::
 
     [ source $CASA_SRC ]
       brainvisa brainvisa-cmake $CASA_BRANCH
@@ -22,7 +22,7 @@ Such an image can be used to run tests in a controlled environment, or to create
     [ build $CASA_BUILD ]
       default_steps = configure build
       make_options = -j2
-      build_type = Release
+      build_type = RelWithDebInfo
       packaging_thirdparty = OFF
       clean_config = ON
       clean_build = ON
@@ -34,11 +34,11 @@ Such an image can be used to run tests in a controlled environment, or to create
       soma-workflow $CASA_BRANCH $CASA_SRC
       capsul $CASA_BRANCH $CASA_SRC
 
-4. Run ``casa_distro bv_maker``, which downloads and compiles the previously configured BrainVISA components in ``~/casa_distro/highres-cortex-test/bug_fix_ubuntu-12.04``.
+4. Run ``casa_distro bv_maker distro=highres-cortex-test branch=latest_release system=ubuntu-12.04``, which downloads and compiles the previously configured BrainVISA components in ``~/casa_distro/highres-cortex-test/latest_release_ubuntu-12.04``.
 
 5. Install the software in a Docker container::
 
-     docker run -v ~/casa_distro/highres-cortex-test/bug_fix_ubuntu-12.04:/casa -it cati/casa-dev:ubuntu-12.04 /bin/bash
+     docker run -v ~/casa_distro/highres-cortex-test/latest_release_ubuntu-12.04:/casa -it cati/casa-dev:ubuntu-12.04 /bin/bash
 
    Run the following commands in the Docker container:
 
@@ -54,4 +54,4 @@ Such an image can be used to run tests in a controlled environment, or to create
 
 6. Create a Docker image from the container::
 
-     docker commit <container> casa-highres-cortex-test:ubuntu-12.04-bug_fix
+     docker commit <container> casa-highres-cortex-test:ubuntu-12.04-latest_release
