@@ -79,8 +79,7 @@ if(DOXYGEN_FOUND)
   set(SOMA-IO_DOC_DIR "${SOMA-IO_BINARY_DIR}/share/doc")
   set(SOMA-IO_VERSION_MAJMIN "${soma-io_VERSION_MAJOR}.${soma-io_VERSION_MINOR}")
 
-  # TODO: change this when new website gets in production
-  set(BV_DOC_URL "http://brainvisa.fr/" CACHE STRING
+  set(BV_DOC_URL "http://brainvisa.info/" CACHE STRING
     "Doxygen documentation links to the BrainVISA documentation at this URL")
 
   set(DOXYFILE_TAGFILES "${AIMS-FREE_DOC_DIR}/aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsdata.tag=${BV_DOC_URL}aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsalgo.tag=${BV_DOC_URL}aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/cartodata.tag=${BV_DOC_URL}cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${SOMA-IO_DOC_DIR}/cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen/cartobase.tag=${BV_DOC_URL}cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen")
