@@ -39,11 +39,11 @@
 
 import os.path
 import shutil
-import soma.subprocess
 import sys
 import tempfile
 
 import numpy as np
+import soma.subprocess as subprocess
 from soma import aims
 
 
@@ -98,7 +98,7 @@ def get_exchanged_propvol_files(classif_filename,
         # -o exchanged_labels.nii.gz \
         # -g 100000000 -n 0 -g 200000000 -n 0
 
-        soma.subprocess.check_call(["AimsConnectComp",
+        subprocess.check_call(["AimsConnectComp",
                                "-i", "raw_exchanged_labels.nii",
                                "-o", "connected_exchanged_labels.nii"],
                               cwd=temp_dir)
