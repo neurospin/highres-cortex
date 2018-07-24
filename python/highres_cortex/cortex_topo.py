@@ -41,7 +41,7 @@
 import os
 import tempfile
 import shutil
-import subprocess
+import soma.subprocess
 
 import numpy as np
 from soma import aims
@@ -141,7 +141,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
         This function throws ``OSError`` if ``VipHomotopic`` cannot be found
         or executed.
 
-    subprocess.CalledProcessError
+    soma.subprocess.CalledProcessError
         This exception can occur if ``VipHomotopic``, which is in charge of the
         homotopic morphological operations, terminates with an error.
 
@@ -215,7 +215,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
         # grey--white boundary by iteratively eroding the bounding box of the
         # cortex in a homotopic manner. It will proceed in two steps, first
         # stopping at STEP1_FRONT_BARRIER, and finally at WHITE_LABEL.
-        subprocess.check_call(["VipHomotopic", "-mode", "C",
+        soma.subprocess.check_call(["VipHomotopic", "-mode", "C",
                                "-input", "tmp_classif.nii.gz",
                                "-classif", "tmp_classif.nii.gz",
                                "-hana", "fake.han",
@@ -237,12 +237,12 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
 
         # The spherical grey--white boundary is dilated in a homotopic manner
         # until the border of eroded_classif is reached.
-        subprocess.check_call(["VipHomotopic", "-mode", "H",
+        soma.subprocess.check_call(["VipHomotopic", "-mode", "H",
                                "-input", "eroded.nii.gz",
                                "-cortex", "cortex.nii.gz",
                                "-fclosing", "0",
                                "-output", "bigsulci.nii.gz"], cwd=tmp_dir)
-        subprocess.check_call(["VipHomotopic", "-mode", "H",
+        soma.subprocess.check_call(["VipHomotopic", "-mode", "H",
                                "-input", "classif.nii.gz",
                                "-cortex", "bigsulci.nii.gz",
                                "-fclosing", "0",

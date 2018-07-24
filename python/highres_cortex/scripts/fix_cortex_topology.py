@@ -57,7 +57,7 @@ def fix_cortex_topology_files(input_filename, output_filename,
               " Morphologist is properly installed and that the"
               " command is in your PATH.".format(exc.strerror))
         return 1
-    except subprocess.CalledProcessError as exc:
+    except soma.subprocess.CalledProcessError as exc:
         print("error: the VipHomotopic command returned an error code ({0})."
               " Please inspect its output above for more information."
               .format(exc.returncode))
