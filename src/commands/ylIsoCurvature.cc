@@ -39,8 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <sstream>
 #include <cmath>
 
-#include <boost/format.hpp>
-
+#include <soma-io/allocator/allocator.h>
 #include <cartobase/config/verbose.h>
 #include <cartodata/volume/volume.h>
 #include <aims/getopt/getopt2.h>
@@ -204,7 +203,9 @@ int main(const int argc, const char **argv)
   VolumeRef<Real> result = sum_curvatures(input);
 
 
-  if(verbose != 0) clog << program_name << ": writing output..." << endl;
+  if(verbose != 0) {
+    clog << program_name << ": writing output..." << endl;
+  }
   {
     bool write_success = output_writer.write(result);
     if(!write_success) {
