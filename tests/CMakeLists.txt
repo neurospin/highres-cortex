@@ -40,5 +40,5 @@ endif()
 
 brainvisa_add_test(
   NAME highres_cortex_capsul
-  COMMAND ${TEST_ENV} python -m highres_cortex.test.test_capsul
+  COMMAND ${TEST_ENV} "${PYTHON_EXECUTABLE_NAME}" -m highres_cortex.test.test_capsul
   )
