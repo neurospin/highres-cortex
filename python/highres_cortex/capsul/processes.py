@@ -48,6 +48,15 @@ VOLUME_EXTENSIONS = ['.nii.gz', '.vimg', '.vinfo', '.vhdr', '.img', '.hdr',
                      '.png', '.mng', '.bmp', '.pbm', '.pgm', '.ppm', '.xbm',
                      '.xpm', '.tiff', '.tif', '.ima', '.dim', '']
 
+# External commands that use AIMS need to be launched through bv_env on Mac OS
+# 10.11 and later. The reason is that the DYLD_* environment variables, which
+# control the dynamic linker (used in the plugin system of AIMS), are not
+# allowed to be inherited by programs that reside in "protected" system
+# directories (/bin, /sbin, /usr, and /System). Capsul itself can usually work
+# without these variables, but processes that use soma-io cannot. Moreover,
+# even if these variables are set in the Capsul process, they cannot be
+# inherited by children processes written in Python because these use
+# /usr/bin/env in their shebang, which is "protected" (it resides in /usr).
 
 class Laplacian(capsul.api.Process):
     """Solve the Laplacian model in the cortex"""
@@ -73,6 +82,7 @@ class Laplacian(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylLaplacian",
             "--classif", self.classif,
             "--output", self.laplace_field,
@@ -102,6 +112,7 @@ class IsoCurvature(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylIsoCurvature",
             "--input", self.input_image,
             "--mode", self.mode,
@@ -129,6 +140,7 @@ class RemoveNaN(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsRemoveNaN",
             "--verbose", "0",
             "-i", self.input_image,
@@ -157,6 +169,7 @@ class MedianFilter(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsMedianSmoothing",
             "--verbose", "0",
             "--input", self.input_image,
@@ -181,6 +194,7 @@ class BinarizeCortex(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsThreshold",
             "--verbose", "0",
             "-b",
@@ -228,6 +242,7 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
         args = [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylAdvectTubes",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
@@ -272,6 +287,7 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
         args = [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylAdvectEuclidean",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
@@ -335,6 +351,7 @@ class MergeImagesOneToOne(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsMerge",
             "--verbose", "0",
             "-m", "oo",
@@ -382,6 +399,7 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylUpwindDistance",
             "--domain", self.domain,
             "--field", self.field,
@@ -458,6 +476,7 @@ thresholding type
 
     def get_commandline(self):
         cmd = [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsThreshold",
             "--verbose", "0",
             "-b", str(self.binary),
@@ -487,6 +506,7 @@ class LabelEachVoxel(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylLabelEachVoxel",
             "--first-label", str(self.first_label),
             "--input", self.input_image,
@@ -512,6 +532,7 @@ class ConvertDataType(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsFileConvert",
             "--type", self.data_type,
             "--input", self.input_image,
@@ -539,6 +560,7 @@ class MergeImagesAllToOne(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsMerge",
             "--mode", "ao",
             "--value", repr(self.value),
@@ -565,6 +587,7 @@ class MergeImagesSameValues(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsMerge",
             "--mode", "sv",
             "--input", self.input_image,
@@ -613,6 +636,7 @@ volume of labels (either S16 or S32):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
         args = [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylPropagateAlongField",
             "--seeds", self.seeds,
             "--grad-field", self.grad_field,
@@ -701,6 +725,7 @@ class ConnectedComponents(capsul.api.Process):
 
     def get_commandline(self):
         return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsConnectComp",
             "--input", self.input_image,
             "--output", self.output,
@@ -737,6 +762,7 @@ class MergeCortexColumnRegions(capsul.api.Process):
 
     def get_commandline(self):
         args = [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "ylMergeCortexColumnRegions",
             "--input", self.input_traverses,
             "--proj-csf", self.proj_csf,

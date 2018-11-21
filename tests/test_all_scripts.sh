@@ -27,12 +27,17 @@ trap 'cleanup; trap - TERM EXIT; kill -TERM $$' TERM
 trap 'trap - QUIT EXIT; kill -QUIT $$' QUIT
 tmpdir=$(mktemp -d -t hrcortex_XXXX)
 
+# The Python interpreter below is called through bv_env in order to
+# restore the values of the environment variables DYLD_LIBRARY_PATH
+# and friends on Mac OS 10.11+, which are not inherited by the shell
+# interpreter because it is protected (it resides in the protected
+# directory /bin).
 
 cd -- "$tmpdir"
-python -m highres_cortex.test.synthetic_data 5 3 0.3
+bv_env python -m highres_cortex.test.synthetic_data 5 3 0.3
 "$test_dir"/run_all_scripts.sh
 
-python - <<EOF
+bv_env python - <<EOF
 import sys
 from highres_cortex.test.compare_with_reference import *
 c = ResultComparator(".")
