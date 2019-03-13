@@ -40,6 +40,7 @@
 import sys
 
 from soma import aims
+import six
 
 
 def relabel(labels):
@@ -49,9 +50,9 @@ def relabel(labels):
     size_z = output.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in six.moves.xrange(size_z):
+        for y in six.moves.xrange(size_y):
+            for x in six.moves.xrange(size_x):
                 label = labels.at(x, y, z)
                 if label == 0:
                     new_label = 0

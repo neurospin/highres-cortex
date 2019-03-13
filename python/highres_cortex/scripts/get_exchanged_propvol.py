@@ -41,6 +41,7 @@ import os.path
 import shutil
 import sys
 import tempfile
+import six
 
 import numpy as np
 import soma.subprocess as subprocess
@@ -53,9 +54,9 @@ def relabel_positive_labels(volume):
     size_z = volume.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in six.moves.xrange(size_z):
+        for y in six.moves.xrange(size_y):
+            for x in six.moves.xrange(size_x):
                 old_label = volume.at(x, y, z)
                 if old_label > 0:
                     try:

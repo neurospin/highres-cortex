@@ -39,6 +39,7 @@
 
 import random
 import sys
+import six
 
 from soma import aims
 
@@ -57,9 +58,9 @@ def randomize_labels(labels):
     size_z = output.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in six.moves.xrange(size_z):
+        for y in six.moves.xrange(size_y):
+            for x in six.moves.xrange(size_x):
                 old_label = labels.at(x, y, z)
                 if old_label >= 0:
                     new_label = new_labels[old_label]

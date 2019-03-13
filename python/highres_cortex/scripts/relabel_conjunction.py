@@ -38,6 +38,7 @@
 # knowledge of the CeCILL licence and that you accept its terms.
 
 import sys
+import six
 
 from soma import aims
 
@@ -50,9 +51,9 @@ def relabel_conjunction(labels1, labels2):
     size_z = output.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in six.moves.xrange(size_z):
+        for y in six.moves.xrange(size_y):
+            for x in six.moves.xrange(size_x):
                 labels = (labels1.at(x, y, z), labels2.at(x, y, z))
                 # Negative means outside propagation region
                 if labels[0] < 0 or labels[1] < 0:
