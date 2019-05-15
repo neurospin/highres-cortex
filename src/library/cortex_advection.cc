@@ -97,6 +97,13 @@ public:
       return;
     }
 
+    if(!std::isfinite(divergence_value)) {
+      clog << "  Warning: TubeAdvection encountered non-finite divergence ("
+           << divergence_value << ") at " << point << "\n";
+      m_abort = true;
+      return;
+    }
+
     if(m_opposite_direction)
       m_surface *= 1 - step * divergence_value;
     else
@@ -104,7 +111,8 @@ public:
 
     // The test is written inverted so that NaN gives false
     if(!(m_surface > 0)) {
-      clog << "  Warning: TubeAdvection encountered non-positive surface" << endl;
+      clog << "  Warning: TubeAdvection encountered non-positive surface ("
+           << m_surface << ") at " << point << "\n";
       m_abort = true;
       return;
     }
