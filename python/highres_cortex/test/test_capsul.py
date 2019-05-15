@@ -76,8 +76,7 @@ class SphereTestCase(unittest.TestCase):
         p.precision = 0.001
         p.typical_cortical_thickness = 3
         p.laplace_field = os.path.join(self.test_dir, "laplacian.nii.gz")
-        ret = p()
-        print("ret:", repr(ret))
+        p()
         res = self.result_comp.ensure_max_rms_error(
             "laplacian.nii.gz", 0.017,
             reference_file="reference_laplacian.nii.gz")
