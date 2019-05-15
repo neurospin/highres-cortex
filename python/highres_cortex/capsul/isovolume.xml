@@ -80,6 +80,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
     <link source="laplace.laplace_field" dest="filtered_sumcurvs.input"/>
     <link source="verbosity" dest="filtered_sumcurvs.verbosity"/>
+    <link source="smoothing_sigma" dest="filtered_sumcurvs.sigma"/>
 
     <link source="classif" dest="binarize_cortex.classif"/>
 
