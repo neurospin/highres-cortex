@@ -45,9 +45,6 @@ from soma import aims, aimsalgo
 import highres_cortex.cortex_topo
 
 
-
-
-
 def compute_distmaps_files(classif_filename, output_distwhite_filename,
                            output_distCSF_filename, output_classif_filename):
     classif = aims.read(classif_filename)

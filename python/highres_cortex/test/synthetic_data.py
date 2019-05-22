@@ -40,6 +40,7 @@ import math
 from soma import aims
 import numpy
 
+
 def _convert_to_float_triple(param):
     try:
         value = float(param)
@@ -49,6 +50,7 @@ def _convert_to_float_triple(param):
 
     assert len(param) == 3
     return tuple(float(item) for item in param)
+
 
 def make_cortex_sphere_classif(inner_radius, outer_radius,
                                voxel_size, margin=None,
@@ -71,6 +73,7 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
                                   inner_radius, outer_radius,
                                   margin=margin, noise=noise, sigma=sigma)
     return classif_volume
+
 
 def make_centred_coord_grids(classif_volume):
     size = (classif_volume.getSizeX(),
@@ -116,10 +119,12 @@ def make_noise_array(noise, sigma, size):
     scipy.ndimage.filters.gaussian_filter(arr, sigma, output=arr)
     return arr
 
+
 def _make_similar_volume(data_array, ref):
     volume = aims.Volume(data_array)
     volume.header().update(ref.header())
     return volume
+
 
 def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                                      margin=None, noise=None, sigma=None):
@@ -163,6 +168,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
             _make_similar_volume(curvature, ref=classif_volume),
             _make_similar_volume(equivolumic_metric, ref=classif_volume))
 
+
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                                       dir=".", margin=None,
                                       noise=None, sigma=None):
@@ -188,7 +194,7 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     thickness = _make_similar_volume(np_thickness, ref=distance_to_white)
 
     aims.write(classif,
-                os.path.join(dir, "classif.nii.gz"))
+               os.path.join(dir, "classif.nii.gz"))
     aims.write(distance_to_white,
                os.path.join(dir, "reference_distwhite.nii.gz"))
     aims.write(distance_to_CSF,

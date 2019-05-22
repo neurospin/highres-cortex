@@ -61,7 +61,7 @@ class SphereTestCase(unittest.TestCase):
             p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
             p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
             p1()
-        except:
+        except BaseException:
             if hasattr(self, "test_dir"):
                 shutil.rmtree(self.test_dir)
             raise

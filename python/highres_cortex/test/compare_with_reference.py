@@ -45,6 +45,7 @@ from soma import aims
 
 from highres_cortex.cortex_topo import CSF_LABEL, CORTEX_LABEL, WHITE_LABEL
 
+
 def difference_from_files(result_file, reference_file, classif_array):
     result_vol = aims.read(result_file)
     result = numpy.asarray(result_vol)
@@ -57,9 +58,11 @@ def difference_from_files(result_file, reference_file, classif_array):
 
     return difference
 
+
 def symmetrize_value_range(value_range, center):
     breadth = max(value_range[1] - center, center - value_range[0])
     return (center - breadth, center + breadth)
+
 
 def scatter_plot_files(result_file, reference_file, classif,
                        value_range=None, range_centre=None, ax=None):
@@ -166,65 +169,89 @@ class ResultComparator:
             include_CBS = False
             num_lines = 2
 
-        #ax = fig.add_subplot(num_lines, 4, 1)
-        #self.scatter_plot_file(os.path.join("heat", "heat.nii.gz"),
-        #                       value_range=(0, 1), ax=ax)
+        # ax = fig.add_subplot(num_lines, 4, 1)
+        # self.scatter_plot_file(
+        #     os.path.join("heat", "heat.nii.gz"),
+        #     value_range=(0, 1), ax=ax
+        # )
 
         ax = fig.add_subplot(num_lines, 4, 1)
-        self.scatter_plot_file(os.path.join("dist", "distCSF.nii.gz"),
-                               value_range=(0, 1.1*self._thickness), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("dist", "distCSF.nii.gz"),
+            value_range=(0, 1.1 * self._thickness), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 5)
-        self.scatter_plot_file(os.path.join("dist", "dist_sum.nii.gz"),
-                               value_range=(0, 2 * self._thickness), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("dist", "dist_sum.nii.gz"),
+            value_range=(0, 2 * self._thickness), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 2)
-        self.scatter_plot_file(os.path.join("laplace-euclidean", "total-length.nii.gz"),
-                               value_range=(0, 2 * self._thickness), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("laplace-euclidean", "total-length.nii.gz"),
+            value_range=(0, 2 * self._thickness), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 6)
-        self.scatter_plot_file(os.path.join("upwind-euclidean", "total-length.nii.gz"),
-                               value_range=(0, 2 * self._thickness), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("upwind-euclidean", "total-length.nii.gz"),
+            value_range=(0, 2 * self._thickness), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 3)
-        self.scatter_plot_file(os.path.join("laplace-euclidean", "pial-fraction.nii.gz"),
-                               value_range=(0, 1), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("laplace-euclidean", "pial-fraction.nii.gz"),
+            value_range=(0, 1), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 7)
-        self.scatter_plot_file(os.path.join("upwind-euclidean", "pial-fraction.nii.gz"),
-                               value_range=(0, 1), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("upwind-euclidean", "pial-fraction.nii.gz"),
+            value_range=(0, 1), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 4)
-        self.scatter_plot_file(os.path.join("isovolume", "equivolumic_depth.nii.gz"),
-                               value_range=(0, 1), ax=ax)
+        self.scatter_plot_file(
+            os.path.join("isovolume", "equivolumic_depth.nii.gz"),
+            value_range=(0, 1), ax=ax
+        )
 
         ax = fig.add_subplot(num_lines, 4, 8)
         try:
-            self.scatter_plot_file(os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"),
-                                value_range=(0, 1), ax=ax)
+            self.scatter_plot_file(
+                os.path.join("upwind-equivolume",
+                             "corrected-pial-volume-fraction.nii.gz"),
+                value_range=(0, 1), ax=ax
+            )
         except IOError:
             pass
 
         if include_CBS:
             try:
                 ax = fig.add_subplot(num_lines, 4, 10)
-                self.scatter_plot_file(os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"),
-                                       value_range=(0, 2 * self._thickness), ax=ax)
+                self.scatter_plot_file(
+                    os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"),
+                    value_range=(0, 2 * self._thickness), ax=ax
+                )
             except IOError:
                 pass
             try:
                 ax = fig.add_subplot(num_lines, 4, 11)
-                self.scatter_plot_file(os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"),
-                                       value_range=(0, 1), ax=ax)
+                self.scatter_plot_file(
+                    os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"),
+                    value_range=(0, 1), ax=ax
+                )
             except IOError:
                 pass
             try:
                 ax = fig.add_subplot(num_lines, 4, 12)
-                self.scatter_plot_file(os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"),
-                                       value_range=(0, 1), ax=ax)
+                self.scatter_plot_file(
+                    os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"),
+                    value_range=(0, 1), ax=ax
+                )
             except IOError:
                 pass
-
 
     def compare_files(self, result_file, reference_file):
         path = self._make_subpath
