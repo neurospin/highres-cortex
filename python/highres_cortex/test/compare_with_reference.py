@@ -43,7 +43,7 @@ import sys
 import numpy
 from soma import aims
 
-from highres_cortex.cortex_topo import CSF_LABEL, CORTEX_LABEL, WHITE_LABEL
+from highres_cortex.cortex_topo import CORTEX_LABEL
 
 
 def difference_from_files(result_file, reference_file, classif_array):
@@ -111,7 +111,8 @@ class ResultComparator:
             "reference_thickness.nii.gz",
         os.path.join("upwind-euclidean", "pial-fraction.nii.gz"):
             "reference_euclidean.nii.gz",
-        os.path.join("upwind-equivolume", "corrected-pial-volume-fraction.nii.gz"):
+        os.path.join("upwind-equivolume",
+                     "corrected-pial-volume-fraction.nii.gz"):
             "reference_equivolumic.nii.gz",
         os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"):
             "reference_thickness.nii.gz",
@@ -231,7 +232,8 @@ class ResultComparator:
             try:
                 ax = fig.add_subplot(num_lines, 4, 10)
                 self.scatter_plot_file(
-                    os.path.join("CBS", "Equivolumic", "_surf_thickness.nii.gz"),
+                    os.path.join("CBS", "Equivolumic",
+                                 "_surf_thickness.nii.gz"),
                     value_range=(0, 2 * self._thickness), ax=ax
                 )
             except IOError:
@@ -239,7 +241,8 @@ class ResultComparator:
             try:
                 ax = fig.add_subplot(num_lines, 4, 11)
                 self.scatter_plot_file(
-                    os.path.join("CBS", "Equidistant", "inverted_layering.nii.gz"),
+                    os.path.join("CBS", "Equidistant",
+                                 "inverted_layering.nii.gz"),
                     value_range=(0, 1), ax=ax
                 )
             except IOError:
@@ -247,7 +250,8 @@ class ResultComparator:
             try:
                 ax = fig.add_subplot(num_lines, 4, 12)
                 self.scatter_plot_file(
-                    os.path.join("CBS", "Equivolumic", "inverted_layering.nii.gz"),
+                    os.path.join("CBS", "Equivolumic",
+                                 "inverted_layering.nii.gz"),
                     value_range=(0, 1), ax=ax
                 )
             except IOError:

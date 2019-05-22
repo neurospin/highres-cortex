@@ -133,8 +133,6 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     assert outer_radius > inner_radius > 0
     voxel_size = _convert_to_float_triple(voxel_size)
 
-    thickness = outer_radius - inner_radius
-
     classif_volume = make_cortex_sphere_classif(inner_radius, outer_radius,
                                                 voxel_size, margin=margin,
                                                 noise=noise, sigma=sigma)
@@ -212,8 +210,6 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 
 
 if __name__ == "__main__":
-    import os
-    import shutil
     import argparse
     parser = argparse.ArgumentParser(
         description="Write a synthetic sphere and reference results "
