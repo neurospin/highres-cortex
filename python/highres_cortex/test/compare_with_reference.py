@@ -34,6 +34,8 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import print_function
+
 import math
 import os.path
 import sys
@@ -288,7 +290,7 @@ class ResultComparator:
               .format(max(self._voxel_size),
                       100 * max(self._voxel_size) / self._thickness))
 
-        for result_file in sorted(self.reference_file.iterkeys()):
+        for result_file in sorted(self.reference_file.keys()):
             sys.stdout.write("{0}: ".format(result_file))
             try:
                 print(self.text_compare_files(result_file))
