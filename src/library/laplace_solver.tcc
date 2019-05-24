@@ -41,6 +41,9 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <boost/format.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
+
+// Fix obscure compilation error, we do not use float128 anyway
+#define BOOST_MATH_DISABLE_FLOAT128
 #include <boost/math/constants/constants.hpp>
 
 #include <aims/utility/converter_volume.h>
