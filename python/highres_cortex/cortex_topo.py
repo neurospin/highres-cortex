@@ -77,7 +77,7 @@ def signed_distance(classif_vol,
     dist = fm.doit(classif_vol, propagation_labels, seed_labels)
     np_dist = np.asarray(dist)
     mask = (np_dist == FLT_MAX)
-    #np_dist[mask] = NaN
+    # np_dist[mask] = NaN
     np_classif[np_dist == 0] = border_label
 
     # The connectivity does not seem to matter here
@@ -86,7 +86,7 @@ def signed_distance(classif_vol,
     dist_neg = fm.doit(classif_vol, seed_labels,
                        list(propagation_labels) + [border_label])
     np_dist_neg = np.asarray(dist_neg)
-    #np_dist_neg[np_dist_neg == FLT_MAX] = NaN
+    # np_dist_neg[np_dist_neg == FLT_MAX] = NaN
     np_dist[mask] = -np_dist_neg[mask]
 
     return dist

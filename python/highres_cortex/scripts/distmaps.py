@@ -39,13 +39,9 @@
 
 import sys
 
-import numpy as np
-from soma import aims, aimsalgo
+from soma import aims
 
 import highres_cortex.cortex_topo
-
-
-
 
 
 def compute_distmaps_files(classif_filename, output_distwhite_filename,

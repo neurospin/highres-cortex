@@ -58,6 +58,7 @@ VOLUME_EXTENSIONS = ['.nii.gz', '.vimg', '.vinfo', '.vhdr', '.img', '.hdr',
 # inherited by children processes written in Python because these use
 # /usr/bin/env in their shebang, which is "protected" (it resides in /usr).
 
+
 class Laplacian(capsul.api.Process):
     """Solve the Laplacian model in the cortex"""
 

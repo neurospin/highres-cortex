@@ -35,7 +35,6 @@
 
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -61,7 +60,7 @@ class SphereTestCase(unittest.TestCase):
             p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
             p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
             p1()
-        except:
+        except BaseException:
             if hasattr(self, "test_dir"):
                 shutil.rmtree(self.test_dir)
             raise
@@ -89,7 +88,6 @@ class SphereTestCase(unittest.TestCase):
         p.mode = "sum"
         p.output = os.path.join(self.test_dir, "curvature.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "curvature.nii.gz", 0.067,
             reference_file="reference_curvature.nii.gz")
@@ -106,7 +104,6 @@ class SphereTestCase(unittest.TestCase):
         p.output_length = os.path.join(
             self.test_dir, "euclidean_adv_toward_white.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_adv_toward_white.nii.gz", 0.075,
             reference_file="reference_distwhite.nii.gz")
@@ -123,7 +120,6 @@ class SphereTestCase(unittest.TestCase):
         p.output = os.path.join(
             self.test_dir, "euclidean_upw_toward_white.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_upw_toward_white.nii.gz", 0.22,
             reference_file="reference_distwhite.nii.gz")
@@ -137,7 +133,6 @@ class SphereTestCase(unittest.TestCase):
         p.equivolumetric_depth = os.path.join(
             self.test_dir, "equivolumetric_depth.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "equivolumetric_depth.nii.gz", 0.028,
             reference_file="reference_equivolumic.nii.gz")
@@ -153,7 +148,6 @@ class SphereTestCase(unittest.TestCase):
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_adv.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
@@ -172,7 +166,6 @@ class SphereTestCase(unittest.TestCase):
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_upw.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")

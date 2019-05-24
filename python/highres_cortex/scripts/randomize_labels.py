@@ -56,8 +56,6 @@ def randomize_labels(labels):
     size_x = output.getSizeX()
     size_y = output.getSizeY()
     size_z = output.getSizeZ()
-    old_to_new_labels = {}
-    next_label = 1
     for z in six.moves.xrange(size_z):
         for y in six.moves.xrange(size_y):
             for x in six.moves.xrange(size_x):
