@@ -299,6 +299,36 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         return args
 
 
+class PostProcessEquivolumetricDepth(capsul.api.Process):
+    """Post-process an equivolumetric depth image.
+
+    - Set the outside of the brain (CSF) to 0.0
+    - Set the white matter to 1.0
+    - Set various Nifti header fields
+    """
+
+    input_image = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image of equivolumetric depth")
+    classif = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="classification image of the cortex (100 inside, 0 in CSF, "
+        "200 in white matter)")
+
+    output_image = File(
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="output image"
+    )
+
+    def get_commandline(self):
+        return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+            "ylPostProcessEquivolumetricDepth",
+            self.input_image,
+            self.classif,
+            self.output_image]
+
+
 class ImageArithmetic2Inputs(capsul.api.Process):
     """Compute arithmetic from 2 input images"""
 

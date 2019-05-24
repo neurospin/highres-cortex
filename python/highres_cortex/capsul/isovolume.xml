@@ -66,10 +66,8 @@ knowledge of the CeCILL licence and that you accept its terms.
              module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
       <set name="formula" value="'I1 / I2'"/>
     </process>
-    <process name="merge_wm"
-             module="highres_cortex.capsul.processes.MergeImagesOneToOne">
-      <set name="label" value="200"/>
-      <set name="value" value="1"/>
+    <process name="postprocess"
+             module="highres_cortex.capsul.processes.PostProcessEquivolumetricDepth">
     </process>
 
     <link source="classif" dest="laplace.classif"/>
@@ -112,9 +110,9 @@ knowledge of the CeCILL licence and that you accept its terms.
     <link source="total_tube_volume.output_image"
           dest="pial_volume_fraction.input_image_2"/>
 
-    <link source="pial_volume_fraction.output_image" dest="merge_wm.input_image"/>
-    <link source="classif" dest="merge_wm.mask_image"/>
-    <link source="merge_wm.output_image" dest="equivolumetric_depth"/>
+    <link source="pial_volume_fraction.output_image" dest="postprocess.input_image"/>
+    <link source="classif" dest="postprocess.classif"/>
+    <link source="postprocess.output_image" dest="equivolumetric_depth"/>
 
     <gui>
       <position name="inputs" x="-196" y="459"/>
