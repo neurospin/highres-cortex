@@ -180,6 +180,44 @@ class MedianFilter(capsul.api.Process):
             "--output", self.output_image]
 
 
+class GaussianSmoothing(capsul.api.Process):
+    """3D Gaussian smoothing filter using the recursive Deriche method"""
+
+    input_image = File(
+        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="input image")
+    xsigma = Float(Undefined, output=False, optional=True,
+                   desc="X standard deviation of the gaussian filter "
+                   "[default=largest voxel size]")
+    ysigma = Float(Undefined, output=False, optional=True,
+                   desc="Y standard deviation of the gaussian filter "
+                   "[default=largest voxel size]")
+    zsigma = Float(Undefined, output=False, optional=True,
+                   desc="Z standard deviation of the gaussian filter "
+                   "[default=largest voxel size]")
+
+    output_image = File(
+        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
+        desc="Gaussian-filtered image"
+    )
+
+    def get_commandline(self):
+        sigma_args = []
+        if self.xsigma is not Undefined:
+            sigma_args += ["--xsigma", str(self.xsigma)]
+        if self.ysigma is not Undefined:
+            sigma_args += ["--ysigma", str(self.ysigma)]
+        if self.zsigma is not Undefined:
+            sigma_args += ["--zsigma", str(self.zsigma)]
+        return [
+            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+            "AimsGaussianSmoothing",
+            "--input", self.input_image
+        ] + sigma_args + [
+            "--output", self.output_image
+        ]
+
+
 class BinarizeCortex(capsul.api.Process):
     """Extract a binary image (0/1) of the cortex"""
 

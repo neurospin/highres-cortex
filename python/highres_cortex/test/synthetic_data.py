@@ -57,7 +57,7 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
                                noise=None, sigma=None):
     voxel_size = _convert_to_float_triple(voxel_size)
     if margin is None:
-        margin = max(voxel_size)
+        margin = 2 * max(voxel_size)
     margin = _convert_to_float_triple(margin)
 
     assert outer_radius > inner_radius > 0

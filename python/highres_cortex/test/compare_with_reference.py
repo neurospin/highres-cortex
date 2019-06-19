@@ -257,56 +257,69 @@ class ResultComparator:
             except IOError:
                 pass
 
-    def compare_files(self, result_file, reference_file):
+    def compare_files(self, result_file, reference_file=None):
+        if reference_file is None:
+            reference_file = self.reference_file[os.path.normpath(result_file)]
         path = self._make_subpath
 
         diff = difference_from_files(
             path(result_file), path(reference_file),
             self._classif)
+        nan_values = numpy.isnan(diff)
+        nan_count = numpy.count_nonzero(numpy.logical_and(nan_values, ~diff.mask))
+        # mask out NaNs for computing RMS error and bias
+        diff = numpy.ma.masked_where(nan_values, diff)
 
         rms_error = math.sqrt(numpy.square(diff).mean())
         bias = diff.mean()
 
-        return (rms_error, bias)
+        return (rms_error, bias, nan_count)
 
     @classmethod
-    def comparison_to_text(cls, rms_error, bias, reference_file=None):
-        try:
-            dimension = cls.dimension[reference_file]
-        except KeyError:
-            dimension = ""
+    def comparison_to_text(cls, rms_error, bias, nan_count,
+                           reference_file=None):
+        dimension = cls.dimension.get(reference_file, "")
         if dimension == "%":
-            return ("RMS error = {0:.1f}%, bias = {1:.1f}%"
+            text = ("RMS error = {0:.1f}%, bias = {1:.1f}%"
                     .format(100 * rms_error, 100 * bias))
         elif dimension:
-            return ("RMS error = {0:.3f} {unit}, bias = {1:.3f} {unit}"
+            text = ("RMS error = {0:.3f} {unit}, bias = {1:.3f} {unit}"
                     .format(rms_error, bias, unit=dimension))
         else:
-            return ("RMS error = {0:.3g}, bias = {1:.3g}"
+            text = ("RMS error = {0:.3g}, bias = {1:.3g}"
                     .format(rms_error, bias))
+        if nan_count:
+            text += " (ignoring {0} NaNs)".format(nan_count)
+        return text
 
     def text_compare_files(self, result_file, reference_file=None):
         if reference_file is None:
             reference_file = self.reference_file[os.path.normpath(result_file)]
-        rms_error, bias = self.compare_files(result_file, reference_file)
-        return self.comparison_to_text(rms_error, bias, reference_file)
+        rms_error, bias, nan_count = self.compare_files(result_file,
+                                                        reference_file)
+        return self.comparison_to_text(rms_error, bias, nan_count,
+                                       reference_file)
 
     def ensure_max_rms_error(self, result_file, max_rms_error,
                              reference_file=None):
         if reference_file is None:
             reference_file = self.reference_file[os.path.normpath(result_file)]
-        rms_error, bias = self.compare_files(result_file, reference_file)
+        rms_error, bias, nan_count = self.compare_files(result_file,
+                                                        reference_file)
         text = "{0}: {1}".format(
             result_file,
-            self.comparison_to_text(rms_error, bias, reference_file))
+            self.comparison_to_text(rms_error, bias, nan_count,
+                                    reference_file))
 
-        if rms_error <= max_rms_error:
+        if rms_error <= max_rms_error and nan_count == 0:
             text += " (RMS error <= {0})".format(max_rms_error)
+        elif nan_count != 0:
+            text += " <== ERROR: NaN in result"
         else:
-            text += " (RMS error > {0}) <== ERROR".format(max_rms_error)
+            text += " <== ERROR: RMS error > {0}".format(max_rms_error)
 
         print(text)
-        return rms_error <= max_rms_error
+        return rms_error <= max_rms_error and nan_count == 0
 
     def ensure_max_rms_errors(self, list_of_tests):
         success = True
