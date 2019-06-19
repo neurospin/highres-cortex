@@ -1,6 +1,6 @@
 /*
+Copyright CEA (2014, 2017, 2019).
 Copyright Forschungszentrum Jülich GmbH (2017).
-Copyright CEA (2014, 2017).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -39,6 +39,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 
 #include "cortex_advection.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -98,8 +99,10 @@ public:
     }
 
     if(!std::isfinite(divergence_value)) {
-      clog << "  Warning: TubeAdvection encountered non-finite divergence ("
-           << divergence_value << ") at " << point << "\n";
+      if(verbosity() >= 1) {
+        clog << "  Warning: TubeAdvection encountered non-finite divergence ("
+             << divergence_value << ") at " << point << "\n";
+      }
       m_abort = true;
       return;
     }
@@ -111,8 +114,10 @@ public:
 
     // The test is written inverted so that NaN gives false
     if(!(m_surface > 0)) {
-      clog << "  Warning: TubeAdvection encountered non-positive surface ("
-           << m_surface << ") at " << point << "\n";
+      if(verbosity() >= 1) {
+        clog << "  Warning: TubeAdvection encountered non-positive surface ("
+             << m_surface << ") at " << point << "\n";
+      }
       m_abort = true;
       return;
     }
@@ -604,7 +609,7 @@ advect(const VolumeRef<int16_t>& seeds,
   advection.set_max_iter(
     static_cast<size_t>(std::ceil(max_advection_distance
                                   / std::abs(step_size))));
-  advection.set_verbose(verbosity - 1);
+  advection.set_verbose(std::max(verbosity - 1, 0));
 
   int slices_done = 0;
   #pragma omp parallel for schedule(dynamic)
@@ -621,6 +626,7 @@ advect(const VolumeRef<int16_t>& seeds,
         TVisitor visitor
           = VisitorTraits<TVisitor>::build_visitor(domain, visitor_inputs,
                                                    result);
+        visitor.set_verbose(std::max(verbosity - 1, 0));
         yl::Advection::Visitor& plain_visitor = visitor;
         const bool success = advection.visitor_advection(plain_visitor,
                                                          point);

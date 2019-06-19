@@ -63,7 +63,7 @@ class LinearlyInterpolatedScalarField;
     \arg \p step_size : the constant length of an advection step. Can be
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
-      Advection::set_verbose()
+      Advection::set_verbose() and to Advection::Visitor::set_verbose()
 
     \return pair of (tube's volume, tube's end surface)
  */
@@ -88,7 +88,7 @@ advect_tubes(const carto::VolumeRef<int16_t>& seeds,
     \arg \p step_size : the constant length of an advection step. Can be
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
-      Advection::set_verbose()
+      Advection::set_verbose() and to Advection::Visitor::set_verbose()
 
     \return Euclidean length of the advection path
  */
@@ -116,7 +116,7 @@ advect_euclidean(const carto::VolumeRef<int16_t>& seeds,
     \arg \p step_size : the constant length of an advection step. Can be
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
-      Advection::set_verbose()
+      Advection::set_verbose() and to Advection::Visitor::set_verbose()
 
     \return advected values
  */
@@ -143,7 +143,7 @@ advect_value(const carto::VolumeRef<int16_t>& seeds,
     \arg \p step_size : the constant length of an advection step. Can be
       negative to advect in the opposite direction.
     \arg \p verbosity : verbosity to stderr, (verbosity - 1) is passed to
-      Advection::set_verbose()
+      Advection::set_verbose() and to Advection::Visitor::set_verbose()
 
     \return Euclidean length of the advection path
  */
