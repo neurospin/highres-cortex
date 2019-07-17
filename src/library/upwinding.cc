@@ -141,7 +141,9 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
                   neighbour_it = connectivity->begin() ;
                 neighbour_it != connectivity->end() ;
                 ++neighbour_it) {
-              const Point3d& neighbour_offset = *neighbour_it;
+              const Point3d& neighbour_offset = Point3d((*neighbour_it)[0],
+                                                        (*neighbour_it)[1],
+                                                        (*neighbour_it)[2]);
               const Point3d neighbour_point = point + neighbour_offset;
               const int nx = neighbour_point[0];
               const int ny = neighbour_point[1];
@@ -242,7 +244,9 @@ yl::upwind_distance(const carto::VolumeRef<float>& upwind_field,
             neighbour_it = connectivity->begin() ;
           neighbour_it != connectivity->end() ;
           ++neighbour_it) {
-        const Point3d& neighbour_offset = *neighbour_it;
+        const Point3d& neighbour_offset = Point3d((*neighbour_it)[0],
+                                                  (*neighbour_it)[1],
+                                                  (*neighbour_it)[2]);
         const Point3d neighbour_point = point + neighbour_offset;
         const int nx = neighbour_point[0];
         const int ny = neighbour_point[1];
