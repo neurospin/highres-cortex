@@ -60,6 +60,11 @@ inline T square(T x)
   return x * x;
 }
 
+/** Check if there is a local extremum at the given coordinates.
+
+    The check always accesses all 6-neighbours of the given point: therefore,
+    all coordinates must be between 1 and (size - 2).
+ */
 template <typename Real>
 bool
 is_local_extremum(const carto::VolumeRef<Real>& solution,
@@ -293,9 +298,9 @@ eliminate_extrema()
   PointSetType extremum_points;
 
   #pragma omp parallel for schedule(dynamic)
-  for(int z = 0 ; z < size_z ; ++z)
-    for(int y = 0 ; y < size_y ; ++y)
-      for(int x = 0 ; x < size_x ; ++x) {
+  for(int z = 1 ; z < size_z - 1 ; ++z)
+    for(int y = 1 ; y < size_y - 1 ; ++y)
+      for(int x = 1 ; x < size_x - 1 ; ++x) {
         if(m_classif(x, y, z) == yl::CORTEX_LABEL) {
           if(is_local_extremum(m_solution, x, y, z)) {
             #pragma omp critical(extremum_point_set)
@@ -344,6 +349,13 @@ eliminate_extrema()
       const int nx = neighbour_point[0];
       const int ny = neighbour_point[1];
       const int nz = neighbour_point[2];
+
+      if(!(nx >= 1 && nx < size_x - 1
+           && ny >= 1 && ny < size_y - 1
+           && nz >= 1 && nz < size_z - 1)) {
+        // We do not check for local extrema on the edge of the volume.
+        continue;
+      }
 
       if(m_classif(nx, ny, nz) == yl::CORTEX_LABEL
          && is_local_extremum(m_solution, nx, ny, nz)) {
