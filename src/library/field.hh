@@ -59,6 +59,9 @@ public:
 class VectorField3d : public Field
 {
 public:
+  // A virtual destructor is needed because this is a polymorphic class
+  ~VectorField3d() {};
+
   /** Evaluate the field's value at possibly non-integer coordinates
 
       \exception UndefinedField if the field cannot be evaluated at the
@@ -83,6 +86,9 @@ public:
 class ScalarField : public Field
 {
 public:
+  // A virtual destructor is needed because this is a polymorphic class
+  ~ScalarField() {};
+
   /** Evaluate the field's value at possibly non-integer coordinates
 
       \exception UndefinedField if the field cannot be evaluated at the
