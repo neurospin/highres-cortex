@@ -148,14 +148,14 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 
     with numpy.errstate(divide="ignore"):
         laplacian_value = numpy.clip(
-            inner_radius / (outer_radius - inner_radius) *
-            (outer_radius / distance_to_centre - 1),
+            inner_radius / (outer_radius - inner_radius)
+            * (outer_radius / distance_to_centre - 1),
             0, 1)
         curvature = - 2 / distance_to_centre
 
     equivolumic_metric = numpy.clip(
-        (outer_radius ** 3 - distance_to_centre ** 3) /
-        (outer_radius ** 3 - inner_radius ** 3),
+        (outer_radius ** 3 - distance_to_centre ** 3)
+        / (outer_radius ** 3 - inner_radius ** 3),
         0, 1)
 
     return (classif_volume,

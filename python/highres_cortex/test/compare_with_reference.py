@@ -266,7 +266,8 @@ class ResultComparator:
             path(result_file), path(reference_file),
             self._classif)
         nan_values = numpy.isnan(diff)
-        nan_count = numpy.count_nonzero(numpy.logical_and(nan_values, ~diff.mask))
+        nan_count = numpy.count_nonzero(numpy.logical_and(nan_values,
+                                                          ~diff.mask))
         # mask out NaNs for computing RMS error and bias
         diff = numpy.ma.masked_where(nan_values, diff)
 

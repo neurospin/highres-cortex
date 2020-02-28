@@ -127,6 +127,21 @@ Dependencies
 - Optional: the ``VipHomotopic`` command-line tool from the Morphologist image segmentation pipeline, distributed as a binary only tool with the BrainVISA_ installer.
 
 
+Contributing
+============
+
+This repository uses `pre-commit`_ to ensure that all committed code follows minimal quality standards. Please install it and configure it to run as a pre-commit hook in your local repository:
+
+.. code-block:: shell
+
+  # Install pre-commit in a virtual environment
+  python3 -m venv venv/
+  . venv/bin/activate
+  pip install pre-commit
+
+  pre-commit install  # install the pre-commit hook
+
+
 Licence
 =======
 
@@ -143,6 +158,7 @@ External code used in this repository
 .. _CMake: http://www.cmake.org/
 .. _Capsul: http://neurospin.github.io/capsul/
 .. _Python: https://www.python.org/
+.. _pre-commit: https://pre-commit.com/
 .. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
 .. _BrainVISA download page: http://brainvisa.info/web/download.html
 
