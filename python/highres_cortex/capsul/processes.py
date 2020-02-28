@@ -36,6 +36,7 @@
 
 """Elementary processes to be used within the CAPSUL pipelining system."""
 
+from __future__ import absolute_import, division, print_function
 import math
 
 import capsul.api
