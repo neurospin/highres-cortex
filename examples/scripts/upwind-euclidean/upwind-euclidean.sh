@@ -9,7 +9,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-python -m capsul.run highres_cortex.capsul.thickness_upw \
+python -m capsul highres_cortex.capsul.thickness_upw \
     classif=../classif.nii.gz \
     verbosity=1 \
     thickness_image=total-length.nii.gz \

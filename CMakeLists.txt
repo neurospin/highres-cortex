@@ -72,8 +72,8 @@ endif()
 find_package(Doxygen)
 
 find_package(python REQUIRED)
-BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.6; << 3.0")
-BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.6; << 3.0")
+BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.7")
+BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.7")
 # No need for find_package(NumPy) as that is for C headers
 BRAINVISA_DEPENDENCY(RUN RECOMMENDS python-numpy RUN)
 

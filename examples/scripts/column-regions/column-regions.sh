@@ -9,7 +9,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-python -m capsul.run highres_cortex.capsul.traverses \
+python -m capsul highres_cortex.capsul.traverses \
     classif=../classif.nii.gz \
     goal_traverse_diameter=1.0 \
     verbosity=1 \
