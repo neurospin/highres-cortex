@@ -87,7 +87,7 @@ def scatter_plot_files(result_file, reference_file, classif,
     ax.set_aspect("equal")
 
 
-class ResultComparator:
+class ResultComparator(object):
     reference_file = {
         os.path.join("heat", "heat.nii.gz"):
             "reference_laplacian.nii.gz",
