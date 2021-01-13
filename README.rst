@@ -94,10 +94,11 @@ You can compile this package as part of the BrainVISA_ source tree, which is bas
      [ build $HOME/brainvisa/build ]
        build_type = Release
        brainvisa-cmake bug_fix $HOME/brainvisa/source
-       brainvisa-share bug_fix $HOME/brainvisa/source
        soma-base bug_fix $HOME/brainvisa/source
        soma-io bug_fix $HOME/brainvisa/source
        aims-free bug_fix $HOME/brainvisa/source
+       soma-workflow bug_fix $HOME/brainvisa/source
+       capsul bug_fix $HOME/brainvisa/source
        + $HOME/brainvisa/source/highres-cortex
 
    Keep the following in mind if you want to customize this configuration file:
@@ -162,9 +163,9 @@ External code used in this repository
 .. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
 .. _BrainVISA download page: http://brainvisa.info/web/download.html
 
-.. Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
+.. Copyright CEA (2014, 2015, 2021).
+   Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
    Copyright Télécom ParisTech (2015, 2016).
-   Copyright CEA (2014, 2015).
    Copyright Université Paris XI (2014).
 
    Author: Yann Leprince <yann.leprince@ylep.fr>.
