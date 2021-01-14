@@ -89,6 +89,17 @@ BRAINVISA_COPY_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/bin"
                          bin
                          ${PROJECT_NAME})
 
+
+set(REL_SHARE_DIR "share/${PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
+
+# FIXME: These scripts are documentation, but tests depend on it. How can I
+# make sure that they are installed by both 'install-test' and 'install-doc'?
+brainvisa_copy_directory(
+  "${CMAKE_CURRENT_SOURCE_DIR}/examples"
+  "${REL_SHARE_DIR}/examples"
+  ${PROJECT_NAME}-test
+  )
+
 add_subdirectory(src)
 
 include(CTest)

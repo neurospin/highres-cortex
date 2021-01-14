@@ -26,6 +26,12 @@ if(NOT PATH_TO_BRAINVISA_TREE STREQUAL "")
   endif()
 endif()
 
+brainvisa_copy_files(
+  ${PROJECT_NAME}-test
+  test_all_scripts.sh run_all_scripts.sh
+  DESTINATION "${REL_SHARE_DIR}/tests"
+)
+
 # These tests need /bin/bash, exclude them from Windows cross-builds
 if(NOT WIN32)
   # We use an extra "sh -e" prefix here, because the test is called through
@@ -34,7 +40,8 @@ if(NOT WIN32)
   # cannot be found on the PATH.
   brainvisa_add_test(
     NAME highres_cortex_example_scripts
-    COMMAND ${TEST_ENV} "sh" "-e" "${CMAKE_CURRENT_SOURCE_DIR}/test_all_scripts.sh"
+    COMMAND ${TEST_ENV} "sh" "-e"
+        "${CMAKE_BINARY_DIR}/${REL_SHARE_DIR}/tests/test_all_scripts.sh"
     )
 endif()
 
