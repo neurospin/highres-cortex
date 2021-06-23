@@ -126,7 +126,7 @@ def make_noise_array(noise, sigma, size):
 
 def _make_similar_volume(data_array, ref):
     volume = aims.Volume(data_array)
-    volume.header().update(ref.header())
+    volume.copyHeaderFrom(ref.header())
     return volume
 
 
