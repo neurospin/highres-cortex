@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright CEA (2021).
 # Copyright Forschungszentrum Jülich GmbH (2017).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -66,9 +67,12 @@ class SphereTestCase(unittest.TestCase):
             if hasattr(self, "test_dir"):
                 shutil.rmtree(self.test_dir)
             raise
+        if os.environ.get('KEEP_TEMPORARY'):
+            print('highres-cortex test directory is {0}'.format(self.test_dir))
 
     def tearDown(self):
-        shutil.rmtree(self.test_dir)
+        if not os.environ.get('KEEP_TEMPORARY'):
+            shutil.rmtree(self.test_dir)
 
     def test_laplacian(self):
         p = capsul.api.get_process_instance(
