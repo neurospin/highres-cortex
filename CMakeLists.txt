@@ -100,6 +100,10 @@ brainvisa_copy_directory(
   ${PROJECT_NAME}-test
   )
 
+# don't warn on obsolete classes within this library: we still provide obsolete
+# features so we have to build them without warnings
+add_definitions( "-DAIMSDATA_CLASS_NO_DEPREC_WARNING=1" )
+
 add_subdirectory(src)
 
 include(CTest)
