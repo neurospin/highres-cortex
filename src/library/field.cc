@@ -39,6 +39,9 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include "field.hh"
 
 #include <aims/math/gradient.h>
+#include <aims/resampling/linearInterpolator.h>
+
+using namespace aims;
 
 yl::LinearlyInterpolatedVectorField3d::
 LinearlyInterpolatedVectorField3d(const carto::VolumeRef<float>& fieldx,
@@ -68,11 +71,11 @@ LinearlyInterpolatedScalarFieldGradient(const carto::VolumeRef<float>& scalar_fi
   : m_interp_gradx(), m_interp_grady(), m_interp_gradz()
 {
   AimsGradient<float> gradient(AIMS_GRADIENT_DPLUS);
-  AimsData<float> gradx = gradient.X(scalar_field);
+  carto::VolumeRef<float> gradx = gradient.X(scalar_field);
   m_interp_gradx = getLinearInterpolator(gradx);
-  AimsData<float> grady = gradient.Y(scalar_field);
+  carto::VolumeRef<float> grady = gradient.Y(scalar_field);
   m_interp_grady = getLinearInterpolator(grady);
-  AimsData<float> gradz = gradient.Z(scalar_field);
+  carto::VolumeRef<float> gradz = gradient.Z(scalar_field);
   m_interp_gradz = getLinearInterpolator(gradz);
 
   // Problem: the last line of each gradient is filled with zeros, which
