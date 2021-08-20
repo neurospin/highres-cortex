@@ -228,7 +228,8 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
 
         # First boundary to guide VipHomotopic (prevent leaking through holes
         # in sulci).
-        aimsdata_classif = aims.AimsData_S16(classif, 1)
+        aimsdata_classif = aims.Volume_S16(classif.getSize, [1, 1, 1])
+        aimsdata_classif[:] = classif[:]
         # Restore the header (in particular the voxel_size), which may not have
         # been copied in the constructor because a border is requested.
         aimsdata_classif.header().update(classif.header())
@@ -275,16 +276,15 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # of voxels.
     #
     # The 1-voxel border is necessary for AimsMorpho{Dilation,Erosion}.
-    aimsdata_classif = aims.AimsData_S16(classif, 1)
+    aimsdata_classif = aims.Volume_S16(classif.getSize(), [1, 1, 1])
+    aimsdata_classif[:] = classif[:]
     saved_voxel_size = classif.header()["voxel_size"][:3]
-    aimsdata_classif.setSizeXYZT(1, 1, 1)
+    aimsdata_classif.setVoxelSize(1, 1, 1)
     dilated = aimsalgo.AimsMorphoDilation(aimsdata_classif, 1)
     # Restore the voxel size in case the header is shared with the aims.Volume
     # that aimsdata_classif was created from (classif). BUG: restoring the
     # value like this is not thread-safe!
-    aimsdata_classif.setSizeX(saved_voxel_size[0])
-    aimsdata_classif.setSizeY(saved_voxel_size[1])
-    aimsdata_classif.setSizeZ(saved_voxel_size[2])
+    aimsdata_classif.setVoxelSize(saved_voxel_size)
     del aimsdata_classif
     array_dilated = np.asarray(dilated.volume())
 
@@ -299,7 +299,8 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # the continuity of the white matter so that the homotopic criterion
     # chooses the right connections (i.e. do not create spurious strands or
     # planes through the cortex).
-    white = aims.AimsData_S16(classif, 1)
+    white = aims.Volume_S16(classif.gteSize(), [1, 1, 1])
+    white[:] = classif[:]
     # Restore the header (in particular the voxel_size), which may not have
     # been copied in the constructor because a border is requested.
     white.header().update(classif.header())
