@@ -70,9 +70,8 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
             for ax_margin, ax_voxel_size
             in zip(margin, voxel_size)]
 
-    classif_aimsdata = aims.AimsData(size[0], size[1], size[2], dtype="S16")
-    classif_aimsdata.setSizeXYZT(*voxel_size)
-    classif_volume = classif_aimsdata.volume()
+    classif_volume = aims.Volume(size[0], size[1], size[2], dtype="S16")
+    classif_volume.setVoxelSize(voxel_size)
     emplace_cortex_sphere_classif(classif_volume,
                                   inner_radius, outer_radius,
                                   margin=margin, noise=noise, sigma=sigma)
