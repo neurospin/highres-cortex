@@ -286,7 +286,7 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # value like this is not thread-safe!
     aimsdata_classif.setVoxelSize(saved_voxel_size)
     del aimsdata_classif
-    array_dilated = np.asarray(dilated.volume())
+    array_dilated = dilated.np
 
     tmp_classif = aims.Volume(classif)
     array_tmp_classif = np.asarray(tmp_classif)
@@ -304,11 +304,11 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # Restore the header (in particular the voxel_size), which may not have
     # been copied in the constructor because a border is requested.
     white.header().update(classif.header())
-    array_white = np.asarray(white.volume())
+    array_white = white.np
     array_white[array_white != WHITE_LABEL] = CSF_LABEL
     dilated_white = aimsalgo.AimsMorphoDilation(white, filling_size)
     del white, array_white
-    array_dilated_white = np.asarray(dilated_white.volume())
+    array_dilated_white = dilated_white.np
     STEP1_FRONT_BARRIER = 199
     array_tmp_classif[array_dilated_white != 0] = STEP1_FRONT_BARRIER
     del dilated_white, array_dilated_white
