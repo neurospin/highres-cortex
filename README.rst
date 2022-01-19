@@ -23,7 +23,7 @@ This package can be used on the command line, here is a short introduction. It i
 
 1. Prepare your input data: the input that is common to to all processes is ``classif``: a voxel-wise tissue classification image in signed 16-bit pixel type, with 0 for exterior voxels (CSF), 100 for cortical gray matter, and 200 for subcortical white matter.
 
-2. Run the process that you are interested in. The common interface to all processes is the Capsul command-line, which you can call with ``bv python -m capsul``. Use ``bv python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``bv python -m capsul <process_name> [parameter=value ...]`` to run a process.
+2. Run the process that you are interested in. The common interface to all processes is the `Capsul`_ command-line, which you can call with ``bv python -m capsul``. Use ``bv python -m capsul --process-help <process_name>`` to get help for a specific process. Use ``bv python -m capsul <process_name> [parameter=value ...]`` to run a process.
 
    The most important processes are described below:
 
@@ -68,12 +68,10 @@ External code used in this repository
 - Code for numerical diagonalization of 3×3 matrices (`<src/library/cortex_column_region_quality.tcc>`_) is Copyright 2006 Joachim Kopp, under the GNU LGPL v2.1 or later. Reference: Kopp, Joachim. ‘Efficient Numerical Diagonalization of Hermitian 3x3 Matrices’. *International Journal of Modern Physics C* 19, no. 03 (March 2008): 523–48. `arXiv:physics/0610206 <http://arxiv.org/abs/physics/0610206>`_.
 
 
-.. _BrainVISA: http://brainvisa.info/
-.. _Capsul: http://neurospin.github.io/capsul/
-.. _Python: https://www.python.org/
+.. _BrainVISA: https://brainvisa.info/
+.. _Capsul: https://brainvisa.info/capsul/
 .. _pre-commit: https://pre-commit.com/
-.. _Introduction to bv_maker: https://bioproj.extra.cea.fr/redmine/projects/brainvisa-devel/wiki/How_to_compile_BrainVISA_projects
-.. _BrainVISA download page: http://brainvisa.info/web/download.html
+.. _BrainVISA download page: https://brainvisa.info/web/download.html
 
 .. Copyright CEA (2014, 2015, 2021, 2022).
    Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
