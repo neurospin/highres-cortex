@@ -1,0 +1,166 @@
+{
+    "type": "custom_pipeline",
+    "name": "isovolume",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute equivolumetric depth\n\n.. note::\n\n    * Type 'ProcessMeta.help()' for a full description of this process parameters.\n    * Type '<ProcessMeta>.get_input_spec()' for a full description of this process input trait types.\n    * Type '<ProcessMeta>.get_output_spec()' for a full description of this process output trait types.\n",
+        "executables": {
+            "laplace": {
+                "definition": "highres_cortex.capsul.processes.Laplacian",
+                "type": "process"
+            },
+            "filtered_sumcurvs": {
+                "definition": "highres_cortex.capsul.filtered_sumcurvs",
+                "type": "process"
+            },
+            "binarize_cortex": {
+                "definition": "highres_cortex.capsul.processes.BinarizeCortex",
+                "type": "process"
+            },
+            "advect_toward_pial": {
+                "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
+                "type": "process"
+            },
+            "advect_toward_white": {
+                "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
+                "type": "process"
+            },
+            "sink1": {
+                "definition": "highres_cortex.capsul.processes.VolumeSink",
+                "type": "process"
+            },
+            "sink2": {
+                "definition": "highres_cortex.capsul.processes.VolumeSink",
+                "type": "process"
+            },
+            "total_tube_volume": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process"
+            },
+            "pial_volume_fraction": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process"
+            },
+            "postprocess": {
+                "definition": "highres_cortex.capsul.processes.PostProcessEquivolumetricDepth",
+                "type": "process"
+            }
+        },
+        "parameters": {
+            "laplace.precision": 0.001,
+            "laplace.typical_cortical_thickness": 3.0,
+            "laplace.verbosity": 1,
+            "filtered_sumcurvs.sigma": 1.0,
+            "filtered_sumcurvs.verbosity": 1,
+            "advect_toward_pial.domain_type": "interpolated",
+            "advect_toward_pial.max_dist": 6.0,
+            "advect_toward_pial.step_size": 0.03,
+            "advect_toward_pial.upfield": true,
+            "advect_toward_pial.verbosity": 1,
+            "advect_toward_white.domain_type": "interpolated",
+            "advect_toward_white.max_dist": 6.0,
+            "advect_toward_white.step_size": 0.03,
+            "advect_toward_white.upfield": false,
+            "advect_toward_white.verbosity": 1,
+            "total_tube_volume.formula": "I1 + I2",
+            "pial_volume_fraction.formula": "I1 / I2"
+        },
+        "plugs_state": {
+            "advect_toward_pial.upfield": {
+                "optional": true
+            },
+            "advect_toward_white.upfield": {
+                "optional": true
+            },
+            "total_tube_volume.formula": {
+                "optional": true
+            },
+            "pial_volume_fraction.formula": {
+                "optional": true
+            }
+        },
+        "links": [
+            "classif->laplace.classif",
+            "classif->postprocess.classif",
+            "classif->binarize_cortex.classif",
+            "verbosity->laplace.verbosity",
+            "verbosity->filtered_sumcurvs.verbosity",
+            "verbosity->advect_toward_pial.verbosity",
+            "verbosity->advect_toward_white.verbosity",
+            "laplace_precision->laplace.precision",
+            "laplace_typical_cortical_thickness->laplace.typical_cortical_thickness",
+            "smoothing_sigma->filtered_sumcurvs.sigma",
+            "advection_step_size->advect_toward_pial.step_size",
+            "advection_step_size->advect_toward_white.step_size",
+            "advection_max_dist->advect_toward_pial.max_dist",
+            "advection_max_dist->advect_toward_white.max_dist",
+            "laplace.laplace_field->filtered_sumcurvs.input",
+            "laplace.laplace_field->advect_toward_pial.grad_field",
+            "laplace.laplace_field->advect_toward_white.grad_field",
+            "filtered_sumcurvs.output->advect_toward_white.divergence",
+            "filtered_sumcurvs.output->advect_toward_pial.divergence",
+            "binarize_cortex.output_image->advect_toward_white.domain",
+            "binarize_cortex.output_image->advect_toward_pial.domain",
+            "advect_toward_pial.output_surfaces->sink1.file",
+            "advect_toward_pial.output_volumes->total_tube_volume.input_image_1",
+            "advect_toward_pial.output_volumes->pial_volume_fraction.input_image_1",
+            "advect_toward_white.output_surfaces->sink2.file",
+            "advect_toward_white.output_volumes->total_tube_volume.input_image_2",
+            "total_tube_volume.output_image->pial_volume_fraction.input_image_2",
+            "pial_volume_fraction.output_image->postprocess.input_image",
+            "postprocess.output_image->equivolumetric_depth"
+        ],
+        "gui": {
+            "position": {
+                "inputs": [
+                    -196.0,
+                    459.0
+                ],
+                "laplace": [
+                    -84.0,
+                    275.0
+                ],
+                "filtered_sumcurvs": [
+                    158.0,
+                    274.0
+                ],
+                "binarize_cortex": [
+                    -30.0,
+                    715.0
+                ],
+                "advect_toward_pial": [
+                    392.0,
+                    343.0
+                ],
+                "advect_toward_white": [
+                    392.0,
+                    650.0
+                ],
+                "sink1": [
+                    622.0,
+                    425.0
+                ],
+                "sink2": [
+                    620.0,
+                    866.0
+                ],
+                "total_tube_volume": [
+                    621.0,
+                    505.0
+                ],
+                "pial_volume_fraction": [
+                    693.0,
+                    657.0
+                ],
+                "merge_wm": [
+                    892.0,
+                    549.0
+                ],
+                "outputs": [
+                    1073.0,
+                    608.0
+                ]
+            }
+        }
+    }
+}

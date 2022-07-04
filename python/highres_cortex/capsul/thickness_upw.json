@@ -1,0 +1,119 @@
+{
+    "type": "custom_pipeline",
+    "name": "thickness_upw",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute the cortical thickness along Laplace field lines from a classification volume, using upwinding (much faster than advection, but slightly less precise)\n\n.. note::\n\n    * Type 'ProcessMeta.help()' for a full description of this process parameters.\n    * Type '<ProcessMeta>.get_input_spec()' for a full description of this process input trait types.\n    * Type '<ProcessMeta>.get_output_spec()' for a full description of this process output trait types.\n",
+        "executables": {
+            "laplace": {
+                "definition": "highres_cortex.capsul.processes.Laplacian",
+                "type": "process"
+            },
+            "upwind_from_pial": {
+                "definition": "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient",
+                "type": "process"
+            },
+            "upwind_from_white": {
+                "definition": "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient",
+                "type": "process"
+            },
+            "total_length": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process"
+            },
+            "equidistant_depth": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process"
+            },
+            "equidistant_depth_switch": {
+                "type": "optional_output_switch",
+                "input": "input",
+                "output": "output"
+            }
+        },
+        "parameters": {
+            "laplace.precision": 0.001,
+            "laplace.typical_cortical_thickness": 3.0,
+            "laplace.verbosity": 1,
+            "upwind_from_pial.domain_label": 100,
+            "upwind_from_pial.downfield": false,
+            "upwind_from_pial.origin_label": 0,
+            "upwind_from_pial.verbosity": 1,
+            "upwind_from_white.domain_label": 100,
+            "upwind_from_white.downfield": true,
+            "upwind_from_white.origin_label": 200,
+            "upwind_from_white.verbosity": 1,
+            "total_length.formula": "I1 + I2",
+            "equidistant_depth.formula": "I1 / I2"
+        },
+        "plugs_state": {
+            "upwind_from_pial.downfield": {
+                "optional": true
+            },
+            "upwind_from_white.downfield": {
+                "optional": true
+            },
+            "total_length.formula": {
+                "optional": true
+            },
+            "equidistant_depth.formula": {
+                "optional": true
+            }
+        },
+        "links": [
+            "classif->upwind_from_white.domain",
+            "classif->laplace.classif",
+            "classif->upwind_from_pial.domain",
+            "verbosity->upwind_from_white.verbosity",
+            "verbosity->laplace.verbosity",
+            "verbosity->upwind_from_pial.verbosity",
+            "laplace_precision->laplace.precision",
+            "laplace_typical_cortical_thickness->laplace.typical_cortical_thickness",
+            "laplace.laplace_field->upwind_from_pial.field",
+            "laplace.laplace_field->upwind_from_white.field",
+            "upwind_from_pial.output->equidistant_depth.input_image_1",
+            "upwind_from_pial.output->total_length.input_image_1",
+            "upwind_from_white.output->total_length.input_image_2",
+            "total_length.output_image->equidistant_depth.input_image_2",
+            "total_length.output_image->thickness_image",
+            "equidistant_depth.output_image->equidistant_depth_switch.input_switch_output",
+            "equidistant_depth_switch.output->equidistant_depth"
+        ],
+        "gui": {
+            "position": {
+                "inputs": [
+                    -134.0,
+                    553.0
+                ],
+                "laplace": [
+                    154.0,
+                    370.0
+                ],
+                "upwind_from_pial": [
+                    392.0,
+                    398.0
+                ],
+                "upwind_from_white": [
+                    392.0,
+                    627.0
+                ],
+                "total_length": [
+                    621.0,
+                    505.0
+                ],
+                "equidistant_depth": [
+                    604.0,
+                    672.0
+                ],
+                "equidistant_depth_switch": [
+                    814.0,
+                    690.0
+                ],
+                "outputs": [
+                    891.0,
+                    561.0
+                ]
+            }
+        }
+    }
+}
