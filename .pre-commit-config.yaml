@@ -4,26 +4,30 @@ repos:
     -   id: check-useless-excludes
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v4.1.0
     hooks:
     -   id: check-added-large-files
-    -   id: check-byte-order-marker
     -   id: check-case-conflict
     -   id: check-executables-have-shebangs
     -   id: check-json
     -   id: check-merge-conflict
+    -   id: check-shebang-scripts-are-executable
+        exclude: \.in$
     -   id: check-symlinks
     -   id: check-xml
         files: \.procdoc$
         types: [file]
     -   id: check-yaml
     -   id: debug-statements
-    -   id: fix-encoding-pragma
+    -   id: destroyed-symlinks
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
+    -   id: fix-byte-order-marker
+    -   id: fix-encoding-pragma
+    -   id: trailing-whitespace
 
--   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
+-   repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
     hooks:
     -   id: flake8
         name: flake8 under python2
