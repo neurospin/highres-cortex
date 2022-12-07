@@ -10,7 +10,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.10)
 find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT(CXX)
 
