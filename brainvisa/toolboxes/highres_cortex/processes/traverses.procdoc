@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<minf expander="minf_2.0">
+<d>
+  <d name="en">
+    <xhtml name="short"><p>Create cortical traverses</p>
+</xhtml>
+<xhtml name="long"><p>The only mandatory input is <code>classif</code>, the output is <code>cortical_traverses</code>. The <code>goal_diameter</code> parameter controls the target diameter of merged regions (in millimetres). The <code>advection_step_size</code> parameter is also relevant for this process.</p>
+
+<p>For a full description of this method, see this poster:</p>
+<p>
+Yann Leprince, Clara Fischer, Jean-François Mangin, Benoît Larrat, Sébastien Mériaux, Cyril Poupon, Isabel Reillo, Victor Borrell, Ophélie Foubet, Roberto Toro, and Denis Rivière. <em>Architectonics-informed partition of the cortex at sub-millimetre resolution</em>. 20th Annual Meeting of the Organization for Human Brain Mapping (OHBM), Jun 2014, Hamburg, Germany. 5, pp.951, 2014, F1000Posters. <a href="https://hal-cea.archives-ouvertes.fr/cea-01074735">https://hal-cea.archives-ouvertes.fr/cea-01074735</a>
+</p></xhtml>
+    <d name="parameters">
+      <xhtml name="classif"><p>classification image of the cortex (100 inside, 0 in CSF, 200 in white matter)</p>
+</xhtml>
+      <xhtml name="verbosity"><p>Verbosity level</p>
+</xhtml>
+      <xhtml name="laplace_precision"><p>target maximum relative error in first-order finite differences</p>
+</xhtml>
+      <xhtml name="laplace_typical_cortical_thickness"><p>typical thickness of the cortex (mm), used for accelerating convergence</p>
+</xhtml>
+      <xhtml name="advection_step_size"><p>size of the advection step (millimetres)</p>
+</xhtml>
+      <xhtml name="goal_traverse_diameter"><p>goal region diameter (millimetres)</p>
+</xhtml>
+      <xhtml name="cortical_traverses"><p>output label image</p>
+</xhtml>
+    </d>
+  </d>
+</d>
+</minf>
