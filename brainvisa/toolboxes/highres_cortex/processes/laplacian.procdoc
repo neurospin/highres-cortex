@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<minf expander="minf_2.0">
+<d>
+  <d name="en">
+    <xhtml name="short"><p>Solve the Laplacian model in the cortex</p>
+</xhtml>
+    <xhtml name="long"/>
+    <d name="parameters">
+      <xhtml name="classif"><p>classification image of the cortex (100 inside, 0 in CSF, 200 in white matter)</p>
+</xhtml>
+      <xhtml name="laplace_field"><p>output pseudo-temperature field (from 0 in CSF to 1 in the white matter)</p>
+</xhtml>
+      <xhtml name="precision"><p>target maximum relative error in first-order finite differences</p>
+</xhtml>
+      <xhtml name="typical_cortical_thickness"><p>typical thickness of the cortex (mm), used for accelerating convergence</p>
+</xhtml>
+      <xhtml name="verbosity"><p>Verbosity level</p>
+</xhtml>
+    </d>
+  </d>
+</d>
+</minf>

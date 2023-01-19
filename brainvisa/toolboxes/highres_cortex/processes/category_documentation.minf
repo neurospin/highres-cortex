@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<minf version="1.0">
+
+<xhtml name="en">
+  <h1>highres-cortex toolbox</h1>
+
+  <p>This is a collection of software designed to process 3D images of the cerebral cortex at a sub-millimetre scale, for example high-resolution MRI. In particular, it implements Bok’s equivolumetric depth, which models the depth of cortical layers while compensating for local cortical curvature.</p>
+
+  <h2 id="basic-usage">Basic usage</h2>
+
+  <ol>
+    <li><p>Prepare your input data: the input that is common to to all processes is <code>classif</code>: a voxel-wise tissue classification image in signed 16-bit pixel type, with 0 for exterior voxels (CSF), 100 for cortical gray matter, and 200 for subcortical white matter.</p></li>
+    <li><p>The most important processes are described below:</p>
+    <ul>
+      <li><p>Equivolumetric depth according to Bok’s model can be computed with <a href="bvprocess://isovolume"><bvprocessname name="isovolume"/></a> (<code>highres_cortex.capsul.isovolume</code>).</p></li>
+      <li><p>Cortical thickness, according to the Laplace model, can be calculated with two different methods:</p>
+      <ul>
+        <li>The upwinding method is very fast, and already has sub-pixel accurracy: <a href="bvprocess://thickness_upw"><bvprocessname name="thickness_upw"/></a> (<code>highres_cortex.capsul.thickness_upw</code>).</li>
+        <li>The advection method is slower, but <code>advection_step_size</code> can be tuned for greater accuracy: <a href="bvprocess://thickness_adv"><bvprocessname name="thickness_adv"/></a> (<code>highres_cortex.capsul.thickness_adv</code>).</li>
+      </ul></li>
+      <li><p>For parcellating the cortex into volumetric traverses, <a href="bvprocess://traverses"><bvprocessname name="traverses"/></a> (<code>highres_cortex.capsul.traverses</code>) can be used.</p></li>
+    </ul></li>
+  </ol>
+
+  <h2 id="capsul">Technical note</h2>
+  <p>The BrainVISA processes in highres-cortex are a bit different from other toolboxes, because they are implemented as Capsul processes, which are merely exposed in BrainVISA for convenience, but only support a limited subset of features. For example, they do not support BrainVISA databases, so you should not use the green or red database buttons for choosing files (use the file browser, or directly input the file names instead). Also, running these process always happens in a soma-workflow interface.</p>
+  <p>You can call these processes from the command-line with <code>bv python -m capsul</code>; use <code>bv python -m capsul --process-help &lt;process_name&gt;</code> to get help for a specific process. For example:
+  <pre><code>bv python -m capsul highres_cortex.capsul.isovolume classif=classif.nii.gz advection_step_size=0.03 equivolumetric_depth=equivolumetric_depth.nii.gz</code></pre></p>
+</xhtml>
+
+</minf>

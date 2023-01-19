@@ -2,11 +2,11 @@
  highres-cortex
 ================
 
-This is a collection of software designed to process 3D images of the cerebral cortex at a sub-millimetre scale, for example high-resolution MRI. In particular, it implements Bok’s equivolumetric model for extracting cortical layers while compensating for cortical curvature. If you use this work in an academic publication, **please cite** the relevant references (see also `<doc/references.bib>`_):
+This is a collection of software designed to process 3D images of the cerebral cortex at a sub-millimetre scale, for example high-resolution MRI. In particular, it implements Bok’s equivolumetric depth, which models the depth of cortical layers while compensating for local cortical curvature. If you use this work in an academic publication, **please cite** the relevant references (see also `<doc/references.bib>`_):
 
-- Yann Leprince, Fabrice Poupon, Thierry Delzescaux, Dominique Hasboun, Cyril Poupon, et al.. *Combined Laplacian-equivolumic model for studying cortical lamination with ultra high field MRI (7 T)*. 2015 IEEE 12th International Symposium on Biomedical Imaging (ISBI), IEEE, Apr 2015, New York, United States. pp.580-583, DOI: `10.1109/ISBI.2015.7163940 <https://dx.doi.org/10.1109/ISBI.2015.7163940>`_.  https://hal-cea.archives-ouvertes.fr/cea-01119475
+- Yann Leprince, Fabrice Poupon, Thierry Delzescaux, Dominique Hasboun, Cyril Poupon, and Denis Rivière. *Combined Laplacian-equivolumic model for studying cortical lamination with ultra high field MRI (7 T)*. 2015 IEEE 12th International Symposium on Biomedical Imaging (ISBI), IEEE, Apr 2015, New York, United States. pp.580-583, DOI: `10.1109/ISBI.2015.7163940 <https://dx.doi.org/10.1109/ISBI.2015.7163940>`_.  https://hal-cea.archives-ouvertes.fr/cea-01119475
 
-- Yann Leprince, Clara Fischer, Jean-François Mangin, Benoît Larrat, Sébastien Mériaux, et al.. *Architectonics-informed partition of the cortex at sub-millimetre resolution*. 20th Annual Meeting of the Organization for Human Brain Mapping (OHBM), Jun 2014, Hamburg, Germany. 5, pp.951, 2014, F1000Posters. https://hal-cea.archives-ouvertes.fr/cea-01074735
+- Yann Leprince, Clara Fischer, Jean-François Mangin, Benoît Larrat, Sébastien Mériaux, Cyril Poupon, Isabel Reillo, Victor Borrell, Ophélie Foubet, Roberto Toro, and Denis Rivière. *Architectonics-informed partition of the cortex at sub-millimetre resolution*. 20th Annual Meeting of the Organization for Human Brain Mapping (OHBM), Jun 2014, Hamburg, Germany. 5, pp.951, 2014, F1000Posters. https://hal-cea.archives-ouvertes.fr/cea-01074735
 
 
 
@@ -16,8 +16,15 @@ Installation
 highres-cortex is released as part of the official BrainVISA containers since March 2021 (BrainVISA 5.0.0). Please refer to https://brainvisa.info/web/download.html for installation instructions.
 
 
-Basic usage
-===========
+Graphical user interface
+========================
+
+highres-cortex is available as a minimalistic BrainVISA toolbox since BrainVISA
+5.1 (January 2023). Simply launch `brainvisa` and refer to the in-program documentation of the toolbox.
+
+
+Command-line usage
+==================
 
 This package can be used on the command line, here is a short introduction. It is assumed that you are running the Singularity version on a Linux computer, it should work in the same way in the virtual machine (you just need to remove the `bv` prefix from all commands).
 

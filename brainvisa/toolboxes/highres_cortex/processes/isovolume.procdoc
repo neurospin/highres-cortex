@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<minf expander="minf_2.0">
+<d>
+  <d name="en">
+    <xhtml name="short"><p>Compute Bok’s equivolumetric depth, which models the depth of cortical layers while compensating for local cortical curvature.</p></xhtml>
+    <xhtml name="long"><p>The only mandatory input is <code>classif</code>, the output is <code>equivolumetric_depth</code>. You can fine-tune the process with optional parameters, most importantly <code>advection_step_size</code> can be adapted to the spatial resolution and required accuracy.</p>
+
+<p>For a full description of this method, see this poster:</p>
+<p>Yann Leprince, Fabrice Poupon, Thierry Delzescaux, Dominique Hasboun, Cyril Poupon, Denis Rivière. <em>Combined Laplacian-equivolumic model for studying cortical lamination with ultra high field MRI (7 T)</em>. 2015 IEEE 12th International Symposium on Biomedical Imaging (ISBI), IEEE, Apr 2015, New York, United States. pp.580-583, DOI: <a href="https://dx.doi.org/10.1109/ISBI.2015.7163940" rel="nofollow">10.1109/ISBI.2015.7163940</a>.  <a href="https://hal-cea.archives-ouvertes.fr/cea-01119475" rel="nofollow">https://hal-cea.archives-ouvertes.fr/cea-01119475</a>
+</p></xhtml>
+    <d name="parameters">
+      <xhtml name="classif"><p>classification image of the cortex (100 inside, 0 in CSF, 200 in white matter)</p>
+</xhtml>
+      <xhtml name="verbosity"><p>Verbosity level</p>
+</xhtml>
+      <xhtml name="laplace_precision"><p>target maximum relative error in first-order finite differences</p>
+</xhtml>
+      <xhtml name="laplace_typical_cortical_thickness"><p>typical thickness of the cortex (mm), used for accelerating convergence</p>
+</xhtml>
+      <xhtml name="smoothing_sigma"><p>X standard deviation of the gaussian filter [default=largest voxel size]</p>
+</xhtml>
+      <xhtml name="advection_step_size"><p>size of the advection step (millimetres)</p>
+</xhtml>
+      <xhtml name="advection_max_dist"><p>maximum advection distance (millimetres)</p>
+</xhtml>
+      <xhtml name="equivolumetric_depth"><p>output image</p>
+</xhtml>
+    </d>
+  </d>
+</d>
+</minf>
