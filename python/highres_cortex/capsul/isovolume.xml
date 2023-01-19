@@ -1,3 +1,40 @@
+<!--
+Copyright Forschungszentrum Jülich GmbH (2018).
+Copyright CEA (2014).
+Copyright Université Paris XI (2014).
+
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+
+This file is part of highres-cortex, a collection of software designed
+to process high-resolution magnetic resonance images of the cerebral
+cortex.
+
+This software is governed by the CeCILL licence under French law and
+abiding by the rules of distribution of free software. You can use,
+modify and/or redistribute the software under the terms of the CeCILL
+licence as circulated by CEA, CNRS and INRIA at the following URL:
+<http://www.cecill.info/>.
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the licence, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability.
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of scientific
+software, that may mean that it is complicated to manipulate, and that
+also therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and, more generally, to use and operate it in the
+same conditions as regards security.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL licence and that you accept its terms.
+-->
 <pipeline>
     <doc>
         Compute equivolumetric depth
@@ -29,10 +66,8 @@
              module="highres_cortex.capsul.processes.ImageArithmetic2Inputs">
       <set name="formula" value="'I1 / I2'"/>
     </process>
-    <process name="merge_wm"
-             module="highres_cortex.capsul.processes.MergeImagesOneToOne">
-      <set name="label" value="200"/>
-      <set name="value" value="1"/>
+    <process name="postprocess"
+             module="highres_cortex.capsul.processes.PostProcessEquivolumetricDepth">
     </process>
 
     <link source="classif" dest="laplace.classif"/>
@@ -43,6 +78,7 @@
 
     <link source="laplace.laplace_field" dest="filtered_sumcurvs.input"/>
     <link source="verbosity" dest="filtered_sumcurvs.verbosity"/>
+    <link source="smoothing_sigma" dest="filtered_sumcurvs.sigma"/>
 
     <link source="classif" dest="binarize_cortex.classif"/>
 
@@ -75,9 +111,9 @@
     <link source="total_tube_volume.output_image"
           dest="pial_volume_fraction.input_image_2"/>
 
-    <link source="pial_volume_fraction.output_image" dest="merge_wm.input_image"/>
-    <link source="classif" dest="merge_wm.mask_image"/>
-    <link source="merge_wm.output_image" dest="equivolumetric_depth"/>
+    <link source="pial_volume_fraction.output_image" dest="postprocess.input_image"/>
+    <link source="classif" dest="postprocess.classif"/>
+    <link source="postprocess.output_image" dest="equivolumetric_depth"/>
 
     <gui>
       <position name="inputs" x="-196" y="459"/>

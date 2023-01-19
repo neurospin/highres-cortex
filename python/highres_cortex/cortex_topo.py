@@ -38,10 +38,12 @@
 """Tools for manipulating the topology of the cortex.
 """
 
+from __future__ import absolute_import, division, print_function
+
 import os
 import tempfile
 import shutil
-import subprocess
+import soma.subprocess as subprocess
 
 import numpy as np
 from soma import aims
@@ -77,7 +79,7 @@ def signed_distance(classif_vol,
     dist = fm.doit(classif_vol, propagation_labels, seed_labels)
     np_dist = np.asarray(dist)
     mask = (np_dist == FLT_MAX)
-    #np_dist[mask] = NaN
+    # np_dist[mask] = NaN
     np_classif[np_dist == 0] = border_label
 
     # The connectivity does not seem to matter here
@@ -86,7 +88,7 @@ def signed_distance(classif_vol,
     dist_neg = fm.doit(classif_vol, seed_labels,
                        list(propagation_labels) + [border_label])
     np_dist_neg = np.asarray(dist_neg)
-    #np_dist_neg[np_dist_neg == FLT_MAX] = NaN
+    # np_dist_neg[np_dist_neg == FLT_MAX] = NaN
     np_dist[mask] = -np_dist_neg[mask]
 
     return dist
@@ -141,7 +143,7 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
         This function throws ``OSError`` if ``VipHomotopic`` cannot be found
         or executed.
 
-    subprocess.CalledProcessError
+    soma.subprocess.CalledProcessError
         This exception can occur if ``VipHomotopic``, which is in charge of the
         homotopic morphological operations, terminates with an error.
 
@@ -226,7 +228,8 @@ def fix_cortex_topology(input_classif, filling_size=2., fclosing=10.):
 
         # First boundary to guide VipHomotopic (prevent leaking through holes
         # in sulci).
-        aimsdata_classif = aims.AimsData_S16(classif, 1)
+        aimsdata_classif = aims.Volume_S16(classif.getSize, [1, 1, 1])
+        aimsdata_classif[:] = classif[:]
         # Restore the header (in particular the voxel_size), which may not have
         # been copied in the constructor because a border is requested.
         aimsdata_classif.header().update(classif.header())
@@ -273,18 +276,17 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # of voxels.
     #
     # The 1-voxel border is necessary for AimsMorpho{Dilation,Erosion}.
-    aimsdata_classif = aims.AimsData_S16(classif, 1)
+    aimsdata_classif = aims.Volume_S16(classif.getSize(), [1, 1, 1])
+    aimsdata_classif[:] = classif[:]
     saved_voxel_size = classif.header()["voxel_size"][:3]
-    aimsdata_classif.setSizeXYZT(1, 1, 1)
+    aimsdata_classif.setVoxelSize(1, 1, 1)
     dilated = aimsalgo.AimsMorphoDilation(aimsdata_classif, 1)
     # Restore the voxel size in case the header is shared with the aims.Volume
     # that aimsdata_classif was created from (classif). BUG: restoring the
     # value like this is not thread-safe!
-    aimsdata_classif.setSizeX(saved_voxel_size[0])
-    aimsdata_classif.setSizeY(saved_voxel_size[1])
-    aimsdata_classif.setSizeZ(saved_voxel_size[2])
+    aimsdata_classif.setVoxelSize(saved_voxel_size)
     del aimsdata_classif
-    array_dilated = np.asarray(dilated.volume())
+    array_dilated = dilated.np
 
     tmp_classif = aims.Volume(classif)
     array_tmp_classif = np.asarray(tmp_classif)
@@ -297,15 +299,16 @@ def _prepare_classif_for_VipHomotopic_Cortical(classif, filling_size):
     # the continuity of the white matter so that the homotopic criterion
     # chooses the right connections (i.e. do not create spurious strands or
     # planes through the cortex).
-    white = aims.AimsData_S16(classif, 1)
+    white = aims.Volume_S16(classif.gteSize(), [1, 1, 1])
+    white[:] = classif[:]
     # Restore the header (in particular the voxel_size), which may not have
     # been copied in the constructor because a border is requested.
     white.header().update(classif.header())
-    array_white = np.asarray(white.volume())
+    array_white = white.np
     array_white[array_white != WHITE_LABEL] = CSF_LABEL
     dilated_white = aimsalgo.AimsMorphoDilation(white, filling_size)
     del white, array_white
-    array_dilated_white = np.asarray(dilated_white.volume())
+    array_dilated_white = dilated_white.np
     STEP1_FRONT_BARRIER = 199
     array_tmp_classif[array_dilated_white != 0] = STEP1_FRONT_BARRIER
     del dilated_white, array_dilated_white

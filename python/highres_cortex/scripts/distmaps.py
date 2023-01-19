@@ -37,15 +37,13 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import absolute_import, division, print_function
+
 import sys
 
-import numpy as np
-from soma import aims, aimsalgo
+from soma import aims
 
 import highres_cortex.cortex_topo
-
-
-
 
 
 def compute_distmaps_files(classif_filename, output_distwhite_filename,
@@ -70,10 +68,16 @@ def parse_command_line(argv=sys.argv):
         description="""\
 Compute the signed distance to white matter and to CSF
 """)
-    parser.add_argument("classif")
-    parser.add_argument("output_distwhite")
-    parser.add_argument("output_distCSF")
-    parser.add_argument("output_classif_with_boundaries")
+    parser.add_argument("classif", help="classification image of the cortex "
+                        "(100 inside, 0 in CSF, 200 in white matter)")
+    parser.add_argument("output_distwhite", help="signed Euclidean distance "
+                        "to the white matter boundary")
+    parser.add_argument("output_distCSF", help="signed Euclidean distance "
+                        "to the CSF boundary")
+    parser.add_argument("output_classif_with_boundaries",
+                        help="classification image of the cortex (100 inside, "
+                        "0 in CSF, 200 in white matter, 50 on the CSF "
+                        "boundary, 150 on the white matter boundary)")
 
     args = parser.parse_args(argv[1:])
     return args

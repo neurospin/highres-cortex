@@ -46,7 +46,7 @@ set(_sources
 
 BRAINVISA_COPY_AND_INSTALL_HEADERS(_headers ${PROJECT_NAME} headersTarget)
 
-include_directories(${GSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} ${_sources})
 add_dependencies(${PROJECT_NAME} ${headersTarget})
@@ -54,13 +54,18 @@ add_dependencies(${PROJECT_NAME} ${headersTarget})
 if(OPENMP_FOUND)
   set_source_files_properties(${_sources} PROPERTIES
     COMPILE_FLAGS ${OpenMP_CXX_FLAGS})
-  # This is needed for GCC, untested with any other compiler.
-  set_target_properties(${PROJECT_NAME} PROPERTIES
-    LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  if(OpenMP_CXX_LIBRARIES)
+    target_link_libraries(${PROJECT_NAME} ${OpenMP_CXX_LIBRARIES})
+  else()
+    # Old versions of FindOpenMP.cmake (before CMake 3.9) do not define
+    # _LIBRARIES. This works with GCC and clang.
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+      LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  endif()
 endif()
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${${PROJECT_NAME}_VERSION})
-target_link_libraries(${PROJECT_NAME} ${AIMS-FREE_LIBRARIES} ${GSL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${AIMS_AIMSDATA_LIBRARIES})
 BRAINVISA_INSTALL(TARGETS ${PROJECT_NAME}
                   DESTINATION lib
                   COMPONENT ${PROJECT_NAME})
@@ -74,8 +79,7 @@ if(DOXYGEN_FOUND)
   set(SOMA-IO_DOC_DIR "${SOMA-IO_BINARY_DIR}/share/doc")
   set(SOMA-IO_VERSION_MAJMIN "${soma-io_VERSION_MAJOR}.${soma-io_VERSION_MINOR}")
 
-  # TODO: change this when new website gets in production
-  set(BV_DOC_URL "http://brainvisa.fr/" CACHE STRING
+  set(BV_DOC_URL "http://brainvisa.info/" CACHE STRING
     "Doxygen documentation links to the BrainVISA documentation at this URL")
 
   set(DOXYFILE_TAGFILES "${AIMS-FREE_DOC_DIR}/aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsdata.tag=${BV_DOC_URL}aimsdata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen/aimsalgo.tag=${BV_DOC_URL}aimsalgo-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${AIMS-FREE_DOC_DIR}/cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen/cartodata.tag=${BV_DOC_URL}cartodata-${AIMS-FREE_VERSION_MAJMIN}/doxygen ${SOMA-IO_DOC_DIR}/cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen/cartobase.tag=${BV_DOC_URL}cartobase-${SOMA-IO_VERSION_MAJMIN}/doxygen")

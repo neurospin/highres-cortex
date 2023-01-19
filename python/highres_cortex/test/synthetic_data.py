@@ -34,11 +34,16 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import absolute_import, division, print_function
+
 import os.path
 import math
 
-from soma import aims
 import numpy
+from six.moves import range, zip
+
+from soma import aims
+
 
 def _convert_to_float_triple(param):
     try:
@@ -50,12 +55,13 @@ def _convert_to_float_triple(param):
     assert len(param) == 3
     return tuple(float(item) for item in param)
 
+
 def make_cortex_sphere_classif(inner_radius, outer_radius,
                                voxel_size, margin=None,
                                noise=None, sigma=None):
     voxel_size = _convert_to_float_triple(voxel_size)
     if margin is None:
-        margin = max(voxel_size)
+        margin = 2 * max(voxel_size)
     margin = _convert_to_float_triple(margin)
 
     assert outer_radius > inner_radius > 0
@@ -64,13 +70,13 @@ def make_cortex_sphere_classif(inner_radius, outer_radius,
             for ax_margin, ax_voxel_size
             in zip(margin, voxel_size)]
 
-    classif_aimsdata = aims.AimsData(size[0], size[1], size[2], dtype="S16")
-    classif_aimsdata.setSizeXYZT(*voxel_size)
-    classif_volume = classif_aimsdata.volume()
+    classif_volume = aims.Volume(size[0], size[1], size[2], dtype="S16")
+    classif_volume.setVoxelSize(voxel_size)
     emplace_cortex_sphere_classif(classif_volume,
                                   inner_radius, outer_radius,
                                   margin=margin, noise=noise, sigma=sigma)
     return classif_volume
+
 
 def make_centred_coord_grids(classif_volume):
     size = (classif_volume.getSizeX(),
@@ -116,10 +122,12 @@ def make_noise_array(noise, sigma, size):
     scipy.ndimage.filters.gaussian_filter(arr, sigma, output=arr)
     return arr
 
+
 def _make_similar_volume(data_array, ref):
     volume = aims.Volume(data_array)
-    volume.header().update(ref.header())
+    volume.copyHeaderFrom(ref.header())
     return volume
+
 
 def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                                      margin=None, noise=None, sigma=None):
@@ -127,8 +135,6 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     outer_radius = float(outer_radius)
     assert outer_radius > inner_radius > 0
     voxel_size = _convert_to_float_triple(voxel_size)
-
-    thickness = outer_radius - inner_radius
 
     classif_volume = make_cortex_sphere_classif(inner_radius, outer_radius,
                                                 voxel_size, margin=margin,
@@ -145,14 +151,14 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 
     with numpy.errstate(divide="ignore"):
         laplacian_value = numpy.clip(
-            inner_radius / (outer_radius - inner_radius) *
-            (outer_radius / distance_to_centre - 1),
+            inner_radius / (outer_radius - inner_radius)
+            * (outer_radius / distance_to_centre - 1),
             0, 1)
         curvature = - 2 / distance_to_centre
 
     equivolumic_metric = numpy.clip(
-        (outer_radius ** 3 - distance_to_centre ** 3) /
-        (outer_radius ** 3 - inner_radius ** 3),
+        (outer_radius ** 3 - distance_to_centre ** 3)
+        / (outer_radius ** 3 - inner_radius ** 3),
         0, 1)
 
     return (classif_volume,
@@ -162,6 +168,7 @@ def make_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
             _make_similar_volume(laplacian_value, ref=classif_volume),
             _make_similar_volume(curvature, ref=classif_volume),
             _make_similar_volume(equivolumic_metric, ref=classif_volume))
+
 
 def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
                                       dir=".", margin=None,
@@ -188,7 +195,7 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
     thickness = _make_similar_volume(np_thickness, ref=distance_to_white)
 
     aims.write(classif,
-                os.path.join(dir, "classif.nii.gz"))
+               os.path.join(dir, "classif.nii.gz"))
     aims.write(distance_to_white,
                os.path.join(dir, "reference_distwhite.nii.gz"))
     aims.write(distance_to_CSF,
@@ -206,8 +213,6 @@ def write_sphere_and_reference_result(inner_radius, outer_radius, voxel_size,
 
 
 if __name__ == "__main__":
-    import os
-    import shutil
     import argparse
     parser = argparse.ArgumentParser(
         description="Write a synthetic sphere and reference results "

@@ -1,4 +1,4 @@
-# Copyright Forschungszentrum Jülich GmbH (2016, 2017).
+# Copyright Forschungszentrum Jülich GmbH (2016, 2017, 2018).
 # Copyright Télécom ParisTech (2015).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
@@ -10,7 +10,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.10)
 find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT(CXX)
 
@@ -20,12 +20,14 @@ option(BUILD_SHARED_LIBS "Build highres-cortex as a shared library" ON)
 # numbers, so requesting version 4.5 explicitly in the find_package command
 # will reject versions 4.6 and later, which we do not want.
 BRAINVISA_FIND_PACKAGE(aims-free REQUIRED)
-if(${aims-free_VERSION} VERSION_LESS 4.5)
+if("${aims-free_VERSION}" VERSION_LESS 4.5)
 message(FATAL_ERROR "Required dependency aims-free should be at least version 4.5")
 endif()
 include("${AIMS-FREE_USE_FILE}")
 BRAINVISA_DEPENDENCY(DEV DEPENDS aims-free DEV ">= 4.5")
-BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= 4.5")
+BRAINVISA_DEPENDENCY(RUN DEPENDS aims-free RUN ">= ${aims-free_VERSION}")
+
+BRAINVISA_DEPENDENCY(RUN DEPENDS "capsul" RUN ">= 2.0")
 
 
 if( NOT Boost_FOUND )
@@ -41,7 +43,9 @@ if( NOT Boost_FOUND )
     # already contained in the FindBoost.cmake module provided with CMake.
     # Hence, new versions should be added here as they are released...
     set(Boost_ADDITIONAL_VERSIONS
-      "1.66.0" "1.66" "1.65.1" "1.65.0" "1.65"
+      "1.75.0" "1.75" "1.74.0" "1.74" "1.73.0" "1.73" "1.72.0" "1.72"
+      "1.71.0" "1.71" "1.70.0" "1.70" "1.69.0" "1.69" "1.68.0" "1.68"
+      "1.67.0" "1.67" "1.66.0" "1.66" "1.65.1" "1.65.0" "1.65"
       "1.64.0" "1.64" "1.63.0" "1.63" "1.62.0" "1.62" "1.61.0" "1.61"
       "1.60.0" "1.60" "1.59.0" "1.59" "1.58.0" "1.58" "1.57.0" "1.57"
       "1.56.0" "1.56" "1.55.0" "1.55" "1.54.0" "1.54" "1.53.0" "1.53"
@@ -62,21 +66,20 @@ BRAINVISA_DEPENDENCY(DEV DEPENDS libboost DEV ">= 1.49")
 
 # OpenMP is optional
 find_package(OpenMP)
-# OPENMP_FOUND is never set ! Have to test something else
-if( OpenMP_C_FLAGS )
+if(OPENMP_FOUND)
   BRAINVISA_DEPENDENCY(RUN DEPENDS openmp RUN)
 endif()
 
 find_package(Doxygen)
 
 find_package(python REQUIRED)
-BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.6; << 3.0")
-BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.6; << 3.0")
+BRAINVISA_DEPENDENCY(DEV DEPENDS python DEV ">= 2.7")
+BRAINVISA_DEPENDENCY(RUN RECOMMENDS python RUN ">= 2.7")
 # No need for find_package(NumPy) as that is for C headers
 BRAINVISA_DEPENDENCY(RUN RECOMMENDS python-numpy RUN)
 
 # For fix_cortex_topology
-BRAINVISA_DEPENDENCY(RUN SUGGESTS morphologist-private RUN ">= 4.5")
+BRAINVISA_DEPENDENCY(RUN SUGGESTS morphologist-nonfree RUN ">= 4.5")
 
 
 BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/python"
@@ -87,6 +90,21 @@ BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/brainvisa"
 BRAINVISA_COPY_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/bin"
                          bin
                          ${PROJECT_NAME})
+
+
+set(REL_SHARE_DIR "share/${PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
+
+# FIXME: These scripts are documentation, but tests depend on it. How can I
+# make sure that they are installed by both 'install-test' and 'install-doc'?
+brainvisa_copy_directory(
+  "${CMAKE_CURRENT_SOURCE_DIR}/examples"
+  "${REL_SHARE_DIR}/examples"
+  ${PROJECT_NAME}-test
+  )
+
+# don't warn on obsolete classes within this library: we still provide obsolete
+# features so we have to build them without warnings
+add_definitions( "-DAIMSDATA_CLASS_NO_DEPREC_WARNING=1" )
 
 add_subdirectory(src)
 

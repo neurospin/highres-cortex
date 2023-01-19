@@ -1,5 +1,5 @@
 /*
-Copyright CEA (2014, 2017).
+Copyright CEA (2014, 2017, 2019).
 Copyright Université Paris XI (2014).
 
 Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -70,7 +70,7 @@ public:
   class Visitor
   {
   public:
-    Visitor() {};
+    Visitor() : m_verbosity(0) {};
     virtual ~Visitor() {};
 
     /** Called before visit() on the first point of the advection path */
@@ -85,6 +85,17 @@ public:
     virtual void finished(const Point3df& /*start_point*/) {}
     /** Called when the advection cannot finish successfully */
     virtual void abort() {}
+
+    int verbosity() const { return m_verbosity; }
+    /** Set the verbosity level (output to stderr)
+
+        0: silent (default on instance creation)
+        1: show errors
+    */
+    void set_verbose(int verbosity) { m_verbosity = verbosity; }
+
+  private:
+    int m_verbosity;
   };
 
   /** Default iteration limit */

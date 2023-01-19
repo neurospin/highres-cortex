@@ -37,8 +37,12 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import absolute_import, division, print_function
+
 import random
 import sys
+
+from six.moves import range
 
 from soma import aims
 
@@ -55,11 +59,9 @@ def randomize_labels(labels):
     size_x = output.getSizeX()
     size_y = output.getSizeY()
     size_z = output.getSizeZ()
-    old_to_new_labels = {}
-    next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in range(size_z):
+        for y in range(size_y):
+            for x in range(size_x):
                 old_label = labels.at(x, y, z)
                 if old_label >= 0:
                     new_label = new_labels[old_label]
@@ -80,10 +82,10 @@ def parse_command_line(argv=sys.argv):
     import argparse
     parser = argparse.ArgumentParser(
         description="""\
-Randomize the labels of an image with contiguous labels
+Randomize the labels of an image with consecutive labels
 """)
-    parser.add_argument("input")
-    parser.add_argument("output")
+    parser.add_argument("input", help="input label image")
+    parser.add_argument("output", help="output label image")
 
     args = parser.parse_args(argv[1:])
     return args

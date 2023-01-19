@@ -37,9 +37,13 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import absolute_import, division, print_function
+
 import sys
 
 from soma import aims
+
+from six.moves import range
 
 
 def relabel(labels):
@@ -49,9 +53,9 @@ def relabel(labels):
     size_z = output.getSizeZ()
     old_to_new_labels = {}
     next_label = 1
-    for z in xrange(size_z):
-        for y in xrange(size_y):
-            for x in xrange(size_x):
+    for z in range(size_z):
+        for y in range(size_y):
+            for x in range(size_x):
                 label = labels.at(x, y, z)
                 if label == 0:
                     new_label = 0
@@ -77,10 +81,10 @@ def parse_command_line(argv=sys.argv):
     import argparse
     parser = argparse.ArgumentParser(
         description="""\
-Assign new contiguous labels to an existing label image
+Assign new consecutive labels to an existing label image
 """)
-    parser.add_argument("input")
-    parser.add_argument("output")
+    parser.add_argument("input", help="input label image")
+    parser.add_argument("output", help="output label image")
 
     args = parser.parse_args(argv[1:])
     return args

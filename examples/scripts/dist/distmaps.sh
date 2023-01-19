@@ -1,3 +1,6 @@
+#! /bin/sh -e
+#
+# Copyright Forschungszentrum Jülich GmbH (2018).
 # Copyright CEA (2014).
 # Copyright Université Paris XI (2014).
 #
@@ -8,10 +11,8 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-set( BRAINVISA_PACKAGE_NAME highres-cortex )
-set( BRAINVISA_PACKAGE_MAIN_PROJECT highres-cortex )
-set( BRAINVISA_PACKAGE_LICENCES "CeCILL-v2.1" )
-set( BRAINVISA_PACKAGE_MAINTAINER "CEA - Yann Leprince" )
-set( BRAINVISA_PACKAGE_VERSION_MAJOR 5 )
-set( BRAINVISA_PACKAGE_VERSION_MINOR 1 )
-set( BRAINVISA_PACKAGE_VERSION_PATCH 0 )
+python -m capsul highres_cortex.capsul.processes.Distmaps \
+    classif=../classif.nii.gz \
+    distwhite=distwhite.nii.gz \
+    distCSF=distCSF.nii.gz \
+    classif_with_outer_boundaries=../classif_with_outer_boundaries.nii.gz

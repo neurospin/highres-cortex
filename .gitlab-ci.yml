@@ -1,6 +1,0 @@
-test:ubuntu16.04-bug_fix:
-  image: cati/brainvisa-dev-opensource:ubuntu-16.04-bug_fix
-  script:
-    - cmake -DCMAKE_PREFIX_PATH=$HOME/build -DCMAKE_BUILD_TYPE=Release .
-    - make
-    - CTEST_OUTPUT_ON_FAILURE=1 make test

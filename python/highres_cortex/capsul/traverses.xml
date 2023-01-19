@@ -1,6 +1,62 @@
+<!--
+Copyright Forschungszentrum Jülich GmbH (2018).
+Copyright CEA (2014).
+Copyright Université Paris XI (2014).
+
+Contributor: Yann Leprince <yann.leprince@ylep.fr>.
+
+This file is part of highres-cortex, a collection of software designed
+to process high-resolution magnetic resonance images of the cerebral
+cortex.
+
+This software is governed by the CeCILL licence under French law and
+abiding by the rules of distribution of free software. You can use,
+modify and/or redistribute the software under the terms of the CeCILL
+licence as circulated by CEA, CNRS and INRIA at the following URL:
+<http://www.cecill.info/>.
+
+As a counterpart to the access to the source code and rights to copy,
+modify and redistribute granted by the licence, users are provided only
+with a limited warranty and the software's author, the holder of the
+economic rights, and the successive licensors have only limited
+liability.
+
+In this respect, the user's attention is drawn to the risks associated
+with loading, using, modifying and/or developing or reproducing the
+software by the user in light of its specific status of scientific
+software, that may mean that it is complicated to manipulate, and that
+also therefore means that it is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or
+data to be ensured and, more generally, to use and operate it in the
+same conditions as regards security.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL licence and that you accept its terms.
+-->
 <pipeline>
     <doc>
-        Create cortical traverses
+      Create cortical traverses
+
+      .. note::
+         There is a problem with the propagation of labels: the step size is
+         fixed, which means that sometimes the point can skip the corner of a
+         voxel, and thus go directly from a bulk voxel to an outside voxel. In
+         this case it is recorded as a "dead-end" advection path, no resulting
+         label is recorded and it appears as zero in the result.
+
+         This problem also appears in the previous "exchange" step, but is
+         mitigated by the subsequent connex component detection (each failed
+         propagation is assigned a different label).
+
+         Quick fix: fix the conjunction step to not aggregate zeros.
+
+         TODO: the proper way to fix this would be to force the advection path
+         to respect the boundaries of voxels, so that the corner of voxels
+         cannot be skipped over. This would also prevent the advection path
+         from crossing the thin CSF surface within the sulcus (comes from
+         skeleton).
     </doc>
     <process name="laplace"
              module="highres_cortex.capsul.processes.Laplacian"/>
@@ -54,10 +110,12 @@
     <process name="CSF_to_white_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="200000000"/>
+      <set name="upfield" value="True"/>
     </process>
     <process name="white_to_CSF_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="100000000"/>
+      <set name="upfield" value="False"/>
     </process>
     <process name="get_exchanged_propvol"
              module="highres_cortex.capsul.processes.GetExchangedPropagationVolume"/>
@@ -74,10 +132,12 @@
     <process name="CSF_on_bulk_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="0"/>
+      <set name="upfield" value="True"/>
     </process>
     <process name="white_on_bulk_propagation"
              module="highres_cortex.capsul.processes.PropagateAlongFieldGradient">
       <set name="target_label" value="0"/>
+      <set name="upfield" value="False"/>
     </process>
     <process name="relabel_conjunction"
              module="highres_cortex.capsul.processes.RelabelConjunction"/>
@@ -221,33 +281,33 @@
     <link source="randomize_labels.output" dest="cortical_traverses"/>
 
     <gui>
-        <position name="threshold_white_interface" x="464.4251" y="189.8626"/>
-        <position name="sink2" x="327.378225" y="127.063"/>
-        <position name="sink1" x="327.378225" y="188.6689"/>
-        <position name="relabel" x="3592.39335" y="294.75"/>
-        <position name="negative_cortex" x="371.278025" y="453.6565"/>
-        <position name="CSF_negative_cortex_merger" x="1036.9639125" y="62.6689"/>
-        <position name="CSF_labelled_interface_merger" x="1383.0806" y="41.3063"/>
-        <position name="white_to_CSF_propagation" x="1754.5755375" y="249.1937"/>
-        <position name="merge_exchanged_on_CSF" x="2340.782975" y="76.25"/>
-        <position name="label_white_interface" x="743.941725" y="212.3626"/>
-        <position name="white_negative_cortex_merger" x="1038.9795375" y="205.3187"/>
-        <position name="white_on_bulk_propagation" x="2636.8331" y="358.625"/>
-        <position name="CSF_to_white_propagation" x="1756.5755375" y="-39.0"/>
-        <position name="threshold_CSF_interface" x="463.409475" y="-18.5248"/>
-        <position name="randomize_labels" x="3737.035225" y="283.75"/>
-        <position name="inputs" x="0.0" y="211.7252"/>
-        <position name="outputs" x="3929.0564125" y="297.25"/>
-        <position name="merge_exchanged_on_white" x="2336.7986" y="293.625"/>
-        <position name="merge_regions" x="3420.4634125" y="219.25"/>
-        <position name="get_exchanged_propvol" x="2042.4780375" y="210.75"/>
-        <position name="white_labelled_interface_merger" x="1386.096225" y="203.7376"/>
-        <position name="relabel_conjunction" x="2942.376225" y="324.1937"/>
-        <position name="label_CSF_interface" x="745.9261" y="51.7691"/>
-        <position name="connected_conjunction" x="3149.17685" y="324.1937"/>
-        <position name="distmaps" x="89.4733375" y="42.6002"/>
-        <position name="CSF_on_bulk_propagation" x="2636.817475" y="71.375"/>
-        <position name="negative_cortex_converter" x="596.9964125" y="517.4189"/>
-        <position name="laplace" x="1378.6509125" y="557.9876"/>
+        <position name="threshold_white_interface" x="464" y="189"/>
+        <position name="sink2" x="327" y="127"/>
+        <position name="sink1" x="327" y="188"/>
+        <position name="relabel" x="3053" y="633"/>
+        <position name="negative_cortex" x="371" y="453"/>
+        <position name="CSF_negative_cortex_merger" x="1036" y="62"/>
+        <position name="CSF_labelled_interface_merger" x="1383" y="41"/>
+        <position name="white_to_CSF_propagation" x="1754" y="249"/>
+        <position name="merge_exchanged_on_CSF" x="2345" y="-36"/>
+        <position name="label_white_interface" x="743" y="212"/>
+        <position name="white_negative_cortex_merger" x="1038" y="205"/>
+        <position name="get_exchanged_propvol" x="2043" y="158"/>
+        <position name="CSF_to_white_propagation" x="1756" y="-39"/>
+        <position name="threshold_CSF_interface" x="463" y="-18"/>
+        <position name="distmaps" x="89" y="42"/>
+        <position name="inputs" x="0" y="211"/>
+        <position name="outputs" x="3337" y="595"/>
+        <position name="merge_exchanged_on_white" x="2341" y="191"/>
+        <position name="merge_regions" x="2904" y="524"/>
+        <position name="white_on_bulk_propagation" x="2626" y="254"/>
+        <position name="white_labelled_interface_merger" x="1386" y="203"/>
+        <position name="relabel_conjunction" x="2896" y="239"/>
+        <position name="label_CSF_interface" x="745" y="51"/>
+        <position name="connected_conjunction" x="3101" y="250"/>
+        <position name="randomize_labels" x="3169" y="606"/>
+        <position name="CSF_on_bulk_propagation" x="2628" y="-32"/>
+        <position name="negative_cortex_converter" x="596" y="517"/>
+        <position name="laplace" x="1378" y="557"/>
     </gui>
 </pipeline>

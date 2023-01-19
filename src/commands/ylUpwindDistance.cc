@@ -45,6 +45,7 @@ knowledge of the CeCILL licence and that you accept its terms.
 #include <aims/getopt/getopt2.h>
 #include <aims/io/reader.h>
 #include <aims/io/writer.h>
+#include <aims/data/data.h>
 
 #include <highres-cortex/upwinding.hh>
 #include <highres-cortex/cortex.hh>

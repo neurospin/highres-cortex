@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright Forschungszentrum Jülich GmbH (2018).
-# Copyright CEA (2014).
-# Copyright Université Paris XI (2014).
+# Copyright CEA (2019).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
 #
@@ -41,50 +39,33 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 
-from six.moves import range
-
+import numpy as np
 from soma import aims
 
-
-def relabel_conjunction(labels1, labels2):
-    output = aims.Volume(labels1)
-    output.fill(0)
-    size_x = output.getSizeX()
-    size_y = output.getSizeY()
-    size_z = output.getSizeZ()
-    old_to_new_labels = {}
-    next_label = 1
-    for z in range(size_z):
-        for y in range(size_y):
-            for x in range(size_x):
-                labels = (labels1.at(x, y, z), labels2.at(x, y, z))
-                # Negative means outside propagation region
-                if labels[0] < 0 or labels[1] < 0:
-                    continue
-                # Zeros are failed propagations, they should not be aggregated
-                # together
-                if labels[0] == 0 or labels[1] == 0:
-                    new_label = next_label
-                    next_label += 1
-                else:
-                    try:
-                        new_label = old_to_new_labels[labels]
-                    except KeyError:
-                        new_label = next_label
-                        old_to_new_labels[labels] = new_label
-                        next_label += 1
-                output.setValue(new_label, x, y, z)
-    sys.stderr.write("{0}: {1} regions in conjunction\n"
-                     .format(sys.argv[0], next_label - 1))
-    return output
+from highres_cortex.cortex_topo import CSF_LABEL, WHITE_LABEL
 
 
-def relabel_conjunction_files(labels1_filename, labels2_filename,
-                              output_filename):
-    labels1_vol = aims.read(labels1_filename)
-    labels2_vol = aims.read(labels2_filename)
-    output_vol = relabel_conjunction(labels1_vol, labels2_vol)
-    aims.write(output_vol, output_filename)
+def postprocess_equivolumetric_depth(input_filename, classif_filename,
+                                     output_filename):
+    depth_vol = aims.read(input_filename)
+    classif_vol = aims.read(classif_filename)
+
+    depth_arr = np.asarray(depth_vol)
+    classif_arr = np.asarray(classif_vol)
+
+    depth_arr[classif_arr == CSF_LABEL] = 0.0
+    depth_arr[classif_arr == WHITE_LABEL] = 1.0
+
+    header = depth_vol.header()
+    header['cal_min'] = 0.0
+    header['cal_max'] = 1.0
+    header['intent_code'] = 1001  # NIFTI_INTENT_ESTIMATE
+    header['intent_name'] = 'Equivol. depth'
+    header['descrip'] = (
+        'Equivolumetric cortical depth computed with highres-cortex'
+    )
+
+    aims.write(depth_vol, output_filename)
 
 
 def parse_command_line(argv=sys.argv):
@@ -92,12 +73,17 @@ def parse_command_line(argv=sys.argv):
     import argparse
     parser = argparse.ArgumentParser(
         description="""\
-Assign new labels to voxels that have the same pair of labels in both
-input images.
+Post-process an equivolumetric depth image.
+
+    - Set the outside of the brain (CSF) to 0.0
+    - Set the white matter to 1.0
+    - Set various Nifti header fields
 """)
-    parser.add_argument("labels1", help="input label image")
-    parser.add_argument("labels2", help="input label image")
-    parser.add_argument("output", help="output label image")
+    parser.add_argument("input_image",
+                        help="input image of equivolumetric depth")
+    parser.add_argument("classif", help="classification image of the cortex "
+                        "(100 inside, 0 in CSF, 200 in white matter)")
+    parser.add_argument("output_image")
 
     args = parser.parse_args(argv[1:])
     return args
@@ -106,10 +92,10 @@ input images.
 def main(argv=sys.argv):
     """The script's entry point."""
     args = parse_command_line(argv)
-    return relabel_conjunction_files(
-        args.labels1,
-        args.labels2,
-        args.output) or 0
+    return postprocess_equivolumetric_depth(
+        args.input_image,
+        args.classif,
+        args.output_image) or 0
 
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ using boost::shared_ptr;
 using boost::make_shared;
 
 
-const float yl::PropagateAlongField::default_step = 0.1f;
+const float yl::PropagateAlongField::default_step = 0.03f;
 const unsigned int yl::PropagateAlongField::default_max_iter = 1000;
 
 yl::PropagateAlongField::

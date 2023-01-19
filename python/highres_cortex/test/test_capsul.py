@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Copyright CEA (2021).
 # Copyright Forschungszentrum Jülich GmbH (2017).
 #
 # Contributor: Yann Leprince <yann.leprince@ylep.fr>.
@@ -33,9 +34,10 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL licence and that you accept its terms.
 
+from __future__ import absolute_import, division, print_function
+
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -46,30 +48,31 @@ from . import compare_with_reference
 
 
 class SphereTestCase(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         try:
-            cls.test_dir = tempfile.mkdtemp(
+            self.test_dir = tempfile.mkdtemp(
                 prefix="highres-cortex-capsul-tests")
             synthetic_data.write_sphere_and_reference_result(
-                1, 4, 0.3, dir=cls.test_dir)
+                1, 4, 0.3, dir=self.test_dir)
 
-            cls.result_comp = compare_with_reference.ResultComparator(
-                cls.test_dir)
+            self.result_comp = compare_with_reference.ResultComparator(
+                self.test_dir)
 
             p1 = capsul.api.get_process_instance(
                 "highres_cortex.capsul.processes.BinarizeCortex")
-            p1.classif = os.path.join(cls.test_dir, "classif.nii.gz")
-            p1.output_image = os.path.join(cls.test_dir, "cortex_mask.nii.gz")
+            p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
+            p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
             p1()
-        except:
-            if hasattr(cls, "test_dir"):
-                shutil.rmtree(cls.test_dir)
+        except BaseException:
+            if hasattr(self, "test_dir"):
+                shutil.rmtree(self.test_dir)
             raise
+        if os.environ.get('KEEP_TEMPORARY'):
+            print('highres-cortex test directory is {0}'.format(self.test_dir))
 
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.test_dir)
+    def tearDown(self):
+        if not os.environ.get('KEEP_TEMPORARY'):
+            shutil.rmtree(self.test_dir)
 
     def test_laplacian(self):
         p = capsul.api.get_process_instance(
@@ -78,8 +81,7 @@ class SphereTestCase(unittest.TestCase):
         p.precision = 0.001
         p.typical_cortical_thickness = 3
         p.laplace_field = os.path.join(self.test_dir, "laplacian.nii.gz")
-        ret = p()
-        print("ret:", repr(ret))
+        p()
         res = self.result_comp.ensure_max_rms_error(
             "laplacian.nii.gz", 0.017,
             reference_file="reference_laplacian.nii.gz")
@@ -92,7 +94,6 @@ class SphereTestCase(unittest.TestCase):
         p.mode = "sum"
         p.output = os.path.join(self.test_dir, "curvature.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "curvature.nii.gz", 0.067,
             reference_file="reference_curvature.nii.gz")
@@ -109,7 +110,6 @@ class SphereTestCase(unittest.TestCase):
         p.output_length = os.path.join(
             self.test_dir, "euclidean_adv_toward_white.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_adv_toward_white.nii.gz", 0.075,
             reference_file="reference_distwhite.nii.gz")
@@ -126,7 +126,6 @@ class SphereTestCase(unittest.TestCase):
         p.output = os.path.join(
             self.test_dir, "euclidean_upw_toward_white.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_upw_toward_white.nii.gz", 0.22,
             reference_file="reference_distwhite.nii.gz")
@@ -140,7 +139,6 @@ class SphereTestCase(unittest.TestCase):
         p.equivolumetric_depth = os.path.join(
             self.test_dir, "equivolumetric_depth.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "equivolumetric_depth.nii.gz", 0.028,
             reference_file="reference_equivolumic.nii.gz")
@@ -156,7 +154,6 @@ class SphereTestCase(unittest.TestCase):
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_adv.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
@@ -175,7 +172,6 @@ class SphereTestCase(unittest.TestCase):
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_upw.nii.gz")
         p()
-        c = compare_with_reference.ResultComparator(self.test_dir)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")
@@ -195,4 +191,4 @@ class SphereTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(buffer=True)
+    unittest.main()
