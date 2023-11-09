@@ -10,7 +10,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.10)
 find_package(brainvisa-cmake REQUIRED)
 BRAINVISA_PROJECT(CXX)
 
@@ -83,7 +83,9 @@ BRAINVISA_DEPENDENCY(RUN SUGGESTS morphologist-nonfree RUN ">= 4.5")
 
 
 BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/python"
-                                 ${PROJECT_NAME})
+                                ${PROJECT_NAME})
+BRAINVISA_COPY_PYTHON_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/brainvisa"
+                                ${PROJECT_NAME})
 
 BRAINVISA_COPY_DIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/bin"
                          bin

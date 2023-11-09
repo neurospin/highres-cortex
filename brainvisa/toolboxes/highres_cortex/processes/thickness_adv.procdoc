@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<minf expander="minf_2.0">
+<d>
+  <d name="en">
+    <xhtml name="short"><p>Compute the cortical thickness along Laplace field lines from a classification volume, using Eulerian advection (slightly more precise than upwinding, but much slower)</p></xhtml>
+    <xhtml name="long"/>
+    <d name="parameters">
+      <xhtml name="classif"><p>classification image of the cortex (100 inside, 0 in CSF, 200 in white matter)</p>
+</xhtml>
+      <xhtml name="verbosity"><p>Verbosity level</p>
+</xhtml>
+      <xhtml name="laplace_precision"><p>target maximum relative error in first-order finite differences</p>
+</xhtml>
+      <xhtml name="laplace_typical_cortical_thickness"><p>typical thickness of the cortex (mm), used for accelerating convergence</p>
+</xhtml>
+      <xhtml name="advection_step_size"><p>size of the advection step (millimetres)</p>
+</xhtml>
+      <xhtml name="advection_max_dist"><p>maximum advection distance (millimetres)</p>
+</xhtml>
+      <xhtml name="thickness_image"><p>result of the arithmetic</p>
+</xhtml>
+    </d>
+  </d>
+</d>
+</minf>
