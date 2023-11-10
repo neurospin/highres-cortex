@@ -125,7 +125,7 @@ class SphereTestCase(unittest.TestCase):
         p = capsul.api.executable(
             "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient")
         p.domain = os.path.join(self.test_dir, "classif.nii.gz")
-        p.field = os.path.join(
+        p.scalar_field = os.path.join(
             self.test_dir, "reference_laplacian.nii.gz")
         p.downfield = True
         p.origin_label = 200

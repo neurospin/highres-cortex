@@ -3,7 +3,7 @@
     "name": "filtered_sumcurvs",
     "definition": {
         "export_parameters": false,
-        "doc": "Compute the filtered sum of principal curvatures of isophote surfaces\n\n      This is equivalent to computing the divergence of the normalized gradient\n      of the input scalar field.\n\n      .. note::\n\n         A Gaussian smoothing of width sigma is first applied to the input\n         image, in order to limit the appearance of local high curvature values\n         (e.g. due to the discontinuity of second-order derivative at the\n         borders of the cortex).\n      \n      .. note::\n      \n          * Type 'ProcessMeta.help()' for a full description of this process parameters.\n          * Type '<ProcessMeta>.get_input_spec()' for a full description of this process input trait types.\n          * Type '<ProcessMeta>.get_output_spec()' for a full description of this process output trait types.\n      ",
+        "doc": "Compute the filtered sum of principal curvatures of isophote surfaces. This is equivalent to computing the divergence of the normalized gradient of the input scalar field. Note that a Gaussian smoothing of width sigma is first applied to the input image, in order to limit the appearance of local high curvature values (e.g. due to the discontinuity of second-order derivative at the borders of the cortex).",
         "executables": {
             "smoothing": {
                 "definition": "highres_cortex.capsul.processes.GaussianSmoothing",
@@ -11,15 +11,15 @@
             },
             "sumcurvs": {
                 "definition": "highres_cortex.capsul.processes.IsoCurvature",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "mode": "sum"
+                }
             }
         },
         "parameters": {
-            "smoothing.xsigma": 1.0,
-            "smoothing.ysigma": 1.0,
-            "smoothing.zsigma": 1.0,
-            "sumcurvs.mode": "sum",
-            "sumcurvs.verbosity": 1
+            "sigma": 1.0,
+            "verbosity": 1
         },
         "links": [
             "input->smoothing.input_image",

@@ -3,24 +3,15 @@
     "name": "isovolume",
     "definition": {
         "export_parameters": false,
-        "doc": "Compute equivolumetric depth\n\n.. note::\n\n    * Type 'ProcessMeta.help()' for a full description of this process parameters.\n    * Type '<ProcessMeta>.get_input_spec()' for a full description of this process input trait types.\n    * Type '<ProcessMeta>.get_output_spec()' for a full description of this process output trait types.\n",
+        "doc": "Compute equivolumetric depth",
         "executables": {
             "laplace": {
                 "definition": "highres_cortex.capsul.processes.Laplacian",
-                "type": "process",
-                "parameters": {
-                    "precision": 0.001,
-                    "typical_cortical_thickness": 3.0,
-                    "verbosity": 1
-                }
+                "type": "process"
             },
             "filtered_sumcurvs": {
                 "definition": "highres_cortex.capsul.filtered_sumcurvs",
-                "type": "process",
-                "parameters": {
-                    "sigma": 1.0,
-                    "verbosity": 1
-                }
+                "type": "process"
             },
             "binarize_cortex": {
                 "definition": "highres_cortex.capsul.processes.BinarizeCortex",
@@ -30,10 +21,7 @@
                 "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
                 "type": "process",
                 "parameters": {
-                    "max_dist": 6.0,
-                    "step_size": 0.03,
                     "upfield": true,
-                    "verbosity": 1,
                     "domain_type": "interpolated"
                 }
             },
@@ -42,19 +30,8 @@
                 "type": "process",
                 "parameters": {
                     "domain_type": "interpolated",
-                    "max_dist": 6.0,
-                    "step_size": 0.03,
-                    "upfield": false,
-                    "verbosity": 1
+                    "upfield": false
                 }
-            },
-            "sink1": {
-                "definition": "highres_cortex.capsul.processes.VolumeSink",
-                "type": "process"
-            },
-            "sink2": {
-                "definition": "highres_cortex.capsul.processes.VolumeSink",
-                "type": "process"
             },
             "total_tube_volume": {
                 "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
@@ -75,19 +52,13 @@
                 "type": "process"
             }
         },
-        "plugs_state": {
-            "advect_toward_pial.upfield": {
-                "optional": true
-            },
-            "advect_toward_white.upfield": {
-                "optional": true
-            },
-            "total_tube_volume.formula": {
-                "optional": true
-            },
-            "pial_volume_fraction.formula": {
-                "optional": true
-            }
+        "parameters": {
+            "advection_max_dist": 6.0,
+            "advection_step_size": 0.03,
+            "smoothing_sigma": 1.0,
+            "laplace_precision": 0.001,
+            "laplace_typical_cortical_thickness": 3.0,
+            "verbosity": 1
         },
         "links": [
             "classif->laplace.classif",
@@ -117,58 +88,6 @@
             "total_tube_volume.output_image->pial_volume_fraction.input_image_2",
             "pial_volume_fraction.output_image->postprocess.input_image",
             "postprocess.output_image->equivolumetric_depth"
-        ],
-        "gui": {
-            "position": {
-                "inputs": [
-                    -196.0,
-                    459.0
-                ],
-                "laplace": [
-                    -84.0,
-                    275.0
-                ],
-                "filtered_sumcurvs": [
-                    158.0,
-                    274.0
-                ],
-                "binarize_cortex": [
-                    -30.0,
-                    715.0
-                ],
-                "advect_toward_pial": [
-                    392.0,
-                    343.0
-                ],
-                "advect_toward_white": [
-                    392.0,
-                    650.0
-                ],
-                "sink1": [
-                    622.0,
-                    425.0
-                ],
-                "sink2": [
-                    620.0,
-                    866.0
-                ],
-                "total_tube_volume": [
-                    621.0,
-                    505.0
-                ],
-                "pial_volume_fraction": [
-                    693.0,
-                    657.0
-                ],
-                "merge_wm": [
-                    892.0,
-                    549.0
-                ],
-                "outputs": [
-                    1073.0,
-                    608.0
-                ]
-            }
-        }
+        ]
     }
 }

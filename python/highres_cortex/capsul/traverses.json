@@ -3,7 +3,7 @@
     "name": "traverses",
     "definition": {
         "export_parameters": false,
-        "doc": "Create cortical traverses\n\n      .. note::\n         There is a problem with the propagation of labels: the step size is\n         fixed, which means that sometimes the point can skip the corner of a\n         voxel, and thus go directly from a bulk voxel to an outside voxel. In\n         this case it is recorded as a \"dead-end\" advection path, no resulting\n         label is recorded and it appears as zero in the result.\n\n         This problem also appears in the previous \"exchange\" step, but is\n         mitigated by the subsequent connex component detection (each failed\n         propagation is assigned a different label).\n\n         Quick fix: fix the conjunction step to not aggregate zeros.\n\n         TODO: the proper way to fix this would be to force the advection path\n         to respect the boundaries of voxels, so that the corner of voxels\n         cannot be skipped over. This would also prevent the advection path\n         from crossing the thin CSF surface within the sulcus (comes from\n         skeleton).\n      \n      .. note::\n      \n          * Type 'ProcessMeta.help()' for a full description of this process parameters.\n          * Type '<ProcessMeta>.get_input_spec()' for a full description of this process input trait types.\n          * Type '<ProcessMeta>.get_output_spec()' for a full description of this process output trait types.\n      ",
+        "doc": "Create cortical traverses. Note that there is a problem with the propagation of labels: the step size is fixed, which means that sometimes the point can skip the corner of a voxel, and thus go directly from a bulk voxel to an outside voxel. In this case it is recorded as a \"dead-end\" advection path, no resulting label is recorded and it appears as zero in the result. This problem also appears in the previous \"exchange\" step, but is mitigated by the subsequent connex component detection (each failed propagation is assigned a different label). Quick fix: fix the conjunction step to not aggregate zeros. TODO: the proper way to fix this would be to force the advection path to respect the boundaries of voxels, so that the corner of voxels cannot be skipped over. This would also prevent the advection path from crossing the thin CSF surface within the sulcus (comes from skeleton).",
         "executables": {
             "laplace": {
                 "definition": "highres_cortex.capsul.processes.Laplacian",
@@ -13,37 +13,56 @@
                 "definition": "highres_cortex.capsul.processes.Distmaps",
                 "type": "process"
             },
-            "sink1": {
-                "definition": "highres_cortex.capsul.processes.VolumeSink",
-                "type": "process"
-            },
-            "sink2": {
-                "definition": "highres_cortex.capsul.processes.VolumeSink",
-                "type": "process"
-            },
             "threshold_CSF_interface": {
                 "definition": "highres_cortex.capsul.processes.ImageSingleThreshold",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "binary": true,
+                    "fg": 32767,
+                    "mode": "eq",
+                    "threshold": 50.0
+                }
             },
             "threshold_white_interface": {
                 "definition": "highres_cortex.capsul.processes.ImageSingleThreshold",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "binary": true,
+                    "fg": 32767,
+                    "mode": "eq",
+                    "threshold": 150.0
+                }
             },
             "label_CSF_interface": {
                 "definition": "highres_cortex.capsul.processes.LabelEachVoxel",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "first_label": 100000001
+                }
             },
             "label_white_interface": {
                 "definition": "highres_cortex.capsul.processes.LabelEachVoxel",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "first_label": 200000001
+                }
             },
             "negative_cortex": {
                 "definition": "highres_cortex.capsul.processes.ImageSingleThreshold",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "binary": true,
+                    "fg": -1,
+                    "mode": "di",
+                    "threshold": 100.0
+                }
             },
             "negative_cortex_converter": {
                 "definition": "highres_cortex.capsul.processes.ConvertDataType",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "data_type": "S32"
+                }
             },
             "CSF_negative_cortex_merger": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesSameValues",
@@ -51,7 +70,10 @@
             },
             "CSF_labelled_interface_merger": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesAllToOne",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "value": 200000000.0
+                }
             },
             "white_negative_cortex_merger": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesSameValues",
@@ -59,15 +81,28 @@
             },
             "white_labelled_interface_merger": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesAllToOne",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "value": 100000000.0
+                }
             },
             "CSF_to_white_propagation": {
                 "definition": "highres_cortex.capsul.processes.PropagateAlongFieldGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "max_dist": 6.0,
+                    "target_label": 200000000,
+                    "upfield": true
+                }
             },
             "white_to_CSF_propagation": {
                 "definition": "highres_cortex.capsul.processes.PropagateAlongFieldGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "max_dist": 6.0,
+                    "target_label": 100000000,
+                    "upfield": false
+                }
             },
             "get_exchanged_propvol": {
                 "definition": "highres_cortex.capsul.processes.GetExchangedPropagationVolume",
@@ -75,19 +110,37 @@
             },
             "merge_exchanged_on_CSF": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesOneToOne",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "label_to_replace": 150,
+                    "value": 0.0
+                }
             },
             "merge_exchanged_on_white": {
                 "definition": "highres_cortex.capsul.processes.MergeImagesOneToOne",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "label_to_replace": 50,
+                    "value": 0.0
+                }
             },
             "CSF_on_bulk_propagation": {
                 "definition": "highres_cortex.capsul.processes.PropagateAlongFieldGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "max_dist": 6.0,
+                    "target_label": 0,
+                    "upfield": true
+                }
             },
             "white_on_bulk_propagation": {
                 "definition": "highres_cortex.capsul.processes.PropagateAlongFieldGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "max_dist": 6.0,
+                    "target_label": 0,
+                    "upfield": false
+                }
             },
             "relabel_conjunction": {
                 "definition": "highres_cortex.capsul.processes.RelabelConjunction",
@@ -95,7 +148,10 @@
             },
             "connected_conjunction": {
                 "definition": "highres_cortex.capsul.processes.ConnectedComponents",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "connectivity": "26"
+                }
             },
             "merge_regions": {
                 "definition": "highres_cortex.capsul.processes.MergeCortexColumnRegions",
@@ -111,106 +167,11 @@
             }
         },
         "parameters": {
-            "laplace.precision": 0.001,
-            "laplace.typical_cortical_thickness": 3.0,
-            "laplace.verbosity": 1,
-            "threshold_CSF_interface.binary": true,
-            "threshold_CSF_interface.fg": 32767,
-            "threshold_CSF_interface.mode": "eq",
-            "threshold_CSF_interface.threshold": 50.0,
-            "threshold_white_interface.binary": true,
-            "threshold_white_interface.fg": 32767,
-            "threshold_white_interface.mode": "eq",
-            "threshold_white_interface.threshold": 150.0,
-            "label_CSF_interface.first_label": 100000001,
-            "label_white_interface.first_label": 200000001,
-            "negative_cortex.binary": true,
-            "negative_cortex.fg": -1,
-            "negative_cortex.mode": "di",
-            "negative_cortex.threshold": 100.0,
-            "negative_cortex_converter.data_type": "S32",
-            "CSF_labelled_interface_merger.value": 200000000.0,
-            "white_labelled_interface_merger.value": 100000000.0,
-            "CSF_to_white_propagation.max_dist": 6.0,
-            "CSF_to_white_propagation.step_size": 0.03,
-            "CSF_to_white_propagation.target_label": 200000000,
-            "CSF_to_white_propagation.upfield": true,
-            "CSF_to_white_propagation.verbosity": 1,
-            "white_to_CSF_propagation.max_dist": 6.0,
-            "white_to_CSF_propagation.step_size": 0.03,
-            "white_to_CSF_propagation.target_label": 100000000,
-            "white_to_CSF_propagation.upfield": false,
-            "white_to_CSF_propagation.verbosity": 1,
-            "merge_exchanged_on_CSF.label": 150,
-            "merge_exchanged_on_CSF.value": 0.0,
-            "merge_exchanged_on_white.label": 50,
-            "merge_exchanged_on_white.value": 0.0,
-            "CSF_on_bulk_propagation.max_dist": 6.0,
-            "CSF_on_bulk_propagation.step_size": 0.03,
-            "CSF_on_bulk_propagation.target_label": 0,
-            "CSF_on_bulk_propagation.upfield": true,
-            "CSF_on_bulk_propagation.verbosity": 1,
-            "white_on_bulk_propagation.max_dist": 6.0,
-            "white_on_bulk_propagation.step_size": 0.03,
-            "white_on_bulk_propagation.target_label": 0,
-            "white_on_bulk_propagation.upfield": false,
-            "white_on_bulk_propagation.verbosity": 1,
-            "connected_conjunction.connectivity": "26",
-            "merge_regions.goal_diameter": 0.5,
-            "merge_regions.verbosity": 1
-        },
-        "plugs_state": {
-            "threshold_CSF_interface.mode": {
-                "optional": true
-            },
-            "threshold_CSF_interface.threshold": {
-                "optional": true
-            },
-            "threshold_white_interface.mode": {
-                "optional": true
-            },
-            "threshold_white_interface.threshold": {
-                "optional": true
-            },
-            "negative_cortex.mode": {
-                "optional": true
-            },
-            "negative_cortex.threshold": {
-                "optional": true
-            },
-            "negative_cortex_converter.data_type": {
-                "optional": true
-            },
-            "CSF_labelled_interface_merger.value": {
-                "optional": true
-            },
-            "white_labelled_interface_merger.value": {
-                "optional": true
-            },
-            "CSF_to_white_propagation.upfield": {
-                "optional": true
-            },
-            "white_to_CSF_propagation.upfield": {
-                "optional": true
-            },
-            "merge_exchanged_on_CSF.label": {
-                "optional": true
-            },
-            "merge_exchanged_on_CSF.value": {
-                "optional": true
-            },
-            "merge_exchanged_on_white.label": {
-                "optional": true
-            },
-            "merge_exchanged_on_white.value": {
-                "optional": true
-            },
-            "CSF_on_bulk_propagation.upfield": {
-                "optional": true
-            },
-            "white_on_bulk_propagation.upfield": {
-                "optional": true
-            }
+            "advection_step_size": 0.03,
+            "goal_traverse_diameter": 0.5,
+            "laplace_precision": 0.001,
+            "laplace_typical_cortical_thickness": 3.0,
+            "verbosity": 1
         },
         "links": [
             "classif->negative_cortex.input_image",
@@ -239,8 +200,6 @@
             "distmaps.classif_with_outer_boundaries->threshold_white_interface.input_image",
             "distmaps.classif_with_outer_boundaries->threshold_CSF_interface.input_image",
             "distmaps.classif_with_outer_boundaries->merge_exchanged_on_white.mask_image",
-            "distmaps.distCSF->sink2.file",
-            "distmaps.distwhite->sink1.file",
             "threshold_CSF_interface.output_image->label_CSF_interface.input_image",
             "threshold_white_interface.output_image->label_white_interface.input_image",
             "label_CSF_interface.output_image->CSF_negative_cortex_merger.mask_image",
@@ -269,122 +228,6 @@
             "merge_regions.output->relabel.input",
             "relabel.output->randomize_labels.input",
             "randomize_labels.output->cortical_traverses"
-        ],
-        "gui": {
-            "position": {
-                "threshold_white_interface": [
-                    464.0,
-                    189.0
-                ],
-                "sink2": [
-                    327.0,
-                    127.0
-                ],
-                "sink1": [
-                    327.0,
-                    188.0
-                ],
-                "relabel": [
-                    3053.0,
-                    633.0
-                ],
-                "negative_cortex": [
-                    371.0,
-                    453.0
-                ],
-                "CSF_negative_cortex_merger": [
-                    1036.0,
-                    62.0
-                ],
-                "CSF_labelled_interface_merger": [
-                    1383.0,
-                    41.0
-                ],
-                "white_to_CSF_propagation": [
-                    1754.0,
-                    249.0
-                ],
-                "merge_exchanged_on_CSF": [
-                    2345.0,
-                    -36.0
-                ],
-                "label_white_interface": [
-                    743.0,
-                    212.0
-                ],
-                "white_negative_cortex_merger": [
-                    1038.0,
-                    205.0
-                ],
-                "get_exchanged_propvol": [
-                    2043.0,
-                    158.0
-                ],
-                "CSF_to_white_propagation": [
-                    1756.0,
-                    -39.0
-                ],
-                "threshold_CSF_interface": [
-                    463.0,
-                    -18.0
-                ],
-                "distmaps": [
-                    89.0,
-                    42.0
-                ],
-                "inputs": [
-                    0.0,
-                    211.0
-                ],
-                "outputs": [
-                    3337.0,
-                    595.0
-                ],
-                "merge_exchanged_on_white": [
-                    2341.0,
-                    191.0
-                ],
-                "merge_regions": [
-                    2904.0,
-                    524.0
-                ],
-                "white_on_bulk_propagation": [
-                    2626.0,
-                    254.0
-                ],
-                "white_labelled_interface_merger": [
-                    1386.0,
-                    203.0
-                ],
-                "relabel_conjunction": [
-                    2896.0,
-                    239.0
-                ],
-                "label_CSF_interface": [
-                    745.0,
-                    51.0
-                ],
-                "connected_conjunction": [
-                    3101.0,
-                    250.0
-                ],
-                "randomize_labels": [
-                    3169.0,
-                    606.0
-                ],
-                "CSF_on_bulk_propagation": [
-                    2628.0,
-                    -32.0
-                ],
-                "negative_cortex_converter": [
-                    596.0,
-                    517.0
-                ],
-                "laplace": [
-                    1378.0,
-                    557.0
-                ]
-            }
-        }
+        ]
     }
 }
