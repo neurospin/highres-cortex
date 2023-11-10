@@ -7,11 +7,20 @@
         "executables": {
             "laplace": {
                 "definition": "highres_cortex.capsul.processes.Laplacian",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "precision": 0.001,
+                    "typical_cortical_thickness": 3.0,
+                    "verbosity": 1
+                }
             },
             "filtered_sumcurvs": {
                 "definition": "highres_cortex.capsul.filtered_sumcurvs",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "sigma": 1.0,
+                    "verbosity": 1
+                }
             },
             "binarize_cortex": {
                 "definition": "highres_cortex.capsul.processes.BinarizeCortex",
@@ -19,11 +28,25 @@
             },
             "advect_toward_pial": {
                 "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "max_dist": 6.0,
+                    "step_size": 0.03,
+                    "upfield": true,
+                    "verbosity": 1,
+                    "domain_type": "interpolated"
+                }
             },
             "advect_toward_white": {
                 "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "domain_type": "interpolated",
+                    "max_dist": 6.0,
+                    "step_size": 0.03,
+                    "upfield": false,
+                    "verbosity": 1
+                }
             },
             "sink1": {
                 "definition": "highres_cortex.capsul.processes.VolumeSink",
@@ -35,35 +58,22 @@
             },
             "total_tube_volume": {
                 "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 + I2"
+                }
             },
             "pial_volume_fraction": {
                 "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
-                "type": "process"
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 / I2"
+                }
             },
             "postprocess": {
                 "definition": "highres_cortex.capsul.processes.PostProcessEquivolumetricDepth",
                 "type": "process"
             }
-        },
-        "parameters": {
-            "laplace.precision": 0.001,
-            "laplace.typical_cortical_thickness": 3.0,
-            "laplace.verbosity": 1,
-            "filtered_sumcurvs.sigma": 1.0,
-            "filtered_sumcurvs.verbosity": 1,
-            "advect_toward_pial.domain_type": "interpolated",
-            "advect_toward_pial.max_dist": 6.0,
-            "advect_toward_pial.step_size": 0.03,
-            "advect_toward_pial.upfield": true,
-            "advect_toward_pial.verbosity": 1,
-            "advect_toward_white.domain_type": "interpolated",
-            "advect_toward_white.max_dist": 6.0,
-            "advect_toward_white.step_size": 0.03,
-            "advect_toward_white.upfield": false,
-            "advect_toward_white.verbosity": 1,
-            "total_tube_volume.formula": "I1 + I2",
-            "pial_volume_fraction.formula": "I1 / I2"
         },
         "plugs_state": {
             "advect_toward_pial.upfield": {
