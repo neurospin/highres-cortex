@@ -114,7 +114,8 @@ class SphereTestCase(unittest.TestCase):
         p.upfield = False
         p.output_length = os.path.join(
             self.test_dir, "euclidean_adv_toward_white.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_adv_toward_white.nii.gz", 0.075,
             reference_file="reference_distwhite.nii.gz")
@@ -130,7 +131,8 @@ class SphereTestCase(unittest.TestCase):
         p.origin_label = 200
         p.output = os.path.join(
             self.test_dir, "euclidean_upw_toward_white.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_upw_toward_white.nii.gz", 0.22,
             reference_file="reference_distwhite.nii.gz")
@@ -143,7 +145,8 @@ class SphereTestCase(unittest.TestCase):
         p.advection_step_size = 0.05
         p.equivolumetric_depth = os.path.join(
             self.test_dir, "equivolumetric_depth.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "equivolumetric_depth.nii.gz", 0.028,
             reference_file="reference_equivolumic.nii.gz")
@@ -158,7 +161,8 @@ class SphereTestCase(unittest.TestCase):
             self.test_dir, "thickness_adv.nii.gz")
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_adv.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
@@ -176,7 +180,8 @@ class SphereTestCase(unittest.TestCase):
             self.test_dir, "thickness_upw.nii.gz")
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_upw.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")
@@ -192,7 +197,8 @@ class SphereTestCase(unittest.TestCase):
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.cortical_traverses = os.path.join(
             self.test_dir, "traverses.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
 
 
 if __name__ == "__main__":
