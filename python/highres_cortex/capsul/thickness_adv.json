@@ -17,30 +17,30 @@
                 "definition": "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient",
                 "type": "process",
                 "parameters": {
-                    "advect_toward_pial.domain_type": "interpolated",
-                    "advect_toward_pial.upfield": true
+                    "domain_type": "interpolated",
+                    "upfield": true
                 }
             },
             "advect_toward_white": {
                 "definition": "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient",
                 "type": "process",
                 "parameters": {
-                    "advect_toward_white.domain_type": "interpolated",
-                    "advect_toward_white.upfield": false
+                    "domain_type": "interpolated",
+                    "upfield": false
                 }
             },
             "total_length": {
                 "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
                 "type": "process",
                 "parameters": {
-                    "total_length.formula": "I1 + I2"
+                    "formula": "I1 + I2"
                 }
             },
             "equidistant_depth": {
                 "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
                 "type": "process",
                 "parameters": {
-                    "equidistant_depth.formula": "I1 / I2"
+                    "formula": "I1 / I2"
                 }
             }
         },

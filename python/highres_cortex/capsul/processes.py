@@ -263,7 +263,6 @@ class AdvectTubesAlongGradient(capsul.api.Process):
         default=0.03,
         doc="size of the advection step (millimetres)")
     upfield: bool = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="Direction of advection (upfield if True, downfield if False)")
     max_dist: float = field(
         default=6,
@@ -313,7 +312,6 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
         default=0.03,
         doc="size of the advection step (millimetres)")
     upfield: bool = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="Direction of advection (upfield if True, downfield if False)")
     max_dist: float = field(
         default=6,
@@ -384,7 +382,6 @@ class ImageArithmetic2Inputs(capsul.api.Process):
         extensions=VOLUME_EXTENSIONS,
         doc="input image I2")
     formula: str = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="arithmetic formula referring to I1 and I2")
 
     output_image: File = field(
@@ -413,10 +410,8 @@ class MergeImagesOneToOne(capsul.api.Process):
         extensions=VOLUME_EXTENSIONS,
         doc="mask image (must have an integer voxel type)")
     label_to_replace: int = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="only label of the mask image to take into account")
     value: float = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="replacement value")
 
     output_image: File = field(
@@ -449,7 +444,6 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
         doc="scalar field whose gradient is used as the integration "
         "direction")
     downfield: bool = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="work on inverted field (downfield instead of upfield)")
     domain_label: int = field(
         default=100,
@@ -501,7 +495,7 @@ class Distmaps(capsul.api.Process):
         doc="classification image of the cortex with labelled boundaries "
         "(50 on the CSF, 150 on the white matter)")
 
-    def execute(self):
+    def execute(self, context):
         cmd = [
             "ylDistmaps",
             self.classif,
@@ -534,10 +528,8 @@ class ImageSingleThreshold(capsul.api.Process):
         default=32767,
         doc="foreground value set on thresholded in voxels in binary mode")
     threshold: float = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="value of the threshold")
     mode: ThresholdModeEnum = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="""\
 thresholding type
     lt   --> lower than
@@ -617,7 +609,6 @@ class ConvertDataType(capsul.api.Process):
         extensions=VOLUME_EXTENSIONS,
         doc="input image")
     data_type: VolumeDataTypeEnum = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="output data type")
 
     output_image: File = field(
@@ -644,7 +635,6 @@ class MergeImagesAllToOne(capsul.api.Process):
         extensions=VOLUME_EXTENSIONS,
         doc="mask image (must have an integer voxel type)")
     value: float = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="replacement value")
 
     output_image: File = field(
@@ -711,7 +701,6 @@ volume of labels (either S16 or S32):
         default=0.03,
         doc="size of the advection step (millimetres)")
     upfield: bool = field(
-        optional=True,  # temporary workaround for node activation issue
         doc="Direction of advection (upfield if True, downfield if False)")
     max_dist: float = field(
         default=6,
@@ -799,6 +788,7 @@ class RelabelConjunction(capsul.api.Process):
         subprocess.check_call(cmd)
 
 
+# TODO restore enum
 # class ConnectivityTypeEnum(str, enum.Enum):
 #     c26: "26"
 #     c4xy: "4xy"  # noqa: F722
@@ -831,7 +821,7 @@ class ConnectedComponents(capsul.api.Process):
             "AimsConnectComp",
             "--input", self.input_image,
             "--output", self.output,
-            "--connectivity", self.connectivity.value,
+            "--connectivity", self.connectivity
         ]
         subprocess.check_call(cmd)
 
@@ -924,7 +914,7 @@ if __name__ == '__main__':
     from soma.qt_gui.qt_backend import QtGui
     from capsul.qt_gui.widgets import PipelineDeveloperView
     pipeline = capsul.api.Capsul.executable(
-        'highres_cortex.capsul.thickness_upw')
+        'highres_cortex.capsul.isovolume')
     app = QtGui.QApplication.instance()
     if not app:
         app = QtGui.QApplication(sys.argv)
