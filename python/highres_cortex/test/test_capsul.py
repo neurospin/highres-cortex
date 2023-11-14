@@ -48,40 +48,42 @@ from . import compare_with_reference
 
 
 class SphereTestCase(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         try:
-            self.test_dir = tempfile.mkdtemp(
+            cls.test_dir = tempfile.mkdtemp(
                 prefix="highres-cortex-capsul-tests")
             synthetic_data.write_sphere_and_reference_result(
-                1, 4, 0.3, dir=self.test_dir)
+                1, 4, 0.3, dir=cls.test_dir)
 
-            self.result_comp = compare_with_reference.ResultComparator(
-                self.test_dir)
+            cls.result_comp = compare_with_reference.ResultComparator(
+                cls.test_dir)
 
-            self.capsul = capsul.api.Capsul(
+            cls.capsul = capsul.api.Capsul(
                 "test-highres-cortex",
                 site_file=None,
                 user_file=None,
-                database_path=os.path.join(self.test_dir, "capsul.rdb")
+                database_path=os.path.join(cls.test_dir, "capsul.rdb")
             )
-            self.capsul_engine = self.capsul.engine()
+            cls.capsul_engine = cls.capsul.engine()
 
             p1 = capsul.api.executable(
                 "highres_cortex.capsul.processes.BinarizeCortex")
-            p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
-            p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
-            with self.capsul_engine as ce:
+            p1.classif = os.path.join(cls.test_dir, "classif.nii.gz")
+            p1.output_image = os.path.join(cls.test_dir, "cortex_mask.nii.gz")
+            with cls.capsul_engine as ce:
                 ce.run(p1)
         except BaseException:
-            if hasattr(self, "test_dir"):
-                shutil.rmtree(self.test_dir)
+            if hasattr(cls, "test_dir"):
+                shutil.rmtree(cls.test_dir)
             raise
         if os.environ.get('KEEP_TEMPORARY'):
-            print('highres-cortex test directory is {0}'.format(self.test_dir))
+            print('highres-cortex test directory is {0}'.format(cls.test_dir))
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         if not os.environ.get('KEEP_TEMPORARY'):
-            shutil.rmtree(self.test_dir)
+            shutil.rmtree(cls.test_dir)
 
     # Tests are run in lexicographical order. The 1 prefix is a workaround for
     # https://github.com/populse/capsul/issues/325
