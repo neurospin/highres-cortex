@@ -58,7 +58,13 @@ class SphereTestCase(unittest.TestCase):
             self.result_comp = compare_with_reference.ResultComparator(
                 self.test_dir)
 
-            self.capsul_engine = capsul.api.Capsul().engine()
+            self.capsul = capsul.api.Capsul(
+                "test-highres-cortex",
+                site_file=None,
+                user_file=None,
+                database_path=os.path.join(self.test_dir, "capsul.rdb")
+            )
+            self.capsul_engine = self.capsul.engine()
 
             p1 = capsul.api.executable(
                 "highres_cortex.capsul.processes.BinarizeCortex")
