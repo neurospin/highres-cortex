@@ -87,7 +87,7 @@ class SphereTestCase(unittest.TestCase):
 
     # Tests are run in lexicographical order. The 1 prefix is a workaround for
     # https://github.com/populse/capsul/issues/325
-    def test_1laplacian(self):
+    def test_laplacian(self):
         p = capsul.api.executable(
             "highres_cortex.capsul.processes.Laplacian")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
@@ -114,7 +114,7 @@ class SphereTestCase(unittest.TestCase):
             reference_file="reference_curvature.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
-    def test_1advect_euclidean(self):
+    def test_advect_euclidean(self):
         p = capsul.api.executable(
             "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient")
         p.domain = os.path.join(self.test_dir, "cortex_mask.nii.gz")
@@ -131,7 +131,7 @@ class SphereTestCase(unittest.TestCase):
             reference_file="reference_distwhite.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
-    def test_1upwind_euclidean(self):
+    def test_upwind_euclidean(self):
         p = capsul.api.executable(
             "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient")
         p.domain = os.path.join(self.test_dir, "classif.nii.gz")
