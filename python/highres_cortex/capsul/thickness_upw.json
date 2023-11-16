@@ -1,0 +1,69 @@
+{
+    "type": "custom_pipeline",
+    "name": "thickness_upw",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute the cortical thickness along Laplace field lines from a classification volume, using upwinding (much faster than advection, but slightly less precise).",
+        "executables": {
+            "laplace": {
+                "definition": "highres_cortex.capsul.processes.Laplacian",
+                "type": "process"
+            },
+            "upwind_from_pial": {
+                "definition": "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "domain_label": 100,
+                    "downfield": false,
+                    "origin_label": 0
+                }
+            },
+            "upwind_from_white": {
+                "definition": "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "domain_label": 100,
+                    "downfield": true,
+                    "origin_label": 200
+                }
+            },
+            "total_length": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 + I2"
+                }
+            },
+            "equidistant_depth": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 / I2"
+                }
+            }
+        },
+        "parameters": {
+            "laplace_precision": 0.001,
+            "laplace_typical_cortical_thickness": 3.0,
+            "verbosity": 1
+        },
+        "links": [
+            "classif->upwind_from_white.domain",
+            "classif->laplace.classif",
+            "classif->upwind_from_pial.domain",
+            "verbosity->upwind_from_white.verbosity",
+            "verbosity->laplace.verbosity",
+            "verbosity->upwind_from_pial.verbosity",
+            "laplace_precision->laplace.precision",
+            "laplace_typical_cortical_thickness->laplace.typical_cortical_thickness",
+            "laplace.laplace_field->upwind_from_pial.scalar_field",
+            "laplace.laplace_field->upwind_from_white.scalar_field",
+            "upwind_from_pial.output->equidistant_depth.input_image_1",
+            "upwind_from_pial.output->total_length.input_image_1",
+            "upwind_from_white.output->total_length.input_image_2",
+            "total_length.output_image->equidistant_depth.input_image_2",
+            "total_length.output_image->thickness_image",
+            "equidistant_depth.output_image->equidistant_depth"
+        ]
+    }
+}

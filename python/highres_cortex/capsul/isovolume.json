@@ -1,0 +1,93 @@
+{
+    "type": "custom_pipeline",
+    "name": "isovolume",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute equivolumetric depth",
+        "executables": {
+            "laplace": {
+                "definition": "highres_cortex.capsul.processes.Laplacian",
+                "type": "process"
+            },
+            "filtered_sumcurvs": {
+                "definition": "highres_cortex.capsul.filtered_sumcurvs",
+                "type": "process"
+            },
+            "binarize_cortex": {
+                "definition": "highres_cortex.capsul.processes.BinarizeCortex",
+                "type": "process"
+            },
+            "advect_toward_pial": {
+                "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "upfield": true,
+                    "domain_type": "interpolated"
+                }
+            },
+            "advect_toward_white": {
+                "definition": "highres_cortex.capsul.processes.AdvectTubesAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "domain_type": "interpolated",
+                    "upfield": false
+                }
+            },
+            "total_tube_volume": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 + I2"
+                }
+            },
+            "pial_volume_fraction": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 / I2"
+                }
+            },
+            "postprocess": {
+                "definition": "highres_cortex.capsul.processes.PostProcessEquivolumetricDepth",
+                "type": "process"
+            }
+        },
+        "parameters": {
+            "advection_max_dist": 6.0,
+            "advection_step_size": 0.03,
+            "smoothing_sigma": 1.0,
+            "laplace_precision": 0.001,
+            "laplace_typical_cortical_thickness": 3.0,
+            "verbosity": 1
+        },
+        "links": [
+            "classif->laplace.classif",
+            "classif->postprocess.classif",
+            "classif->binarize_cortex.classif",
+            "verbosity->laplace.verbosity",
+            "verbosity->filtered_sumcurvs.verbosity",
+            "verbosity->advect_toward_pial.verbosity",
+            "verbosity->advect_toward_white.verbosity",
+            "laplace_precision->laplace.precision",
+            "laplace_typical_cortical_thickness->laplace.typical_cortical_thickness",
+            "smoothing_sigma->filtered_sumcurvs.sigma",
+            "advection_step_size->advect_toward_pial.step_size",
+            "advection_step_size->advect_toward_white.step_size",
+            "advection_max_dist->advect_toward_pial.max_dist",
+            "advection_max_dist->advect_toward_white.max_dist",
+            "laplace.laplace_field->filtered_sumcurvs.input",
+            "laplace.laplace_field->advect_toward_pial.grad_field",
+            "laplace.laplace_field->advect_toward_white.grad_field",
+            "filtered_sumcurvs.output->advect_toward_white.divergence",
+            "filtered_sumcurvs.output->advect_toward_pial.divergence",
+            "binarize_cortex.output_image->advect_toward_white.domain",
+            "binarize_cortex.output_image->advect_toward_pial.domain",
+            "advect_toward_pial.output_volumes->total_tube_volume.input_image_1",
+            "advect_toward_pial.output_volumes->pial_volume_fraction.input_image_1",
+            "advect_toward_white.output_volumes->total_tube_volume.input_image_2",
+            "total_tube_volume.output_image->pial_volume_fraction.input_image_2",
+            "pial_volume_fraction.output_image->postprocess.input_image",
+            "postprocess.output_image->equivolumetric_depth"
+        ]
+    }
+}

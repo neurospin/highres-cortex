@@ -9,7 +9,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-python -m capsul highres_cortex.capsul.processes.Laplacian \
+python -m capsul run highres_cortex.capsul.processes.Laplacian \
     classif=../classif.nii.gz \
     verbosity=1 \
     laplace_field=heat.nii.gz

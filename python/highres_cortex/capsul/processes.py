@@ -36,205 +36,200 @@
 
 """Elementary processes to be used within the CAPSUL pipelining system."""
 
-from __future__ import absolute_import, division, print_function
+import enum
 import math
+import os
+import subprocess
 
 import capsul.api
-import capsul.process.xml
-from traits.api import Bool, Enum, File, Float, Int, Str, Undefined
+from soma.controller import field, File, Literal, undefined
 
 
-VOLUME_EXTENSIONS = ['.nii.gz', '.vimg', '.vinfo', '.vhdr', '.img', '.hdr',
-                     '.v', '.i', '.mnc', '.mnc.gz', '.nii', '.jpg', '.gif',
-                     '.png', '.mng', '.bmp', '.pbm', '.pgm', '.ppm', '.xbm',
-                     '.xpm', '.tiff', '.tif', '.ima', '.dim', '']
-
-# External commands that use AIMS need to be launched through bv_env on Mac OS
-# 10.11 and later. The reason is that the DYLD_* environment variables, which
-# control the dynamic linker (used in the plugin system of AIMS), are not
-# allowed to be inherited by programs that reside in "protected" system
-# directories (/bin, /sbin, /usr, and /System). Capsul itself can usually work
-# without these variables, but processes that use soma-io cannot. Moreover,
-# even if these variables are set in the Capsul process, they cannot be
-# inherited by children processes written in Python because these use
-# /usr/bin/env in their shebang, which is "protected" (it resides in /usr).
+VOLUME_EXTENSIONS = ['.nii.gz', '.hdr', '.nii', '.ima']
 
 
 class Laplacian(capsul.api.Process):
     """Solve the Laplacian model in the cortex"""
 
-    classif = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    classif: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
-    precision = Float(
-        0.001, output=False, optional=True,
-        desc="target maximum relative error in first-order finite differences")
-    typical_cortical_thickness = Float(
-        3, output=False, optional=True,
-        desc="typical thickness of the cortex (mm), used for accelerating "
+    precision: float = field(
+        default=0.001,
+        doc="target maximum relative error in first-order finite differences")
+    typical_cortical_thickness: float = field(
+        default=3.0,
+        doc="typical thickness of the cortex (mm), used for accelerating "
         "convergence")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    verbosity: int = field(default=1, desc="Verbosity level")
 
-    laplace_field = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output pseudo-temperature field (from 0 in CSF to 1 in the "
+    laplace_field: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output pseudo-temperature field (from 0 in CSF to 1 in the "
         "white matter)"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylLaplacian",
             "--classif", self.classif,
             "--output", self.laplace_field,
             "--precision", repr(self.precision),
             "--typical-cortical-thickness",
             repr(self.typical_cortical_thickness),
-            "--verbose", str(self.verbosity)]
+            "--verbose", str(self.verbosity),
+        ]
+        subprocess.check_call(cmd)
 
 
 class IsoCurvature(capsul.api.Process):
     """Compute the curvature of isosurfaces"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image volume (scalar field)")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image volume (scalar field)")
     # modes mean, geom, pri1, pri2 are currently unimplemented
-    mode = Enum(
-        "sum", output=False, optional=True,
-        desc="type of curvature to compute")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    mode: Literal["sum"] = field(
+        default="sum",
+        doc="type of curvature to compute")
+    verbosity: int = field(default=1, doc="Verbosity level")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image volume containing the curvature of the isosurfaces "
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output image volume containing the curvature of the isosurfaces "
         "of the input field"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylIsoCurvature",
             "--input", self.input_image,
             "--mode", self.mode,
             "--output", self.output_image,
-            "--verbose", str(self.verbosity)]
+            "--verbose", str(self.verbosity),
+        ]
+        subprocess.check_call(cmd)
 
 
 class RemoveNaN(capsul.api.Process):
     """Remove NaN values from an image"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    value = Float(
-        0, output=False, optional=True,
-        desc="replacement value")
-    percentage = Bool(
-        True, output=False, optional=True,
-        desc="interpret value as a percentage of the image intensity range")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    value: float = field(
+        default=0.0,
+        doc="replacement value")
+    percentage: bool = field(
+        default=True,
+        doc="interpret value as a percentage of the image intensity range")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image"
+    output_image: File = field(
+        write=True,
+        extensions=VOLUME_EXTENSIONS,
+        doc="output image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsRemoveNaN",
             "--verbose", "0",
             "-i", self.input_image,
             "-np", str(self.percentage),
             "--value", repr(self.value),
-            "-o", self.output_image]
+            "-o", self.output_image
+        ]
+        subprocess.check_call(cmd)
 
 
 class MedianFilter(capsul.api.Process):
     """Median filter smoothing"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    x_size = Int(3, output=False, optional=True,
-                 desc="X size of the filter mask")
-    y_size = Int(3, output=False, optional=True,
-                 desc="Y size of the filter mask")
-    z_size = Int(3, output=False, optional=True,
-                 desc="Z size of the filter mask")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    x_size: int = field(default=3,
+                        doc="X size of the filter mask")
+    y_size: int = field(default=3,
+                        doc="Y size of the filter mask")
+    z_size: int = field(default=3,
+                        doc="Z size of the filter mask")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="median-filtered image"
+    output_image: File = field(
+        write=True,
+        extensions=VOLUME_EXTENSIONS,
+        doc="median-filtered image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsMedianSmoothing",
             "--verbose", "0",
             "--input", self.input_image,
             "--dx", str(self.x_size),
             "--dy", str(self.y_size),
             "--dz", str(self.z_size),
-            "--output", self.output_image]
+            "--output", self.output_image
+        ]
+        subprocess.check_call(cmd)
 
 
 class GaussianSmoothing(capsul.api.Process):
     """3D Gaussian smoothing filter using the recursive Deriche method"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    xsigma = Float(Undefined, output=False, optional=True,
-                   desc="X standard deviation of the gaussian filter "
-                   "[default=largest voxel size]")
-    ysigma = Float(Undefined, output=False, optional=True,
-                   desc="Y standard deviation of the gaussian filter "
-                   "[default=largest voxel size]")
-    zsigma = Float(Undefined, output=False, optional=True,
-                   desc="Z standard deviation of the gaussian filter "
-                   "[default=largest voxel size]")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    xsigma: float = field(
+        default=None,
+        doc="X standard deviation of the gaussian filter "
+        "[default=largest voxel size]")
+    ysigma: float = field(
+        default=None,
+        doc="Y standard deviation of the gaussian filter "
+        "[default=largest voxel size]")
+    zsigma: float = field(
+        default=None,
+        doc="Z standard deviation of the gaussian filter "
+        "[default=largest voxel size]")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="Gaussian-filtered image"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="Gaussian-filtered image"
     )
 
-    def get_commandline(self):
+    def execute(self, context):
         sigma_args = []
-        if self.xsigma is not Undefined:
+        if self.xsigma is not None:
             sigma_args += ["--xsigma", str(self.xsigma)]
-        if self.ysigma is not Undefined:
+        if self.ysigma is not None:
             sigma_args += ["--ysigma", str(self.ysigma)]
-        if self.zsigma is not Undefined:
+        if self.zsigma is not None:
             sigma_args += ["--zsigma", str(self.zsigma)]
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        cmd = [
             "AimsGaussianSmoothing",
             "--input", self.input_image
         ] + sigma_args + [
             "--output", self.output_image
         ]
+        subprocess.check_call(cmd)
 
 
 class BinarizeCortex(capsul.api.Process):
     """Extract a binary image (0/1) of the cortex"""
 
-    classif = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    classif: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="binary image of the cortex (1 in the cortex, 0 elsewhere)"
-    )
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="binary image of the cortex (1 in the cortex, 0 elsewhere)")
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsThreshold",
             "--verbose", "0",
             "-b",
@@ -242,101 +237,108 @@ class BinarizeCortex(capsul.api.Process):
             "-m", "eq",
             "-t", "100",
             "--input", self.classif,
-            "--output", self.output_image]
+            "--output", self.output_image,
+        ]
+        subprocess.check_call(cmd)
+
+
+class DomainTypeEnum(str, enum.Enum):
+    interpolated = "interpolated"
+    boolean = "boolean"
 
 
 class AdvectTubesAlongGradient(capsul.api.Process):
     """Advect a tube from each voxel, return its volume and end surface."""
 
-    domain = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="mask of the calculation domain: one inside, zero outside")
-    grad_field = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="scalar field whose gradient is to be advected along")
-    divergence = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="divergence of the normalized vector field")
-    step_size = Float(
-        0.03, output=False, optional=True,
-        desc="size of the advection step (millimetres)")
-    upfield = Bool(
-        False, optional=False,
-        desc="Direction of advection (upfield if True, downfield if False)")
-    max_dist = Float(
-        6, output=False, optional=True,
-        desc="maximum advection distance (millimetres)")
-    domain_type = Enum(
-        "interpolated", "boolean", output=False, optional=True,
-        desc="interpolation type for the domain")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    domain: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="mask of the calculation domain: one inside, zero outside")
+    grad_field: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is to be advected along")
+    divergence: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="divergence of the normalized vector field")
+    step_size: float = field(
+        default=0.03,
+        doc="size of the advection step (millimetres)")
+    upfield: bool = field(
+        doc="Direction of advection (upfield if True, downfield if False)")
+    max_dist: float = field(
+        default=6,
+        doc="maximum advection distance (millimetres)")
+    domain_type: DomainTypeEnum = field(
+        default="interpolated",
+        doc="interpolation type for the domain")
+    verbosity: int = field(default=1, doc="Verbosity level")
 
-    output_volumes = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output volume containing the tubes' volume")
-    output_surfaces = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output volume containing the tubes' end surface")
+    output_volumes: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output volume containing the tubes' volume")
+    output_surfaces: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS, optional=True,
+        doc="output volume containing the tubes' end surface")
 
-    def get_commandline(self):
+    def execute(self, context):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        cmd = [
             "ylAdvectTubes",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
             "--divergence", self.divergence,
             "--step-size", repr(command_step_size),
             "--max-dist", repr(self.max_dist),
-            "--domain-type", self.domain_type,
+            "--domain-type", self.domain_type.value,
             "--verbose", str(self.verbosity),
             "--output-volumes", self.output_volumes,
-            "--output-surfaces", self.output_surfaces]
-        return args
+        ]
+        if self.output_surfaces is not undefined:
+            cmd += ["--output-surfaces", self.output_surfaces]
+
+        subprocess.check_call(cmd)
 
 
 class EuclideanAdvectionAlongGradient(capsul.api.Process):
     """Measure the Euclidean length of an advection path."""
 
-    domain = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="mask of the calculation domain: one inside, zero outside")
-    grad_field = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="scalar field whose gradient is to be advected along")
-    step_size = Float(
-        0.03, output=False, optional=True,
-        desc="size of the advection step (millimetres)")
-    upfield = Bool(
-        False, optional=False,
-        desc="Direction of advection (upfield if True, downfield if False)")
-    max_dist = Float(
-        6, output=False, optional=True,
-        desc="maximum advection distance (millimetres)")
-    domain_type = Enum(
-        "interpolated", "boolean", output=False, optional=True,
-        desc="interpolation type for the domain")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    domain: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="mask of the calculation domain: one inside, zero outside")
+    grad_field: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is to be advected along")
+    step_size: float = field(
+        default=0.03,
+        doc="size of the advection step (millimetres)")
+    upfield: bool = field(
+        doc="Direction of advection (upfield if True, downfield if False)")
+    max_dist: float = field(
+        default=6,
+        doc="maximum advection distance (millimetres)")
+    domain_type: DomainTypeEnum = field(
+        default="interpolated",
+        doc="interpolation type for the domain")
+    verbosity: int = field(default=1, doc="Verbosity level")
 
-    output_length = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output volume containing the length of the advection path")
+    output_length: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output volume containing the length of the advection path")
 
-    def get_commandline(self):
+    def execute(self, context):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        cmd = [
             "ylAdvectEuclidean",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
             "--step-size", repr(command_step_size),
             "--max-dist", repr(self.max_dist),
-            "--domain-type", self.domain_type,
+            "--domain-type", self.domain_type.value,
             "--verbose", str(self.verbosity),
-            "--output-length", self.output_length]
-        return args
+            "--output-length", self.output_length
+        ]
+        subprocess.check_call(cmd)
 
 
 class PostProcessEquivolumetricDepth(capsul.api.Process):
@@ -347,190 +349,188 @@ class PostProcessEquivolumetricDepth(capsul.api.Process):
     - Set various Nifti header fields
     """
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image of equivolumetric depth")
-    classif = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image of equivolumetric depth")
+    classif: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylPostProcessEquivolumetricDepth",
             self.input_image,
             self.classif,
-            self.output_image]
+            self.output_image
+        ]
+        subprocess.check_call(cmd)
 
 
 class ImageArithmetic2Inputs(capsul.api.Process):
     """Compute arithmetic from 2 input images"""
 
-    input_image_1 = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image I1")
-    input_image_2 = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image I2")
-    formula = Str(
-        Undefined, output=False,
-        desc="arithmetic formula referring to I1 and I2")
+    input_image_1: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image I1")
+    input_image_2: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image I2")
+    formula: str = field(
+        doc="arithmetic formula referring to I1 and I2")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="result of the arithmetic"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="result of the arithmetic"
     )
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "cartoLinearComb.py",
             "-f", self.formula,
             "-i", self.input_image_1,
             "-i", self.input_image_2,
-            "-o", self.output_image]
+            "-o", self.output_image
+        ]
+        subprocess.check_call(cmd)
 
 
 class MergeImagesOneToOne(capsul.api.Process):
     """Merge values into an image using a mask image."""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    mask_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="mask image (must have an integer voxel type)")
-    label = Int(
-        Undefined, output=False,
-        desc="only label of the mask image to take into account")
-    value = Float(
-        Undefined, output=False,
-        desc="replacement value")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    mask_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="mask image (must have an integer voxel type)")
+    label_to_replace: int = field(
+        doc="only label of the mask image to take into account")
+    value: float = field(
+        doc="replacement value")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsMerge",
             "--verbose", "0",
             "-m", "oo",
-            "-l", str(self.label),
+            "-l", str(self.label_to_replace),
             "-v", repr(self.value),
             "-i", self.input_image,
             "-M", self.mask_image,
-            "-o", self.output_image]
-
-
-class VolumeSink(capsul.api.Process):
-    """Use this process to ignore a mandatory output."""
-
-    file = File(Undefined, allowed_extensions=VOLUME_EXTENSIONS,
-                desc="Volume file to be ignored")
-
-    def _run_process(self):
-        pass
+            "-o", self.output_image
+        ]
+        subprocess.check_call(cmd)
 
 
 class EuclideanUpwindingAlongGradient(capsul.api.Process):
     """Compute distance to a boundary along the gradient of a scalar field."""
 
-    domain = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="label image defining the computation domain")
-    field = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="scalar field whose gradient is used as the integration "
+    domain: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="label image defining the computation domain")
+    scalar_field: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is used as the integration "
         "direction")
-    downfield = Bool(
-        False, optional=False,
-        desc="work on inverted field (downfield instead of upfield)")
-    domain_label = Int(
-        100, optional=True,
-        desc="label of the propagation domain")
-    origin_label = Int(
-        0, optional=True,
-        desc="label of the origin object")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    downfield: bool = field(
+        doc="work on inverted field (downfield instead of upfield)")
+    domain_label: int = field(
+        default=100,
+        doc="label of the propagation domain")
+    origin_label: int = field(
+        default=0,
+        doc="label of the origin object")
+    verbosity: int = field(default=1, doc="Verbosity level")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output volume containing the distance")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output volume containing the distance")
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylUpwindDistance",
             "--domain", self.domain,
-            "--field", self.field,
+            "--field", self.scalar_field,
             "--invert", str(self.downfield),
             "--domain-label", str(self.domain_label),
             "--origin-label", str(self.origin_label),
             "--verbose", str(self.verbosity),
-            "--output", self.output]
+            "--output", self.output
+        ]
+        subprocess.check_call(cmd)
 
 
 class Distmaps(capsul.api.Process):
     """Compute distance maps to the boundaries of the cortex"""
 
-    classif = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    classif: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
 
-    distwhite = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="signed Euclidean distance to the white matter interface"
+    distwhite: File = field(
+        default=os.devnull,
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="signed Euclidean distance to the white matter interface"
     )
-    distCSF = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="signed Euclidean distance to the CSF interface"
+    distCSF: File = field(
+        default=os.devnull,
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="signed Euclidean distance to the CSF interface"
     )
-    classif_with_outer_boundaries = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex with labelled boundaries "
+    classif_with_outer_boundaries: File = field(
+        default=os.devnull,
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex with labelled boundaries "
         "(50 on the CSF, 150 on the white matter)")
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "ylDistmaps",
             self.classif,
             self.distwhite,
             self.distCSF,
             self.classif_with_outer_boundaries
         ]
+        subprocess.check_call(cmd)
+
+
+class ThresholdModeEnum(str, enum.Enum):
+    eq = "eq"
+    di = "di"
+    lt = "lt"
+    le = "le"
+    gt = "gt"
+    ge = "ge"
 
 
 class ImageSingleThreshold(capsul.api.Process):
     """Threshold an image"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    binary = Bool(
-        False, output=False, optional=True,
-        desc="return a binary result as int16")
-    fg = Int(
-        32767, output=False, optional=True,
-        desc="foreground value set on thresholded in voxels in binary mode")
-    threshold = Float(
-        Undefined, output=False,
-        desc="value of the threshold")
-    mode = Enum(
-        "eq", "di", "lt", "le", "gt", "ge", output=False,
-        desc="""\
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    binary: bool = field(
+        default=False,
+        doc="return a binary result as int16")
+    fg: int = field(
+        default=32767,
+        doc="foreground value set on thresholded in voxels in binary mode")
+    threshold: float = field(
+        doc="value of the threshold")
+    mode: ThresholdModeEnum = field(
+        doc="""\
 thresholding type
     lt   --> lower than
     le   --> lower or equal to
@@ -540,97 +540,110 @@ thresholding type
     di   --> differ
 """)
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="thresholded image")
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="thresholded image")
 
-    def get_commandline(self):
+    def execute(self, context):
         cmd = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
             "AimsThreshold",
             "--verbose", "0",
             "-b", str(self.binary),
-            "-m", self.mode,
+            "-m", self.mode.value,
             "-t", repr(self.threshold),
             "--input", self.input_image,
             "--output", self.output_image
         ]
         if self.binary:
             cmd += ["--fg", str(self.fg)]
-        return cmd
+        subprocess.check_call(cmd)
 
 
 class LabelEachVoxel(capsul.api.Process):
     """Assign a unique label to each voxel of a mask"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input mask")
-    first_label = Int(
-        1, output=False, optional=True,
-        desc="assign labels starting with this value")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input mask")
+    first_label: int = field(
+        default=1,
+        doc="assign labels starting with this value")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label volume with S32 datatype")
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label volume with S32 datatype")
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylLabelEachVoxel",
             "--first-label", str(self.first_label),
             "--input", self.input_image,
             "--output", self.output_image
         ]
+        subprocess.check_call(cmd)
+
+
+class VolumeDataTypeEnum(str, enum.Enum):
+    CDOUBLE = "CDOUBLE"
+    CFLOAT = "CFLOAT"
+    DOUBLE = "DOUBLE"
+    FLOAT = "FLOAT"
+    HSV = "HSV"
+    POINT3DF = "POINT3DF"
+    RGB = "RGB"
+    RGBA = "RGBA"
+    S16 = "S16"
+    S32 = "S32"
+    S8 = "S8"
+    U16 = "U16"
+    U32 = "U32"
+    U8 = "U8"
+    VECTOR_OF_3_SHORT = "VECTOR_OF_3_SHORT"
+    VECTOR_OF_6_FLOAT = "VECTOR_OF_6_FLOAT"
 
 
 class ConvertDataType(capsul.api.Process):
     """Convert the data type of an image"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    data_type = Enum(
-        "CDOUBLE", "CFLOAT", "DOUBLE", "FLOAT", "HSV", "POINT3DF", "RGB",
-        "RGBA", "S16", "S32", "S8", "U16", "U32", "U8", "VECTOR_OF_3_SHORT",
-        "VECTOR_OF_6_FLOAT", output=False,
-        desc="output data type")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    data_type: VolumeDataTypeEnum = field(
+        doc="output data type")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label volume with S32 datatype")
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label volume with S32 datatype")
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsFileConvert",
-            "--type", self.data_type,
+            "--type", self.data_type.value,
             "--input", self.input_image,
             "--output", self.output_image
         ]
+        subprocess.check_call(cmd)
 
 
 class MergeImagesAllToOne(capsul.api.Process):
     """Merge values into an image using a mask image."""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    mask_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="mask image (must have an integer voxel type)")
-    value = Float(
-        Undefined, output=False,
-        desc="replacement value")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    mask_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="mask image (must have an integer voxel type)")
+    value: float = field(
+        doc="replacement value")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsMerge",
             "--mode", "ao",
             "--value", repr(self.value),
@@ -638,75 +651,74 @@ class MergeImagesAllToOne(capsul.api.Process):
             "--Mask", self.mask_image,
             "--output", self.output_image
         ]
+        subprocess.check_call(cmd)
 
 
 class MergeImagesSameValues(capsul.api.Process):
     """Merge values into an image using a mask image."""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input image")
-    mask_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="mask image (must have an integer voxel type)")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input image")
+    mask_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="mask image (must have an integer voxel type)")
 
-    output_image = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output image"
+    output_image: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output image"
     )
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsMerge",
             "--mode", "sv",
             "--input", self.input_image,
             "--Mask", self.mask_image,
             "--output", self.output_image
         ]
+        subprocess.check_call(cmd)
 
 
 class PropagateAlongFieldGradient(capsul.api.Process):
     """Propagate labels along the gradient of a scalar field."""
 
-    seeds = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="""\
+    seeds: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="""\
 volume of labels (either S16 or S32):
     - positive labels are seeds,
     - zero is the region of propagation,
     - negative labels are forbidden regions.
 """)
-    target_label = Int(
-        0, output=False, optional=True,
-        desc="voxels having this label are used as advection starting points")
-    grad_field = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="scalar field whose gradient is to be advected along")
-    step_size = Float(
-        0.03, output=False, optional=True,
-        desc="size of the advection step (millimetres)")
-    upfield = Bool(
-        False, optional=False,
-        desc="Direction of advection (upfield if True, downfield if False)")
-    max_dist = Float(
-        6, output=False, optional=True,
-        desc="maximum advection distance (millimetres)")
-    verbosity = Int(1, output=False, optional=True, desc="Verbosity level")
+    target_label: int = field(
+        default=0,
+        doc="voxels having this label are used as advection starting points")
+    grad_field: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="scalar field whose gradient is to be advected along")
+    step_size: float = field(
+        default=0.03,
+        doc="size of the advection step (millimetres)")
+    upfield: bool = field(
+        doc="Direction of advection (upfield if True, downfield if False)")
+    max_dist: float = field(
+        default=6,
+        doc="maximum advection distance (millimetres)")
+    verbosity: int = field(default=1, doc="Verbosity level")
 
-    output_labels = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output the propagated labels")
-    dest_points = File(
-        Undefined, output=True, optional=True,
-        allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output the destination points for each propagated voxel")
+    output_labels: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output the propagated labels")
+    dest_points: File = field(
+        write=True, optional=True,
+        extensions=VOLUME_EXTENSIONS,
+        doc="output the destination points for each propagated voxel")
 
-    def get_commandline(self):
+    def execute(self, context):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        cmd = [
             "ylPropagateAlongField",
             "--seeds", self.seeds,
             "--grad-field", self.grad_field,
@@ -716,123 +728,133 @@ volume of labels (either S16 or S32):
             "--verbose", str(self.verbosity),
             "--output", self.output_labels,
         ]
-        if self.dest_points is not Undefined:
-            args += ["--dest-points", self.dest_points]
-        return args
+        if self.dest_points is not undefined:
+            cmd += ["--dest-points", self.dest_points]
+        subprocess.check_call(cmd)
 
 
 class GetExchangedPropagationVolume(capsul.api.Process):
     """Get a volume of exchanged propagation labels"""
 
-    classif_with_outer_boundaries = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    classif_with_outer_boundaries: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter, 50 on the CSF border, 150 on the white matter "
         "border)")
-    CSF_labels_on_white = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="labels of the CSF projected onto the white matter boundary")
-    white_labels_on_CSF = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="labels of the white matter projected onto the CSF boundary")
+    CSF_labels_on_white: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="labels of the CSF projected onto the white matter boundary")
+    white_labels_on_CSF: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="labels of the white matter projected onto the CSF boundary")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="volume where each interface is labelled with connected "
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="volume where each interface is labelled with connected "
         "components facing the same voxels of the other interface")
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "ylGetExchangedPropvol",
             self.classif_with_outer_boundaries,
             self.CSF_labels_on_white,
             self.white_labels_on_CSF,
             self.output
         ]
+        subprocess.check_call(cmd)
 
 
 class RelabelConjunction(capsul.api.Process):
     """Assign new labels to voxels that have the same pair of labels"""
 
-    labels1 = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label image")
-    labels2 = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label image")
+    labels1: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label image")
+    labels2: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label image")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label image")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label image")
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "ylRelabelConjunction",
             self.labels1,
             self.labels2,
             self.output
         ]
+        subprocess.check_call(cmd)
+
+
+# TODO restore enum
+# class ConnectivityTypeEnum(str, enum.Enum):
+#     c26: "26"
+#     c4xy: "4xy"  # noqa: F722
+#     c4xz: "4xz"  # noqa: F722
+#     c4yz: "4yz"  # noqa: F722
+#     c6: "6"
+#     c8xy: "8xy"  # noqa: F722
+#     c8xz: "8xz"  # noqa: F722
+#     c8yz: "8yz"  # noqa: F722
+#     c18: "18"
+ConnectivityTypeEnum = str
 
 
 class ConnectedComponents(capsul.api.Process):
     """Extract connected components of a labelled volume"""
 
-    input_image = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label image")
-    connectivity = Enum(
-        "26", "4xy", "4xz", "4yz", "6", "8xy", "8xz", "8yz", "18",
-        output=False, optional=True,
-        desc="connectivity")
+    input_image: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label image")
+    connectivity: ConnectivityTypeEnum = field(
+        default="26",
+        doc="connectivity")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output labelled connected components volume")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output labelled connected components volume")
 
-    def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "AimsConnectComp",
             "--input", self.input_image,
             "--output", self.output,
-            "--connectivity", self.connectivity,
+            "--connectivity", self.connectivity
         ]
+        subprocess.check_call(cmd)
 
 
 class MergeCortexColumnRegions(capsul.api.Process):
     """Aggregate over-segmented cortical traverses."""
 
-    input_traverses = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label volume")
-    proj_csf = File(
-        Undefined, output=False, optional=True,
-        allowed_extensions=VOLUME_EXTENSIONS,
-        desc="projected coordinates of the CSF surface")
-    proj_white = File(
-        Undefined, output=False, optional=True,
-        allowed_extensions=VOLUME_EXTENSIONS,
-        desc="projected coordinates of the white surface")
-    classif = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="classification image of the cortex (100 inside, 0 in CSF, "
+    input_traverses: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label volume")
+    proj_csf: File = field(
+        optional=True,
+        extensions=VOLUME_EXTENSIONS,
+        doc="projected coordinates of the CSF surface")
+    proj_white: File = field(
+        optional=True,
+        extensions=VOLUME_EXTENSIONS,
+        doc="projected coordinates of the white surface")
+    classif: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="classification image of the cortex (100 inside, 0 in CSF, "
         "200 in white matter)")
-    goal_diameter = Float(
-        0.5, output=False, optional=True,
-        desc="goal region diameter (millimetres)")
-    verbosity = Int(2, output=False, optional=True, desc="Verbosity level")
+    goal_diameter: float = field(
+        default=0.5,
+        doc="goal region diameter (millimetres)")
+    verbosity: int = field(default=2, doc="Verbosity level")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label volume")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label volume")
 
-    def get_commandline(self):
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+    def execute(self, context):
+        cmd = [
             "ylMergeCortexColumnRegions",
             "--input", self.input_traverses,
             "--proj-csf", self.proj_csf,
@@ -842,46 +864,60 @@ class MergeCortexColumnRegions(capsul.api.Process):
             "--verbose", str(self.verbosity),
             "--output", self.output,
         ]
-        return args
+        subprocess.check_call(cmd)
 
 
 class Relabel(capsul.api.Process):
     """Assign new consecutive labels to an existing label image"""
 
-    input = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label image")
+    input: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label image")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label image")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label image")
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "ylRelabel",
             self.input,
             self.output
         ]
+        subprocess.check_call(cmd)
 
 
 class RandomizeLabels(capsul.api.Process):
     """Randomize the labels of an image with consecutive labels"""
 
-    input = File(
-        Undefined, output=False, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="input label image")
+    input: File = field(
+        extensions=VOLUME_EXTENSIONS,
+        doc="input label image")
 
-    output = File(
-        Undefined, output=True, allowed_extensions=VOLUME_EXTENSIONS,
-        desc="output label image")
+    output: File = field(
+        write=True, extensions=VOLUME_EXTENSIONS,
+        doc="output label image")
 
-    def get_commandline(self):
-        # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+    def execute(self, context):
+        cmd = [
             "ylRandomizeLabels",
             self.input,
             self.output
         ]
+        subprocess.check_call(cmd)
+
+
+# TODO delete
+if __name__ == '__main__':
+    import sys
+    sys.stdout.flush()
+    from soma.qt_gui.qt_backend import QtGui
+    from capsul.qt_gui.widgets import PipelineDeveloperView
+    pipeline = capsul.api.Capsul.executable(
+        'highres_cortex.capsul.isovolume')
+    app = QtGui.QApplication.instance()
+    if not app:
+        app = QtGui.QApplication(sys.argv)
+    view1 = PipelineDeveloperView(pipeline, show_sub_pipelines=True)
+    view1.show()
+    app.exec_()

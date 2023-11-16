@@ -9,7 +9,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-python -m capsul highres_cortex.capsul.thickness_adv \
+python -m capsul run highres_cortex.capsul.thickness_adv \
     classif=../classif.nii.gz \
     advection_step_size=0.05 \
     verbosity=1 \

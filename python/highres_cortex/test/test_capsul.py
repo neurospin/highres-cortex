@@ -48,59 +48,74 @@ from . import compare_with_reference
 
 
 class SphereTestCase(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         try:
-            self.test_dir = tempfile.mkdtemp(
+            cls.test_dir = tempfile.mkdtemp(
                 prefix="highres-cortex-capsul-tests")
             synthetic_data.write_sphere_and_reference_result(
-                1, 4, 0.3, dir=self.test_dir)
+                1, 4, 0.3, dir=cls.test_dir)
 
-            self.result_comp = compare_with_reference.ResultComparator(
-                self.test_dir)
+            cls.result_comp = compare_with_reference.ResultComparator(
+                cls.test_dir)
 
-            p1 = capsul.api.get_process_instance(
+            cls.capsul = capsul.api.Capsul(
+                "test-highres-cortex",
+                site_file=None,
+                user_file=None,
+                database_path=os.path.join(cls.test_dir, "capsul.rdb")
+            )
+            cls.capsul_engine = cls.capsul.engine()
+
+            p1 = capsul.api.executable(
                 "highres_cortex.capsul.processes.BinarizeCortex")
-            p1.classif = os.path.join(self.test_dir, "classif.nii.gz")
-            p1.output_image = os.path.join(self.test_dir, "cortex_mask.nii.gz")
-            p1()
+            p1.classif = os.path.join(cls.test_dir, "classif.nii.gz")
+            p1.output_image = os.path.join(cls.test_dir, "cortex_mask.nii.gz")
+            with cls.capsul_engine as ce:
+                ce.run(p1)
         except BaseException:
-            if hasattr(self, "test_dir"):
-                shutil.rmtree(self.test_dir)
+            if hasattr(cls, "test_dir"):
+                shutil.rmtree(cls.test_dir)
             raise
         if os.environ.get('KEEP_TEMPORARY'):
-            print('highres-cortex test directory is {0}'.format(self.test_dir))
+            print('highres-cortex test directory is {0}'.format(cls.test_dir))
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         if not os.environ.get('KEEP_TEMPORARY'):
-            shutil.rmtree(self.test_dir)
+            shutil.rmtree(cls.test_dir)
 
+    # Tests are run in lexicographical order. The 1 prefix is a workaround for
+    # https://github.com/populse/capsul/issues/325
     def test_laplacian(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.processes.Laplacian")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.precision = 0.001
         p.typical_cortical_thickness = 3
         p.laplace_field = os.path.join(self.test_dir, "laplacian.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "laplacian.nii.gz", 0.017,
             reference_file="reference_laplacian.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_filtered_sumcurvs(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.filtered_sumcurvs")
         p.input = os.path.join(self.test_dir, "reference_laplacian.nii.gz")
         p.mode = "sum"
         p.output = os.path.join(self.test_dir, "curvature.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "curvature.nii.gz", 0.067,
             reference_file="reference_curvature.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_advect_euclidean(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient")
         p.domain = os.path.join(self.test_dir, "cortex_mask.nii.gz")
         p.grad_field = os.path.join(
@@ -109,43 +124,46 @@ class SphereTestCase(unittest.TestCase):
         p.upfield = False
         p.output_length = os.path.join(
             self.test_dir, "euclidean_adv_toward_white.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_adv_toward_white.nii.gz", 0.075,
             reference_file="reference_distwhite.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_upwind_euclidean(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.processes.EuclideanUpwindingAlongGradient")
         p.domain = os.path.join(self.test_dir, "classif.nii.gz")
-        p.field = os.path.join(
+        p.scalar_field = os.path.join(
             self.test_dir, "reference_laplacian.nii.gz")
         p.downfield = True
         p.origin_label = 200
         p.output = os.path.join(
             self.test_dir, "euclidean_upw_toward_white.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "euclidean_upw_toward_white.nii.gz", 0.22,
             reference_file="reference_distwhite.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_equivolumetric_pipeline(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.isovolume")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.advection_step_size = 0.05
         p.equivolumetric_depth = os.path.join(
             self.test_dir, "equivolumetric_depth.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "equivolumetric_depth.nii.gz", 0.028,
             reference_file="reference_equivolumic.nii.gz")
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_thickness_adv_pipeline(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.thickness_adv")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.advection_step_size = 0.05
@@ -153,7 +171,8 @@ class SphereTestCase(unittest.TestCase):
             self.test_dir, "thickness_adv.nii.gz")
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_adv.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_adv.nii.gz", 0.12,
             reference_file="reference_thickness.nii.gz")
@@ -164,14 +183,15 @@ class SphereTestCase(unittest.TestCase):
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_thickness_upw_pipeline(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.thickness_upw")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.thickness_image = os.path.join(
             self.test_dir, "thickness_upw.nii.gz")
         p.equidistant_depth = os.path.join(
             self.test_dir, "equidistant_depth_upw.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
         res = self.result_comp.ensure_max_rms_error(
             "thickness_upw.nii.gz", 0.27,
             reference_file="reference_thickness.nii.gz")
@@ -182,12 +202,13 @@ class SphereTestCase(unittest.TestCase):
         self.assertTrue(res, msg="RMS error is too high")
 
     def test_traverses_pipeline(self):
-        p = capsul.api.get_process_instance(
+        p = capsul.api.executable(
             "highres_cortex.capsul.traverses")
         p.classif = os.path.join(self.test_dir, "classif.nii.gz")
         p.cortical_traverses = os.path.join(
             self.test_dir, "traverses.nii.gz")
-        p()
+        with self.capsul_engine as ce:
+            ce.run(p)
 
 
 if __name__ == "__main__":

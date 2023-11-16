@@ -1,0 +1,78 @@
+{
+    "type": "custom_pipeline",
+    "name": "thickness_adv",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute the cortical thickness along Laplace field lines from a classification volume, using Eulerian advection (slightly more precise than upwinding, but much slower).",
+        "executables": {
+            "laplace": {
+                "definition": "highres_cortex.capsul.processes.Laplacian",
+                "type": "process"
+            },
+            "binarize_cortex": {
+                "definition": "highres_cortex.capsul.processes.BinarizeCortex",
+                "type": "process"
+            },
+            "advect_toward_pial": {
+                "definition": "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "domain_type": "interpolated",
+                    "upfield": true
+                }
+            },
+            "advect_toward_white": {
+                "definition": "highres_cortex.capsul.processes.EuclideanAdvectionAlongGradient",
+                "type": "process",
+                "parameters": {
+                    "domain_type": "interpolated",
+                    "upfield": false
+                }
+            },
+            "total_length": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 + I2"
+                }
+            },
+            "equidistant_depth": {
+                "definition": "highres_cortex.capsul.processes.ImageArithmetic2Inputs",
+                "type": "process",
+                "parameters": {
+                    "formula": "I1 / I2"
+                }
+            }
+        },
+        "parameters": {
+            "laplace_precision": 0.001,
+            "laplace_typical_cortical_thickness": 3.0,
+            "advection_max_dist": 6.0,
+            "advection_step_size": 0.03,
+            "verbosity": 1
+        },
+        "links": [
+            "classif->binarize_cortex.classif",
+            "classif->laplace.classif",
+            "verbosity->advect_toward_pial.verbosity",
+            "verbosity->advect_toward_white.verbosity",
+            "verbosity->laplace.verbosity",
+            "laplace_precision->laplace.precision",
+            "laplace_typical_cortical_thickness->laplace.typical_cortical_thickness",
+            "advection_step_size->advect_toward_white.step_size",
+            "advection_step_size->advect_toward_pial.step_size",
+            "advection_max_dist->advect_toward_pial.max_dist",
+            "advection_max_dist->advect_toward_white.max_dist",
+            "laplace.laplace_field->advect_toward_white.grad_field",
+            "laplace.laplace_field->advect_toward_pial.grad_field",
+            "binarize_cortex.output_image->advect_toward_white.domain",
+            "binarize_cortex.output_image->advect_toward_pial.domain",
+            "advect_toward_pial.output_length->total_length.input_image_1",
+            "advect_toward_pial.output_length->equidistant_depth.input_image_1",
+            "advect_toward_white.output_length->total_length.input_image_2",
+            "total_length.output_image->equidistant_depth.input_image_2",
+            "total_length.output_image->thickness_image",
+            "equidistant_depth.output_image->equidistant_depth"
+        ]
+    }
+}

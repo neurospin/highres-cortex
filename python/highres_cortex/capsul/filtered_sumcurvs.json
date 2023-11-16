@@ -1,0 +1,34 @@
+{
+    "type": "custom_pipeline",
+    "name": "filtered_sumcurvs",
+    "definition": {
+        "export_parameters": false,
+        "doc": "Compute the filtered sum of principal curvatures of isophote surfaces. This is equivalent to computing the divergence of the normalized gradient of the input scalar field. Note that a Gaussian smoothing of width sigma is first applied to the input image, in order to limit the appearance of local high curvature values (e.g. due to the discontinuity of second-order derivative at the borders of the cortex).",
+        "executables": {
+            "smoothing": {
+                "definition": "highres_cortex.capsul.processes.GaussianSmoothing",
+                "type": "process"
+            },
+            "sumcurvs": {
+                "definition": "highres_cortex.capsul.processes.IsoCurvature",
+                "type": "process",
+                "parameters": {
+                    "mode": "sum"
+                }
+            }
+        },
+        "parameters": {
+            "sigma": 1.0,
+            "verbosity": 1
+        },
+        "links": [
+            "input->smoothing.input_image",
+            "sigma->smoothing.zsigma",
+            "sigma->smoothing.xsigma",
+            "sigma->smoothing.ysigma",
+            "verbosity->sumcurvs.verbosity",
+            "smoothing.output_image->sumcurvs.input_image",
+            "sumcurvs.output_image->output"
+        ]
+    }
+}
