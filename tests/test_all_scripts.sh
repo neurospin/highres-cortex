@@ -32,12 +32,15 @@ tmpdir=$(mktemp -d -t hrcortex_XXXX)
 # and friends on Mac OS 10.11+, which are not inherited by the shell
 # interpreter because it is protected (it resides in the protected
 # directory /bin).
+BV_ENV=$(which bv_env)
+# (if bv_env is not found, like in a conda install, then it will just not
+# be used)
 
 cd -- "$tmpdir"
-bv_env python -m highres_cortex.test.synthetic_data 5 3 0.3
+$BV_ENV python -m highres_cortex.test.synthetic_data 5 3 0.3
 "$test_dir"/run_all_scripts.sh
 
-bv_env python - <<EOF
+$BV_ENV python - <<EOF
 import sys
 from highres_cortex.test.compare_with_reference import *
 c = ResultComparator(".")
