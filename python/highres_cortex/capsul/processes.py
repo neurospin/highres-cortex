@@ -36,8 +36,8 @@
 
 """Elementary processes to be used within the CAPSUL pipelining system."""
 
-from __future__ import absolute_import, division, print_function
 import math
+import shutil
 
 import capsul.api
 import capsul.process.xml
@@ -83,8 +83,11 @@ class Laplacian(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylLaplacian",
             "--classif", self.classif,
             "--output", self.laplace_field,
@@ -113,8 +116,11 @@ class IsoCurvature(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylIsoCurvature",
             "--input", self.input_image,
             "--mode", self.mode,
@@ -141,8 +147,11 @@ class RemoveNaN(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsRemoveNaN",
             "--verbose", "0",
             "-i", self.input_image,
@@ -170,8 +179,11 @@ class MedianFilter(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsMedianSmoothing",
             "--verbose", "0",
             "--input", self.input_image,
@@ -210,8 +222,11 @@ class GaussianSmoothing(capsul.api.Process):
             sigma_args += ["--ysigma", str(self.ysigma)]
         if self.zsigma is not Undefined:
             sigma_args += ["--zsigma", str(self.zsigma)]
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsGaussianSmoothing",
             "--input", self.input_image
         ] + sigma_args + [
@@ -233,8 +248,11 @@ class BinarizeCortex(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsThreshold",
             "--verbose", "0",
             "-b",
@@ -281,8 +299,11 @@ class AdvectTubesAlongGradient(capsul.api.Process):
     def get_commandline(self):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        args = bv_env + [
             "ylAdvectTubes",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
@@ -326,8 +347,11 @@ class EuclideanAdvectionAlongGradient(capsul.api.Process):
     def get_commandline(self):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        args = bv_env + [
             "ylAdvectEuclidean",
             "--domain", self.domain,
             "--grad-field", self.grad_field,
@@ -361,8 +385,11 @@ class PostProcessEquivolumetricDepth(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylPostProcessEquivolumetricDepth",
             self.input_image,
             self.classif,
@@ -389,8 +416,10 @@ class ImageArithmetic2Inputs(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "cartoLinearComb.py",
             "-f", self.formula,
             "-i", self.input_image_1,
@@ -420,8 +449,11 @@ class MergeImagesOneToOne(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsMerge",
             "--verbose", "0",
             "-m", "oo",
@@ -468,8 +500,11 @@ class EuclideanUpwindingAlongGradient(capsul.api.Process):
         desc="output volume containing the distance")
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylUpwindDistance",
             "--domain", self.domain,
             "--field", self.field,
@@ -503,8 +538,11 @@ class Distmaps(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylDistmaps",
             self.classif,
             self.distwhite,
@@ -545,8 +583,11 @@ thresholding type
         desc="thresholded image")
 
     def get_commandline(self):
-        cmd = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        cmd = bv_env + [
             "AimsThreshold",
             "--verbose", "0",
             "-b", str(self.binary),
@@ -575,8 +616,11 @@ class LabelEachVoxel(capsul.api.Process):
         desc="output label volume with S32 datatype")
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylLabelEachVoxel",
             "--first-label", str(self.first_label),
             "--input", self.input_image,
@@ -601,8 +645,11 @@ class ConvertDataType(capsul.api.Process):
         desc="output label volume with S32 datatype")
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsFileConvert",
             "--type", self.data_type,
             "--input", self.input_image,
@@ -629,8 +676,11 @@ class MergeImagesAllToOne(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsMerge",
             "--mode", "ao",
             "--value", repr(self.value),
@@ -656,8 +706,11 @@ class MergeImagesSameValues(capsul.api.Process):
     )
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsMerge",
             "--mode", "sv",
             "--input", self.input_image,
@@ -705,8 +758,11 @@ volume of labels (either S16 or S32):
     def get_commandline(self):
         command_step_size = ((-self.step_size) if self.upfield
                              else self.step_size)
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        args = bv_env + [
             "ylPropagateAlongField",
             "--seeds", self.seeds,
             "--grad-field", self.grad_field,
@@ -743,8 +799,11 @@ class GetExchangedPropagationVolume(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylGetExchangedPropvol",
             self.classif_with_outer_boundaries,
             self.CSF_labels_on_white,
@@ -769,8 +828,11 @@ class RelabelConjunction(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylRelabelConjunction",
             self.labels1,
             self.labels2,
@@ -794,8 +856,11 @@ class ConnectedComponents(capsul.api.Process):
         desc="output labelled connected components volume")
 
     def get_commandline(self):
-        return [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "AimsConnectComp",
             "--input", self.input_image,
             "--output", self.output,
@@ -831,8 +896,11 @@ class MergeCortexColumnRegions(capsul.api.Process):
         desc="output label volume")
 
     def get_commandline(self):
-        args = [
-            "bv_env",  # needed to set DYLD_* in environment on Mac OS 10.11+
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        args = bv_env + [
             "ylMergeCortexColumnRegions",
             "--input", self.input_traverses,
             "--proj-csf", self.proj_csf,
@@ -858,8 +926,11 @@ class Relabel(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylRelabel",
             self.input,
             self.output
@@ -879,8 +950,11 @@ class RandomizeLabels(capsul.api.Process):
 
     def get_commandline(self):
         # bv_env automatically launches the command through Python on Windows
-        return [
-            "bv_env",
+        # needed to set DYLD_* in environment on Mac OS 10.11+
+        bv_env = [shutil.which('bv_env')]
+        if bv_env[0] is None:
+            bv_env = []
+        return bv_env + [
             "ylRandomizeLabels",
             self.input,
             self.output
