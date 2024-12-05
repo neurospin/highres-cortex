@@ -32,7 +32,7 @@ tmpdir=$(mktemp -d -t hrcortex_XXXX)
 # and friends on Mac OS 10.11+, which are not inherited by the shell
 # interpreter because it is protected (it resides in the protected
 # directory /bin).
-BV_ENV=$(which bv_env)
+BV_ENV=$(which bv_env || echo "")
 # (if bv_env is not found, like in a conda install, then it will just not
 # be used)
 
