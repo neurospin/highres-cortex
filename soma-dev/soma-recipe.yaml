@@ -1,0 +1,9 @@
+package:
+  name: highres-cortex
+
+soma-dev:
+  internal-dependencies:
+    - soma
+    - anatomist
+
+  type: compiled
