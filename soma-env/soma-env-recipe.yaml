@@ -2,6 +2,7 @@ package:
   name: highres-cortex
 
 soma-env:
+  publication: neuro-forge
   internal-dependencies:
     - soma
     - anatomist
