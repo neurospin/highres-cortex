@@ -8,5 +8,6 @@ soma-env:
   internal-dependencies:
     - soma
     - anatomist
+    - axon
 
   type: compiled
