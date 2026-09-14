@@ -51,7 +51,7 @@ namespace yl
 
 /** Helper class to use Point3d & friends in hash tables */
 template <class Point>
-struct PointHasher : std::unary_function<Point, std::size_t>
+struct PointHasher
 {
   std::size_t operator()(const Point& point) const
   {

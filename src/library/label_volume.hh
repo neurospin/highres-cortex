@@ -50,7 +50,7 @@ namespace yl
 
 /** Return the first element of a std::pair, like non-standard std::select1st */
 template<typename TPair>
-class select1st : public std::unary_function<TPair, typename TPair::first_type>
+class select1st
 {
 public:
   typename TPair::first_type&
